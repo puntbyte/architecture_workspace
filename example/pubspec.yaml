@@ -1,0 +1,29 @@
+name: example
+description: A demonstration project for the clean_architecture_kit package.
+version: 1.0.0
+
+publish_to: 'none'
+
+environment:
+  sdk: ^3.9.0
+
+resolution: workspace
+
+dependencies:
+  bloc: any
+  clean_architecture_core: any
+  flutter_bloc: any
+
+  flutter:
+    sdk: flutter
+
+  fpdart: any
+  injectable: any
+
+dev_dependencies:
+  custom_lint: any
+
+  clean_architecture_kit: any
+
+flutter:
+  uses-material-design: true
