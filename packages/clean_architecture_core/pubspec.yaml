@@ -1,7 +1,15 @@
 name: clean_architecture_core
-description: A starting point for Dart libraries or applications.
+description: >-
+  A lightweight companion package for clean_architecture_kit, providing core interfaces like 
+  Repository and UseCase for building Clean Architecture apps.
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/puntbyte/clean_architecture_workspace/tree/master/packages/clean_architecture_core
+homepage: https://github.com/puntbyte/clean_architecture_workspace/tree/master/packages/clean_architecture_core
+issue_tracker: https://github.com/puntbyte/clean_architecture_workspace/issues
+topics:
+  - clean-architecture
+  - architecture
+  - clean-architecture-kit
 
 environment:
   sdk: ^3.9.2

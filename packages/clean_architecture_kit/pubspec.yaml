@@ -1,11 +1,15 @@
 name: clean_architecture_kit
 description: >-
-  A custom linter to enforce Clean Architecture principles in Dart and Flutter projects, with code 
-  actions to streamline development.
+  An opinionated linter for enforcing Clean Architecture in Dart & Flutter. Provides real-time 
+  warnings and intelligent quick fixes to automate boilerplate.
 version: 2.0.0
-
-repository: https://github.com/puntbyte/clean_architecture_kit
-homepage: https://github.com/puntbyte/clean_architecture_kit
+repository: https://github.com/puntbyte/clean_architecture_workspace/tree/master/packages/clean_architecture_kit
+homepage: https://github.com/puntbyte/clean_architecture_workspace/tree/master/packages/clean_architecture_kit
+issue_tracker: https://github.com/puntbyte/clean_architecture_workspace/issues
+topics:
+  - lint
+  - linter
+  - clean-architecture
 
 environment:
   sdk: ^3.9.0
