@@ -64,7 +64,7 @@ void main() {
 
     print('✅ SUCCESS: Configuration parsed without errors!');
     print('This means your config models are correct. The issue is likely a dependency/caching problem.');
-    print('Please run `melos clean && melos bootstrap` and restart your IDE\'s analysis server.');
+    print("Please run `melos clean && melos bootstrap` and restart your IDE's analysis server.");
 
   } catch (e, st) {
     print('❌ FATAL ERROR: The config parser crashed!');

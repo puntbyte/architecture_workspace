@@ -42,7 +42,7 @@ class DisallowModelInDomain extends DartLintRule {
         reporter.atNode(typeNode, _code);
       }
 
-      typeNode.typeArguments?.arguments.forEach((arg) => checkType(arg));
+      typeNode.typeArguments?.arguments.forEach(checkType);
     }
 
     context.registry.addMethodDeclaration((node) {

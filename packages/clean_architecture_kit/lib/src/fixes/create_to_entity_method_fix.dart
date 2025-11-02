@@ -69,10 +69,10 @@ class CreateToEntityMethodFix extends Fix {
 
   ClassElement? _findInheritedEntityElement(ClassDeclaration modelNode) {
     final superclass = modelNode.extendsClause?.superclass;
-    if (superclass?.element is ClassElement) return superclass!.element as ClassElement;
+    if (superclass?.element is ClassElement) return superclass!.element! as ClassElement;
 
     final interface = modelNode.implementsClause?.interfaces.firstOrNull;
-    if (interface?.element is ClassElement) return interface!.element as ClassElement;
+    if (interface?.element is ClassElement) return interface!.element! as ClassElement;
 
     return null;
   }

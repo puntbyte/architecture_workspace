@@ -4,7 +4,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:clean_architecture_kit/src/models/clean_architecture_config.dart';
 import 'package:code_builder/code_builder.dart' as cb;
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -69,11 +68,11 @@ class CreateToEntityExtensionFix extends Fix {
   ClassElement? _findInheritedEntityElement(ClassDeclaration modelNode) {
     final superclass = modelNode.extendsClause?.superclass;
     if (superclass?.element is ClassElement) {
-      return superclass!.element as ClassElement;
+      return superclass!.element! as ClassElement;
     }
     final interface = modelNode.implementsClause?.interfaces.firstOrNull;
     if (interface?.element is ClassElement) {
-      return interface!.element as ClassElement;
+      return interface!.element! as ClassElement;
     }
     return null;
   }

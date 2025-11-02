@@ -2,8 +2,10 @@
 import 'package:clean_architecture_kit/src/lints/disallow_entity_in_data_source.dart';
 import 'package:clean_architecture_kit/src/lints/disallow_flutter_imports_in_domain.dart';
 import 'package:clean_architecture_kit/src/lints/disallow_flutter_types_in_domain.dart';
-import 'package:clean_architecture_kit/src/lints/disallow_use_case_in_widget.dart';
 import 'package:clean_architecture_kit/src/lints/disallow_model_in_domain.dart';
+import 'package:clean_architecture_kit/src/lints/disallow_model_return_from_repository.dart';
+import 'package:clean_architecture_kit/src/lints/disallow_repository_in_presentation.dart';
+import 'package:clean_architecture_kit/src/lints/disallow_use_case_in_widget.dart';
 import 'package:clean_architecture_kit/src/lints/enforce_abstract_data_source_dependency.dart';
 import 'package:clean_architecture_kit/src/lints/enforce_custom_return_type.dart';
 import 'package:clean_architecture_kit/src/lints/enforce_file_and_folder_location.dart';
@@ -14,8 +16,6 @@ import 'package:clean_architecture_kit/src/lints/enforce_naming_conventions.dart
 import 'package:clean_architecture_kit/src/lints/enforce_repository_inheritance.dart';
 import 'package:clean_architecture_kit/src/lints/enforce_use_case_inheritance.dart';
 import 'package:clean_architecture_kit/src/lints/missing_use_case.dart';
-import 'package:clean_architecture_kit/src/lints/disallow_repository_in_presentation.dart';
-import 'package:clean_architecture_kit/src/lints/disallow_model_return_from_repository.dart';
 import 'package:clean_architecture_kit/src/models/clean_architecture_config.dart';
 import 'package:clean_architecture_kit/src/utils/layer_resolver.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
