@@ -1,4 +1,5 @@
 // lib/src/utils/json_map_extension.dart
+
 /// An extension on `Map<String, dynamic>` to provide safe, reusable methods
 /// for parsing configuration values from a YAML file.
 extension JsonMapExtension on Map<String, dynamic> {
@@ -15,23 +16,35 @@ extension JsonMapExtension on Map<String, dynamic> {
 
   /// Safely retrieves a list of strings for a given [key].
   ///
-  /// If the value for the key is not a list, is null, or contains non-string
-  /// elements, this returns an empty list, ensuring type safety.
-  List<String> getList(String key) {
+  /// Expected strict behavior:
+  /// - If the value is a `List` and *every* element is a `String`, return it.
+  /// - Otherwise return [orElse].
+  List<String> getList(String key, [List<String> orElse = const []]) {
     final value = this[key];
-    if (value is List) return value.whereType<String>().toList();
+    if (value is List && value.every((item) => item is String)) {
+      return value.cast<String>().toList();
+    }
 
-    return [];
+    return orElse;
   }
 
   /// Safely retrieves a string for a given [key], falling back to a default.
   ///
   /// If the value for the key is not a string or is null, this returns the
   /// provided [orElse] value.
-  String getString(String key, {String orElse = ''}) {
+  String getString(String key, [String orElse = '']) {
     final value = this[key];
     if (value is String) return value;
 
     return orElse;
+  }
+
+  /// Safely retrieves a string for a given [key], returning null if it's
+  /// missing or not a string. This is for truly optional properties.
+  String? getOptionalString(String key) {
+    final value = this[key];
+    if (value is String) return value;
+
+    return null;
   }
 }

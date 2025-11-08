@@ -1,65 +1,61 @@
+// test/helpers/test_utils.dart
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:test/expect.dart';
 
 /// A test implementation of the LintRuleNodeRegistry that allows us to
-/// manually trigger the visitors after the `run` method has been called.
+/// manually trigger visitors after the `run` method has been called.
 class TestLintRuleNodeRegistry implements LintRuleNodeRegistry {
-  // Callback for ClassDeclaration visitor
-  void Function(ClassDeclaration)? _classCb;
-
-  void Function(MethodInvocation)? _methodInvocationCb;
-
-  // ▼▼▼ ADD THIS SECTION ▼▼▼
-  // Callback for MethodDeclaration visitor
-  void Function(MethodDeclaration)? _methodCb;
+  void Function(FormalParameterList)? _formalParameterListCb;
+  void Function(MethodDeclaration)? _methodDeclarationCb;
+  void Function(FieldDeclaration)? _fieldDeclarationCb;
 
   @override
-  void addClassDeclaration(void Function(ClassDeclaration) cb) {
-    _classCb = cb;
+  void addFormalParameterList(void Function(FormalParameterList) cb) {
+    _formalParameterListCb = cb;
   }
 
-  @override
-  void addMethodInvocation(void Function(MethodInvocation) cb) {
-    _methodInvocationCb = cb;
-  }
-
-  void runMethodInvocation(MethodInvocation node) {
-    _methodInvocationCb?.call(node);
-  }
-
-  // ▼▼▼ AND THIS METHOD ▼▼▼
   @override
   void addMethodDeclaration(void Function(MethodDeclaration) cb) {
-    _methodCb = cb;
+    _methodDeclarationCb = cb;
   }
 
-  // This is the public method our test helper calls for class-based lints.
-  void runClassDeclaration(ClassDeclaration node) {
-    _classCb?.call(node);
+  @override
+  void addFieldDeclaration(void Function(FieldDeclaration) cb) {
+    _fieldDeclarationCb = cb;
   }
 
-  // ▼▼▼ AND THIS PUBLIC METHOD ▼▼▼
-  // This is the public method our `DataSourcePurity` test helper needs to call.
+  // Public method to manually trigger the visitor.
+  void runFormalParameterList(FormalParameterList node) {
+    _formalParameterListCb?.call(node);
+  }
+
+  // Public method to manually trigger the visitor.
   void runMethodDeclaration(MethodDeclaration node) {
-    _methodCb?.call(node);
+    _methodDeclarationCb?.call(node);
   }
 
-  // This is required to satisfy the interface, but we don't need to implement
-  // every single `add...` method, as mocktail will handle the rest.
+  // Public method to manually trigger the visitor.
+  void runFieldDeclaration(FieldDeclaration node) {
+    _fieldDeclarationCb?.call(node);
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) {
-    // This can be left empty. It prevents "missing implementation" errors
-    // for all the other `add...` methods we don't explicitly use in tests.
+    // Prevents "missing implementation" errors for unused `add...` methods.
   }
 }
 
+/// A helper to create a LintContext with a test registry.
 CustomLintContext makeContext(TestLintRuleNodeRegistry registry) {
-  void addPostRunCallback(void Function() cb) => cb();
-  final sharedState = <Object, Object?>{};
-
-  return CustomLintContext(registry, addPostRunCallback, sharedState, null);
+  return CustomLintContext(
+    registry,
+    (cb) => cb(), // Mocked addPostRunCallback
+    <Object, Object?>{}, // Mocked sharedState
+    null,
+  );
 }
 
 // test/helpers/test_utils.dart
@@ -96,3 +92,4 @@ extension ResolvedUnitResultExt on Future<ResolvedUnitResult> {
     );
   }
 }
+

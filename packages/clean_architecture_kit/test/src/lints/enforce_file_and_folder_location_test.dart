@@ -11,6 +11,7 @@ import '../../helpers/fakes.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_data.dart';
 import '../../helpers/test_utils.dart';
+import 'data_source_purity_test.dart';
 
 /// Test helper to encapsulate the boilerplate of running the lint rule.
 /// This is the core of our working test pattern.
@@ -20,7 +21,7 @@ MockDiagnosticReporter runTest({
   required String content,
 }) {
   final reporter = MockDiagnosticReporter();
-  final rule = EnforceFileAndFolderLocation(config: config);
+  final rule = EnforceFileAndFolderLocation(config: config, layerResolver: MockLayerResolver());
   final resolver = FakeCustomLintResolver(path: path, content: content);
   final registry = TestLintRuleNodeRegistry();
   final context = makeContext(registry);

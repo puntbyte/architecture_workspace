@@ -1,30 +1,33 @@
 // lib/src/lints/disallow_model_return_from_repository.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:clean_architecture_kit/src/models/clean_architecture_config.dart';
+import 'package:clean_architecture_kit/src/utils/clean_architecture_lint_rule.dart';
 import 'package:clean_architecture_kit/src/utils/layer_resolver.dart';
-import 'package:clean_architecture_kit/src/utils/naming_utils.dart';
+import 'package:clean_architecture_kit/src/utils/semantic_utils.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-class DisallowModelReturnFromRepository extends DartLintRule {
+class DisallowModelReturnFromRepository extends CleanArchitectureLintRule {
   static const _code = LintCode(
     name: 'disallow_model_return_from_repository',
-    problemMessage:
-        'Repository implementation purity violation: Overridden methods must return domain '
-        'Entities, not Models.',
+    problemMessage: 'Repository methods must return domain Entities, not data Models.',
+    correctionMessage: 'Map the Model to an Entity before returning it from the repository.',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
 
-  final CleanArchitectureConfig config;
-  final LayerResolver layerResolver;
+  /// A cached set of wrapper type names for efficiency.
+  late final Set<String> _wrapperTypeNames = {
+    // Get the types from the central config.
+    ...config.typeSafety.returns.map((rule) => rule.type),
+    // Also include common implementation wrappers.
+    'Right',
+  };
 
-  const DisallowModelReturnFromRepository({
-    required this.config,
-    required this.layerResolver,
+  DisallowModelReturnFromRepository({
+    required super.config,
+    required super.layerResolver,
   }) : super(code: _code);
 
   @override
@@ -32,57 +35,35 @@ class DisallowModelReturnFromRepository extends DartLintRule {
     final subLayer = layerResolver.getSubLayer(resolver.source.fullName);
     if (subLayer != ArchSubLayer.dataRepository) return;
 
-    context.registry.addMethodDeclaration((node) {
-      final isPrivate = node.name.lexeme.startsWith('_');
+    // This lint now focuses solely on the implementation detail of the return statement,
+    // which is its most valuable and unique contribution.
+    context.registry.addReturnStatement((node) {
+      final expression = node.expression;
+      if (expression == null) return;
 
-      final isOverride = node.metadata.any(
-        (annotation) =>
-            annotation.name is SimpleIdentifier &&
-            (annotation.name as SimpleIdentifier).name == 'override' &&
-            annotation.atSign.type == TokenType.AT,
-      );
+      final parentMethod = node.thisOrAncestorOfType<MethodDeclaration>();
+      final methodElement = parentMethod?.declaredFragment?.element;
+      if (methodElement == null || methodElement.isPrivate) return;
 
-      if (isPrivate || !isOverride) return;
-
-      final returnType = node.returnType?.type;
-      if (returnType == null) return;
-
-      final successType = _extractSuccessType(returnType);
-      if (successType == null) return;
-
-      var successTypeName = successType.getDisplayString();
-      if (successTypeName.endsWith('?')) {
-        successTypeName = successTypeName.substring(0, successTypeName.length - 1);
-      }
-
-      if (NamingUtils.validateName(name: successTypeName, template: config.naming.model)) {
-        reporter.reportError(
-          Diagnostic.forValues(
-            source: resolver.source,
-            offset: node.returnType!.offset,
-            length: node.returnType!.length,
-            diagnosticCode: _code,
-            message: _code.problemMessage,
-            correctionMessage:
-                'This method must return a pure Entity, but it returns the Model '
-                '`$successTypeName`. You need to map the Model to an Entity before returning.',
-          ),
-        );
+      if (SemanticUtils.isArchitecturalOverride(methodElement, layerResolver)) {
+        final successType = _extractSuccessType(expression.staticType);
+        if (SemanticUtils.isModelType(successType, layerResolver)) {
+          reporter.atNode(expression, _code);
+        }
       }
     });
   }
 
-  DartType? _extractSuccessType(DartType type) {
-    if (type is! InterfaceType) return null;
+  /// Recursively unwraps a type to find the core "success" type.
+  /// This now uses the centrally configured wrapper types.
+  DartType? _extractSuccessType(DartType? type) {
+    if (type is! InterfaceType) return type;
 
-    if (type.isDartAsyncFuture || type.isDartAsyncFutureOr) {
+    // THE IMPROVEMENT IS HERE: Use the cached set from the config.
+    if (_wrapperTypeNames.contains(type.element.name)) {
       if (type.typeArguments.isEmpty) return null;
-
-      return _extractSuccessType(type.typeArguments.first);
-    }
-
-    if (type.element.name == 'Either' && type.typeArguments.length == 2) {
-      return type.typeArguments[1];
+      // Recurse on the last type argument.
+      return _extractSuccessType(type.typeArguments.last);
     }
 
     return type;

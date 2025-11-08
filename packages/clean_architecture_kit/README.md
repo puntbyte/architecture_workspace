@@ -574,7 +574,7 @@ abstract interface class AuthRepository { ... } // <-- LINT WARNING HERE
 
 ````dart
 // In a repository file:
-// (No warning appears because `lib/.../usecases/get_user_usecase.dart` exists)
+// (No warning appears because `lib/.../usecases/get_user.dart` exists)
 abstract interface class AuthRepository implements Repository {
   FutureEither<UserEntity> getUser(String id);
 }

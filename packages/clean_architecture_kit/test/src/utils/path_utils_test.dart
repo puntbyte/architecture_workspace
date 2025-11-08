@@ -1,188 +1,124 @@
-// test/path_utils_test.dart
+// test/src/utils/path_utils_test.dart
 
 import 'dart:io';
 
 import 'package:clean_architecture_kit/src/models/clean_architecture_config.dart';
+import 'package:clean_architecture_kit/src/utils/layer_resolver.dart';
 import 'package:clean_architecture_kit/src/utils/path_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import '../../helpers/test_data.dart';
+// A single, powerful test helper for creating config.
+CleanArchitectureConfig makeTestConfig({
+  String projectStructure = 'feature_first',
+  String featuresRoot = 'features',
+  String domainPath = 'domain',
+  List<String> useCasesPaths = const ['usecases'],
+  List<String> entitiesPaths = const ['entities'],
+  String useCaseNaming = '{{name}}',
+}) {
+  return CleanArchitectureConfig.fromMap({
+    'project_structure': projectStructure,
+    'feature_first_paths': {'features_root': featuresRoot},
+    'layer_first_paths': {'domain': domainPath},
+    'layer_definitions': {
+      'domain': {'usecases': useCasesPaths, 'entities': entitiesPaths},
+    },
+    'naming_conventions': {'use_case': useCaseNaming},
+    'type_safety': {}, 'inheritance': {}, 'generation_options': {}, 'service_locator': {},
+  });
+}
 
 void main() {
-  late Directory tempProject;
+  late Directory tempProjectDir;
   late String projectRoot;
-  late String repoFilePath;
 
-  setUp(() async {
-    tempProject = await Directory.systemTemp.createTemp('path_utils_test_');
-    projectRoot = tempProject.path;
-
-    // create pubspec at project root so findProjectRoot can locate it
-    final pubspec = File(p.join(projectRoot, 'pubspec.yaml'));
-    await pubspec.writeAsString('name: example');
-
-    // create a sample repository file path inside lib/features/feature_a/data/repositories
-    final repoDir = Directory(
-      p.join(projectRoot, 'lib', 'features', 'feature_a', 'data', 'repositories'),
-    );
-    await repoDir.create(recursive: true);
-    final repoFile = File(p.join(repoDir.path, 'some_repo.dart'));
-    await repoFile.writeAsString('// repo');
-
-    // use absolute normalized path
-    repoFilePath = p.normalize(repoFile.absolute.path);
-  });
-
-  tearDown(() async {
-    try {
-      if (await tempProject.exists()) {
-        await tempProject.delete(recursive: true);
-      }
-    } catch (_) {}
-  });
-
-  // Helper that tries several path normalizations and collects diagnostics.
-  String? tryGetUseCasesDirWithDiagnostics(
-    String repoPath,
-    CleanArchitectureConfig config,
-    StringBuffer out,
-  ) {
-    final attempts = <String>[
-      repoPath,
-      p.normalize(repoPath),
-      // Replace backslashes with forward slashes and normalize (helps on Windows)
-      repoPath.replaceAll(r'\', '/'),
-      repoPath.replaceAll('/', p.separator),
-    ].map(p.normalize).toSet().toList();
-
-    out
-      ..writeln('--- getUseCasesDirectoryPath diagnostics ---')
-      ..writeln('original repoPath: $repoPath');
-    for (var i = 0; i < attempts.length; i++) {
-      final attempt = attempts[i];
-      out
-        ..writeln('attempt[$i]: $attempt')
-        ..writeln('  exists: ${File(attempt).existsSync()}');
-      final normalized = p.normalize(attempt);
-      final libMarker = p.join('lib', '');
-      final libIndex = normalized.indexOf(libMarker);
-      out
-        ..writeln('  normalized: $normalized')
-        ..writeln("  libMarker (p.join('lib','')): '$libMarker'")
-        ..writeln('  libIndex: $libIndex');
-      final projectRoot = PathUtils.findProjectRoot(attempt);
-      out.writeln('  findProjectRoot for attempt -> ${projectRoot ?? "null"}');
-      try {
-        final res = PathUtils.getUseCasesDirectoryPath(attempt, config);
-        out.writeln('  getUseCasesDirectoryPath returned: ${res ?? "null"}');
-        if (res != null) return res;
-      } catch (e, st) {
-        out.writeln('  getUseCasesDirectoryPath threw: $e\n$st');
-      }
-      out.writeln('------------------------------------------------');
-    }
-
-    // Print some useful config state by accessing via dynamic (robust across model shapes)
-    try {
-      final layerConfig = config.layers;
-      out
-        ..writeln('Layer config snapshot:')
-        ..writeln('  projectStructure: ${layerConfig.projectStructure}')
-        ..writeln('  featuresRootPath: ${layerConfig.featuresRootPath}')
-        ..writeln('  domainPath: ${layerConfig.domainPath}')
-        ..writeln('  domainUseCasesPaths: ${layerConfig.domainUseCasesPaths}')
-        ..writeln('  domainEntitiesPaths: ${layerConfig.domainEntitiesPaths}');
-    } catch (e) {
-      out.writeln('Could not introspect config.layers via dynamic: $e');
-    }
-
-    return null;
+  // This setup creates a temporary file system structure for each test group.
+  Future<void> createTempProject() async {
+    tempProjectDir = await Directory.systemTemp.createTemp('path_utils_test_');
+    projectRoot = tempProjectDir.path;
+    await File(p.join(projectRoot, 'pubspec.yaml')).writeAsString('name: test_project');
   }
 
-  test('findProjectRoot finds the directory containing pubspec.yaml', () {
-    final found = PathUtils.findProjectRoot(repoFilePath);
-    expect(found, isNotNull, reason: 'findProjectRoot returned null for $repoFilePath');
-    if (found != null) expect(p.normalize(found), p.normalize(projectRoot));
+  tearDownAll(() async {
+    if (await tempProjectDir.exists()) {
+      await tempProjectDir.delete(recursive: true);
+    }
   });
 
-  test('getUseCasesDirectoryPath returns expected usecase path (feature-first assumed)', () {
-    final config = makeConfig();
-    final diagnostics = StringBuffer();
-    final useCaseDir = tryGetUseCasesDirWithDiagnostics(repoFilePath, config, diagnostics);
+  group('findProjectRoot', () {
+    setUp(createTempProject);
 
-    if (useCaseDir == null) {
-      // Fail with helpful diagnostics so you can paste the result here.
-      fail(
-        'getUseCasesDirectoryPath returned null.\n'
-        'Diagnostics:\n$diagnostics\n'
-        'Hints:\n'
-        '- Check LayerConfig.fromMap keys (does it expect snake_case keys like layer_definitions/domain/use_cases?)\n'
-        "- Check whether your project structure default is 'feature_first' or 'layer_first'.\n"
-        '- Confirm the repository path contains a `lib` segment and the temporary pubspec.yaml is visible from that path.',
+    test('should find the project root from a nested file path', () async {
+      final nestedDir = await Directory(p.join(projectRoot, 'lib', 'deep', 'folder')).create(recursive: true);
+      final nestedFile = File(p.join(nestedDir.path, 'file.dart'));
+      final foundRoot = PathUtils.findProjectRoot(nestedFile.path);
+      expect(p.normalize(foundRoot!), p.normalize(projectRoot));
+    });
+  });
+
+  group('getUseCasesDirectoryPath', () {
+    group('in feature-first structure', () {
+      setUp(createTempProject);
+
+      test('should return the correct usecase path for a feature', () async {
+        final repoFile = await File(p.join(projectRoot, 'lib', 'features', 'auth', 'domain', 'contracts', 'repo.dart'))
+            .create(recursive: true);
+        final config = makeTestConfig();
+        final result = PathUtils.getUseCasesDirectoryPath(repoFile.path, config);
+        final expected = p.join(projectRoot, 'lib', 'features', 'auth', 'domain', 'usecases');
+        expect(p.normalize(result!), p.normalize(expected));
+      });
+    });
+
+    group('in layer-first structure', () {
+      setUp(createTempProject);
+
+      test('should return the correct usecase path', () async {
+        final repoFile = await File(p.join(projectRoot, 'lib', 'domain', 'contracts', 'repo.dart'))
+            .create(recursive: true);
+        final config = makeTestConfig(projectStructure: 'layer_first');
+        final result = PathUtils.getUseCasesDirectoryPath(repoFile.path, config);
+        final expected = p.join(projectRoot, 'lib', 'domain', 'usecases');
+        expect(p.normalize(result!), p.normalize(expected));
+      });
+    });
+  });
+
+  group('getUseCaseFilePath', () {
+    setUp(createTempProject);
+
+    test('should construct the full file path for a new use case', () async {
+      final repoFile = await File(p.join(projectRoot, 'lib', 'features', 'auth', 'domain', 'contracts', 'repo.dart'))
+          .create(recursive: true);
+      final config = makeTestConfig(useCaseNaming: '{{name}}UseCase');
+      final result = PathUtils.getUseCaseFilePath(
+        methodName: 'getUser',
+        repoPath: repoFile.path,
+        config: config,
       );
-    }
-
-    // If we got a non-null value, assert it matches expected feature-first path.
-    final expected = p.join(projectRoot, 'lib', 'features', 'feature_a', 'domain', 'usecases');
-    expect(p.normalize(useCaseDir), p.normalize(expected));
+      final expected = p.join(projectRoot, 'lib', 'features', 'auth', 'domain', 'usecases', 'get_user_use_case.dart');
+      expect(p.normalize(result!), p.normalize(expected));
+    });
   });
 
-  test('getUseCaseFilePath constructs the expected filename from method name', () {
-    final config = makeConfig();
-    final diagnostics = StringBuffer();
-    final useCaseDir = tryGetUseCasesDirWithDiagnostics(repoFilePath, config, diagnostics);
+  group('isPathInEntityDirectory', () {
+    setUp(createTempProject);
 
-    if (useCaseDir == null) {
-      fail(
-        'getUseCaseFilePath pre-check failed because getUseCasesDirectoryPath returned null.\nDiagnostics:\n$diagnostics',
-      );
-    }
+    test('should return true for a file inside a configured entity directory', () async {
+      final entityFile = await File(p.join(projectRoot, 'lib', 'features', 'user', 'domain', 'entities', 'user.dart'))
+          .create(recursive: true);
+      final config = makeTestConfig();
+      final resolver = LayerResolver(config);
+      expect(PathUtils.isPathInEntityDirectory(entityFile.path, config, resolver), isTrue);
+    });
 
-    final path = PathUtils.getUseCaseFilePath(
-      methodName: 'fetchUser',
-      repoPath: repoFilePath,
-      config: config,
-    );
-
-    expect(path, isNotNull);
-    if (path != null) {
-      const expectedFileName = 'fetch_user_use_case.dart';
-      expect(p.basename(path), expectedFileName);
-      expect(p.dirname(path), p.normalize(useCaseDir));
-    }
-  });
-
-  test('isPathInEntityDirectory returns true for a file inside domain entities', () async {
-    final entityDir = Directory(
-      p.join(projectRoot, 'lib', 'features', 'feature_a', 'domain', 'entities'),
-    );
-    await entityDir.create(recursive: true);
-    final entityFile = File(p.join(entityDir.path, 'user_entity.dart'));
-    await entityFile.writeAsString('// entity');
-
-    final insidePath = p.normalize(entityFile.absolute.path);
-
-    final config = makeConfig();
-    final isInEntity = PathUtils.isPathInEntityDirectory(insidePath, config);
-    expect(
-      isInEntity,
-      isTrue,
-      reason: 'Expected file under domain/entities to be detected as entity path.',
-    );
-  });
-
-  test('isPathInEntityDirectory returns false for a file outside domain entities', () async {
-    final otherDir = Directory(p.join(projectRoot, 'lib', 'utils'));
-    await otherDir.create(recursive: true);
-    final otherFile = File(p.join(otherDir.path, 'helper.dart'));
-    await otherFile.writeAsString('// helper');
-
-    final config = makeConfig();
-    final isInEntity = PathUtils.isPathInEntityDirectory(
-      p.normalize(otherFile.absolute.path),
-      config,
-    );
-    expect(isInEntity, isFalse);
+    test('should return false for a file outside an entity directory', () async {
+      final modelFile = await File(p.join(projectRoot, 'lib', 'features', 'user', 'data', 'models', 'user_model.dart'))
+          .create(recursive: true);
+      final config = makeTestConfig();
+      final resolver = LayerResolver(config);
+      expect(PathUtils.isPathInEntityDirectory(modelFile.path, config, resolver), isFalse);
+    });
   });
 }

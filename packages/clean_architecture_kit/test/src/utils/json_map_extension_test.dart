@@ -1,116 +1,104 @@
+// test/src/utils/extensions/json_map_extension_test.dart
+
 import 'package:clean_architecture_kit/src/utils/json_map_extension.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('ConfigParsingExtension on Map<String, dynamic>', () {
-    // --- Tests for getMap ---
+  group('JsonMapExtension', () {
+    // --- getMap ---
     group('getMap', () {
-      test('should return a map when the value is a valid map', () {
-        final source = {
-          'config': {'key': 'value', 'number': 123}
-        };
-        final result = source.getMap('config');
-        expect(result, isA<Map<String, dynamic>>());
-        expect(result, isNotEmpty);
-        expect(result['key'], 'value');
+      test('should return map when value is a valid map', () {
+        final source = {'config': {'key': 'value'}};
+        expect(source.getMap('config'), {'key': 'value'});
       });
 
-      test('should return an empty map when the key does not exist', () {
-        final source = {'other_key': 'value'};
-        final result = source.getMap('config');
-        expect(result, isA<Map<String, dynamic>>());
-        expect(result, isEmpty);
+      test('should return empty map when key does not exist', () {
+        final source = {'other': 'value'};
+        expect(source.getMap('config'), isEmpty);
       });
 
-      test('should return an empty map when the value is not a map', () {
+      test('should return empty map when value is not a map', () {
         final source = {'config': 'not_a_map'};
-        final result = source.getMap('config');
-        expect(result, isA<Map<String, dynamic>>());
-        expect(result, isEmpty);
+        expect(source.getMap('config'), isEmpty);
       });
 
-      test('should return an empty map when the value is null', () {
+      test('should return empty map when value is null', () {
         final source = <String, dynamic>{'config': null};
-        final result = source.getMap('config');
-        expect(result, isA<Map<String, dynamic>>());
-        expect(result, isEmpty);
+        expect(source.getMap('config'), isEmpty);
       });
     });
 
-    // --- Tests for getList ---
+    // --- getList ---
     group('getList', () {
-      test('should return a list of strings when the value is a valid list', () {
-        final source = {
-          'directories': ['entities', 'repositories']
-        };
-        final result = source.getList('directories');
-        expect(result, isA<List<String>>());
-        expect(result, hasLength(2));
-        expect(result, equals(['entities', 'repositories']));
+      test('should return list of strings when value is a valid list', () {
+        final source = {'items': ['a', 'b']};
+        expect(source.getList('items'), ['a', 'b']);
       });
 
-      test('should return an empty list when the key does not exist', () {
-        final source = {'other_key': 'value'};
-        final result = source.getList('directories');
-        expect(result, isA<List<String>>());
-        expect(result, isEmpty);
+      test('should return default empty list when key does not exist', () {
+        final source = {'other': 'value'};
+        expect(source.getList('items'), isEmpty);
       });
 
-      test('should return an empty list when the value is not a list', () {
-        final source = {'directories': {'not': 'a list'}};
-        final result = source.getList('directories');
-        expect(result, isA<List<String>>());
-        expect(result, isEmpty);
+      test('should return provided orElse list when key does not exist', () {
+        final source = {'other': 'value'};
+        expect(source.getList('items', ['default']), ['default']);
       });
 
-      test('should return an empty list when the value is null', () {
-        final source = <String, dynamic>{'directories': null};
-        final result = source.getList('directories');
-        expect(result, isA<List<String>>());
-        expect(result, isEmpty);
+      test('should return orElse list when value is not a list', () {
+        final source = {'items': 'not_a_list'};
+        expect(source.getList('items', ['default']), ['default']);
       });
 
-      test('should filter out non-string elements from a mixed list', () {
-        final source = {
-          'directories': ['entities', 123, null, 'repositories', true]
-        };
-        final result = source.getList('directories');
-        expect(result, isA<List<String>>());
-        expect(result, hasLength(2));
-        expect(result, equals(['entities', 'repositories']));
+      test('should return orElse list for a mixed-type list (strict check)', () {
+        final source = {'items': ['a', 123, 'b']};
+        expect(source.getList('items', ['default']), ['default']);
       });
     });
 
-    // --- Tests for getString ---
+    // --- getString ---
     group('getString', () {
-      test('should return the string value when it exists', () {
+      test('should return string value when it exists', () {
         final source = {'name': 'my_app'};
-        final result = source.getString('name', orElse: 'default');
-        expect(result, 'my_app');
+        expect(source.getString('name'), 'my_app');
       });
 
-      test('should return the orElse value when the key does not exist', () {
-        final source = {'other_key': 'value'};
-        final result = source.getString('name', orElse: 'default');
-        expect(result, 'default');
+      test('should return orElse value when key does not exist', () {
+        final source = {'other': 'value'};
+        expect(source.getString('name', 'default'), 'default');
       });
 
-      test('should return the orElse value when the value is not a string', () {
-        final source = {'name': 12345};
-        final result = source.getString('name', orElse: 'default');
-        expect(result, 'default');
-      });
-
-      test('should return the orElse value when the value is null', () {
-        final source = <String, dynamic>{'name': null};
-        final result = source.getString('name', orElse: 'default');
-        expect(result, 'default');
-      });
-
-      test('should return the default orElse value (empty string) if not provided', () {
+      test('should return orElse value when value is not a string', () {
         final source = {'name': 123};
-        final result = source.getString('name');
-        expect(result, '');
+        expect(source.getString('name', 'default'), 'default');
+      });
+
+      test('should return default empty string if orElse is not provided', () {
+        final source = {'name': 123};
+        expect(source.getString('name'), '');
+      });
+    });
+
+    // --- getOptionalString ---
+    group('getOptionalString', () {
+      test('should return string value when it exists', () {
+        final source = {'path': '/lib/core'};
+        expect(source.getOptionalString('path'), '/lib/core');
+      });
+
+      test('should return null when key does not exist', () {
+        final source = {'other': 'value'};
+        expect(source.getOptionalString('path'), isNull);
+      });
+
+      test('should return null when value is not a string', () {
+        final source = {'path': 123};
+        expect(source.getOptionalString('path'), isNull);
+      });
+
+      test('should return null when value is explicitly null', () {
+        final source = <String, dynamic>{'path': null};
+        expect(source.getOptionalString('path'), isNull);
       });
     });
   });

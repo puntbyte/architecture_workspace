@@ -1,162 +1,138 @@
-import 'package:analyzer/dart/ast/ast.dart';
+// lib/src/lints/enforce_file_and_folder_location.dart
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:clean_architecture_kit/src/models/clean_architecture_config.dart';
+import 'package:clean_architecture_kit/src/utils/clean_architecture_lint_rule.dart';
+import 'package:clean_architecture_kit/src/utils/layer_resolver.dart';
+import 'package:clean_architecture_kit/src/utils/naming_utils.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-class _RuleDefinition {
-  final String classType;
-  final String namingTemplate;
-  final List<String> expectedDirs;
-  final String? baseClassName;
-
-  const _RuleDefinition({
-    required this.classType,
-    required this.namingTemplate,
-    required this.expectedDirs,
-    this.baseClassName,
-  });
-}
-
-class EnforceFileAndFolderLocation extends DartLintRule {
+/// A lint rule that enforces that files are in the correct directory based on the class name and
+/// its architectural role.
+class EnforceFileAndFolderLocation extends CleanArchitectureLintRule {
   static const _code = LintCode(
     name: 'enforce_file_and_folder_location',
-    problemMessage: 'A {0} should be located in one of the following directories: {1}.',
+    problemMessage: 'A {0} was found in a "{1}" directory, but it belongs in a "{2}" directory.',
     correctionMessage: 'Move the file to a directory that matches the configured paths.',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
 
-  final CleanArchitectureConfig config;
-
-  const EnforceFileAndFolderLocation({required this.config}) : super(code: _code);
+  const EnforceFileAndFolderLocation({
+    required super.config,
+    required super.layerResolver,
+  }) : super(code: _code);
 
   @override
   void run(CustomLintResolver resolver, DiagnosticReporter reporter, CustomLintContext context) {
-    final path = resolver.source.fullName;
-    final pathSegments = path.replaceAll(r'\', '/').split('/').map((s) => s.toLowerCase()).toList();
+    final actualSubLayer = layerResolver.getSubLayer(resolver.source.fullName);
+    if (actualSubLayer == ArchSubLayer.unknown) return;
 
-    // 1. Create a list of all location rules based on the config.
-    // This makes the lint easily extensible. Just add a new line to add a new rule.
-    // Build rules. Here we use the config; add more rules if needed.
-    final ruleDefinitions = <_RuleDefinition>[
-      _RuleDefinition(
-        classType: 'Repository Interface',
-        namingTemplate: config.naming.repositoryInterface,
-        expectedDirs: config.layers.domainRepositoriesPaths,
-        baseClassName: config.inheritance.repositoryBaseName,
-      ),
-
-      _RuleDefinition(
-        classType: 'UseCase',
-        namingTemplate: config.naming.useCase,
-        expectedDirs: config.layers.domainUseCasesPaths,
-        baseClassName: _combineNonEmpty([
-          config.inheritance.unaryUseCaseName,
-          config.inheritance.nullaryUseCaseName,
-        ]),
-      ),
-      // Add additional rules here if needed (entities, models, etc.)
-    ];
+    final locationRules = _getLocationRules();
 
     context.registry.addClassDeclaration((node) {
       final className = node.name.lexeme;
-      //final path = resolver.source.fullName;
-      //final pathSegments = path.replaceAll(r'\', '/').split('/');
+      final isClassAbstract = node.abstractKeyword != null;
 
-      // Find first matching rule where either the name matches OR inheritance matches.
-      final matchingRule = _firstWhereOrNull(ruleDefinitions, (rule) {
-        final byName = _matchesName(className, rule.namingTemplate);
-        final byInheritance = _extendsOrImplements(node, rule.baseClassName);
-        return byName || byInheritance;
-      });
+      // 1. Find ALL possible architectural types this class could be, based on its name.
+      final possibleRules = locationRules
+          .where((rule) => NamingUtils.validateName(name: className, template: rule.namingTemplate))
+          .toList();
 
-      // 3. Guard Clause: If the class name doesn't match any rule, stop.
-      if (matchingRule == null) return;
+      if (possibleRules.isEmpty) return;
 
-      // 4. Guard Clause: If the config specifies a naming convention but provides
-      // no directories for it, don't report an error.
-      if (matchingRule.expectedDirs.isEmpty) return;
+      // 2. THE CRITICAL FIX: Use the `abstract` keyword to resolve ambiguity.
+      // If a class is abstract, it cannot be an "Implementation".
+      // If it's concrete, it cannot be an "Interface".
+      possibleRules.removeWhere((rule) => rule.isInterface != isClassAbstract);
 
-      // normalize expected dirs
-      final normalizedExpected = matchingRule.expectedDirs.map((d) => d.toLowerCase()).toList();
+      // If after filtering, no valid rules remain, we can't make a judgment.
+      if (possibleRules.isEmpty) return;
 
-      final isLocationValid = normalizedExpected.any((expectedDir) {
-        // Accept exact match or plural form match (e.g. 'usecase' vs 'usecases')
-        return pathSegments.any((seg) => seg == expectedDir || seg == '${expectedDir}s');
-      });
+      // 3. The class is correctly placed if its actual location is one of the possible expected
+      // locations.
+      final isLocationValid = possibleRules.any((rule) => rule.expectedSubLayer == actualSubLayer);
 
-      // 6. If the location is not valid, report the issue.
+      // 4. If the location is NOT valid, it's a true violation.
       if (!isLocationValid) {
+        // Report the error using the first valid rule as the best guess.
+        final bestGuessRule = possibleRules.first;
         reporter.atToken(
           node.name,
           _code,
-          arguments: [matchingRule.classType, matchingRule.expectedDirs.join(', ')],
+          arguments: [
+            bestGuessRule.classType,
+            actualSubLayer.name,
+            bestGuessRule.expectedSubLayer.name,
+          ],
         );
       }
     });
   }
 
-  // Helper: find the first element that satisfies the predicate or return null.
-  T? _firstWhereOrNull<T>(List<T> list, bool Function(T) test) {
-    for (final item in list) {
-      if (test(item)) return item;
-    }
-    return null;
-  }
+  List<_LocationRule> _getLocationRules() => <_LocationRule>[
+    _LocationRule(
+      classType: 'Entity',
+      namingTemplate: config.naming.entity.pattern,
+      expectedSubLayer: ArchSubLayer.entity,
+    ),
 
-  // If template is empty or the placeholder-only '{{name}}', we treat it as ambiguous.
-  bool _matchesName(String className, String template) {
-    if (template.trim().isEmpty) return false;
-    if (template.trim() == '{{name}}') return false;
+    _LocationRule(
+      classType: 'Model',
+      namingTemplate: config.naming.model.pattern,
+      expectedSubLayer: ArchSubLayer.model,
+    ),
 
-    final pattern = template.replaceAll('{{name}}', '([A-Z][a-zA-Z0-9_]+)');
-    return RegExp('^$pattern\$').hasMatch(className);
-  }
+    _LocationRule(
+      classType: 'UseCase',
+      namingTemplate: config.naming.useCase.pattern,
+      expectedSubLayer: ArchSubLayer.useCase,
+    ),
 
-  // Check extends/implements/with for any of the provided base class names.
-  bool _extendsOrImplements(ClassDeclaration node, String? baseClassNames) {
-    if (baseClassNames == null || baseClassNames.trim().isEmpty) return false;
+    _LocationRule(
+      classType: 'Repository Interface',
+      namingTemplate: config.naming.repositoryInterface.pattern,
+      expectedSubLayer: ArchSubLayer.domainRepository,
+      isInterface: true,
+    ),
 
-    final candidates = baseClassNames.split('|').map((s) => s.trim()).where((s) => s.isNotEmpty);
+    _LocationRule(
+      classType: 'Repository Implementation',
+      namingTemplate: config.naming.repositoryImplementation.pattern,
+      expectedSubLayer: ArchSubLayer.dataRepository,
+    ),
 
-    String? typeToSimpleString(TypeAnnotation? t) {
-      if (t == null) return null;
-      try {
-        return t.toSource().split('<').first.trim();
-      } catch (_) {
-        return null;
-      }
-    }
+    _LocationRule(
+      classType: 'DataSource Interface',
+      namingTemplate: config.naming.dataSourceInterface.pattern,
+      expectedSubLayer: ArchSubLayer.dataSource,
+      isInterface: true,
+    ),
 
-    final extendsType = typeToSimpleString(node.extendsClause?.superclass);
-    if (extendsType != null && candidates.any((c) => c == extendsType)) return true;
+    _LocationRule(
+      classType: 'DataSource Implementation',
+      namingTemplate: config.naming.dataSourceImplementation.pattern,
+      expectedSubLayer: ArchSubLayer.dataSource,
+    ),
+  ];
+}
 
-    final impl = node.implementsClause?.interfaces;
-    if (impl != null) {
-      for (final iface in impl) {
-        final n = typeToSimpleString(iface);
-        if (n != null && candidates.any((c) => c == n)) return true;
-      }
-    }
+/// A private helper class to associate a class "type" with its expected location.
+class _LocationRule {
+  /// A user-friendly name for the class type (e.g., "Model").
+  final String classType;
 
-    final withList = node.withClause?.mixinTypes;
-    if (withList != null) {
-      for (final mix in withList) {
-        final n = typeToSimpleString(mix);
-        if (n != null && candidates.any((c) => c == n)) return true;
-      }
-    }
+  /// The naming convention that identifies this class type.
+  final String namingTemplate;
 
-    return false;
-  }
+  /// The architectural sub-layer where this class type is expected to be located.
+  final ArchSubLayer expectedSubLayer;
 
-  // Combine multiple optional names into a '|' separated string or return null.
-  static String? _combineNonEmpty(Iterable<String?> items) {
-    final nonEmpty = items
-        .where((s) => s != null && s.trim().isNotEmpty)
-        .map((s) => s!.trim())
-        .toList();
-    if (nonEmpty.isEmpty) return null;
-    return nonEmpty.join('|');
-  }
+  // A new flag to distinguish interfaces from implementations.
+  final bool isInterface;
+
+  const _LocationRule({
+    required this.classType,
+    required this.namingTemplate,
+    required this.expectedSubLayer,
+    this.isInterface = false,
+  });
 }

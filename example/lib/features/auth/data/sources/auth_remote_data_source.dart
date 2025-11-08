@@ -1,4 +1,4 @@
-
+// example/lib/features/auth/data/sources/auth_remote_data_source.dart
 import 'package:example/features/auth/data/models/user_model.dart';
 
 abstract interface class AuthRemoteDataSource {

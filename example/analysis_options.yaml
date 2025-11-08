@@ -1,9 +1,5 @@
-# This file configures the Dart analyzer and the `architecture_kit` plugin.
-# It demonstrates a complete and robust setup for a feature-first Flutter project.
+# example/analysis_options.yaml
 
-# The `analyzer.plugins` section should only contain `custom_lint`.
-# The custom_lint framework discovers all other lint packages, like `architecture_kit`,
-# automatically from the project's dev_dependencies.
 formatter:
   page_width: 100
 
@@ -14,41 +10,49 @@ analyzer:
     strict-casts: true
     strict-inference: true
     strict-raw-types: true
+  exclude:
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
 
-# The top-level `custom_lint` key manages all custom linting.
-# The `rules` list is used to both enable/disable individual lints AND
-# to provide the shared configuration for a plugin.
 custom_lint:
   rules:
-    # --- ENABLE/DISABLE INDIVIDUAL LINT RULES ---
-    # To disable a rule, set its value to `false`.
+    # === ALL LINTS ENABLED ===
 
-    # Purity & Responsibility Rules
+    # --- Purity & Responsibility Rules ---
     - disallow_model_in_domain: true
     - disallow_entity_in_data_source: true
     - disallow_repository_in_presentation: true
     - disallow_model_return_from_repository: true
     - disallow_use_case_in_widget: true
-    - disallow_flutter_imports_in_domain: true
-    - disallow_flutter_types_in_domain: true
-    - enforce_model_to_entity_mapping: true
+    - disallow_flutter_in_domain: true
+    - disallow_public_members_in_implementation: true
+    - disallow_dependency_instantiation: true
+    - disallow_service_locator: true
+    - disallow_throwing_from_repository: true
 
-    # Dependency & Structure Rules
+    # --- Contract & Inheritance Rules ---
+    - enforce_model_to_entity_mapping: true
+    - enforce_model_inherits_entity: true
+    - enforce_entity_contract: true
+    - enforce_repository_contract: true
+    - enforce_use_case_contract: true
+    - enforce_repository_implementation_contract: true
+
+    # --- Dependency & Structure Rules ---
     - enforce_layer_independence: true
     - enforce_abstract_data_source_dependency: true
+    - enforce_abstract_repository_dependency: true
     - enforce_file_and_folder_location: true
-    - enforce_model_inherits_entity: true
 
-    # Naming, Type Safety & Inheritance Rules
-    - enforce_naming_conventions: true
-    - enforce_custom_return_type: true
-    - enforce_use_case_inheritance: true
-    - enforce_repository_inheritance: true
+    # --- Type Safety & Error Handling Rules ---
+    - enforce_type_safety: true
+    - enforce_try_catch_in_repository: true
+    - enforce_exception_on_data_source: true
 
-    # Code Generation Rule
+    # --- Code Generation Rule ---
     - missing_use_case: true
 
-    # --- SHARED CONFIGURATION for the 'architecture_kit' plugin ---
+    # === SHARED CONFIGURATION ===
     # The configuration map is provided as a special entry in the rules list.
     - clean_architecture:
       # [SECTION 1: PROJECT STRUCTURE]
@@ -72,52 +76,86 @@ custom_lint:
           entities: ['entities']
           repositories: ['contracts']
           use_cases: ['usecases']
+
         data:
           models: ['models']
           repositories: ['repositories']
           data_sources: ['sources']
+
         presentation:
+          managers: [ 'managers', 'bloc', 'cubit', 'provider' ]
           pages: ['pages']
           widgets: ['widgets']
-          managers: ['managers', 'bloc', 'cubit', 'provider']
 
       # [SECTION 3: NAMING CONVENTIONS]
       # Use {{name}} as a placeholder for the base name (e.g., 'Auth' in 'AuthRepository').
       naming_conventions:
-        entity: '{{name}}Entity'
-        model: '{{name}}Model'
-        use_case: '{{name}}Usecase'
+        entity:
+          pattern: '{{name}}'
+          anti_pattern: [ '{{name}}Entity' ]
+
+        model:
+          pattern: '{{name}}Model'
+
+        use_case:
+          pattern: '{{name}}'
+          anti_pattern: ['{{name}}UseCase', '{{name}}Usecase']
+
         use_case_record_parameter: '_{{name}}Params'
-        repository_interface: '{{name}}Repository'
-        repository_implementation: '{{name}}RepositoryImpl'
+
         data_source_interface: '{{name}}DataSource'
         data_source_implementation: 'Default{{name}}DataSource'
+
+        repository_interface: '{{name}}Repository'
+        repository_implementation: '{{type}}{{name}}Repository'
 
 
       # [SECTION 4: TYPE SAFETY RULES]
       # Enforce that methods in certain layers return specific types.
       type_safety:
-        # Uses the `FutureEither` typedef provided by `architecture_kit`.
-        return_type_name: ['FutureEither']
-        import_path: ['/core/utils/types.dart']
-        apply_to: ['usecases', 'repository_interface']
+        returns:
+          # Enforce FutureEither on return types for Usecases and Repositories.
+          - type: 'FutureEither'
+            where: [ 'use_case', 'domain_repository' ]
+            import: 'package:example/core/utils/types.dart'
+
+        parameters:
+          # Enforce that all Repository methods that take an ID
+          # must use a specific `Id` value object, not a raw `int`.
+          - type: 'Id'
+            where: [ 'domain_repository' ]
+            import: 'package:example/core/vo/id.dart'
+            data_type: 'int'
+            identifier: 'id'
+
+          # Enforce that all methods in a DataSource that
+          # save data must accept a `Model` as a parameter.
+          - type: '{{name}}Model' # You can even use placeholders!
+            where: [ 'data_source' ]
+            identifier: 'model'
 
       # [SECTION 5: INHERITANCE AND BASE CLASSES]
       # These paths point to the base classes provided by `architecture_kit` itself,
       # allowing for an out-of-the-box experience.
       inheritance:
-        repository_base_path: '/core/repository/repository.dart'
-        repository_base_name: 'Repository'
+        entity_base_name: 'Entity'
+        entity_base_path: 'package:example/core/entity/entity.dart'
 
-        unary_use_case_path: '/core/usecase/usecase.dart'
         unary_use_case_name: 'UnaryUsecase'
+        unary_use_case_path: 'package:example/core/usecase/usecase.dart'
 
-        nullary_use_case_path: '/core/usecase/usecase.dart'
         nullary_use_case_name: 'NullaryUsecase'
+        nullary_use_case_path: 'package:example/core/usecase/usecase.dart'
+
+        repository_base_name: 'Repository'
+        repository_base_path: 'package:example/core/repository/repository.dart'
 
       # [SECTION 6: GENERATION OPTIONS]
       # Optionally add annotations (like for dependency injection) to generated use cases.
-      generation_options:
-        use_case_annotations:
-          - import_path: 'package:injectable/injectable.dart'
-            annotation_text: 'Injectable()'
+      services:
+        dependency_injection:
+          service_locator_names: [ 'getIt', 'locator', 'sl' ]
+
+          use_case_annotations:
+            - import_path: 'package:injectable/injectable.dart'
+              annotation_text: '@Injectable()'

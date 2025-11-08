@@ -1,7 +1,8 @@
-import 'package:clean_architecture_kit/src/models/generation_options_config.dart';
+//
 import 'package:clean_architecture_kit/src/models/inheritance_config.dart';
 import 'package:clean_architecture_kit/src/models/layer_config.dart';
 import 'package:clean_architecture_kit/src/models/naming_config.dart';
+import 'package:clean_architecture_kit/src/models/services_config.dart';
 import 'package:clean_architecture_kit/src/models/type_safety_config.dart';
 import 'package:clean_architecture_kit/src/utils/json_map_extension.dart';
 
@@ -12,14 +13,14 @@ class CleanArchitectureConfig {
   final NamingConfig naming;
   final TypeSafetyConfig typeSafety;
   final InheritanceConfig inheritance;
-  final GenerationOptionsConfig generation;
+  final ServicesConfig services;
 
   const CleanArchitectureConfig({
     required this.layers,
     required this.naming,
     required this.typeSafety,
     required this.inheritance,
-    required this.generation,
+    required this.services,
   });
 
   factory CleanArchitectureConfig.fromMap(Map<String, dynamic> map) {
@@ -28,7 +29,7 @@ class CleanArchitectureConfig {
       naming: NamingConfig.fromMap(map.getMap('naming_conventions')),
       typeSafety: TypeSafetyConfig.fromMap(map.getMap('type_safety')),
       inheritance: InheritanceConfig.fromMap(map.getMap('inheritance')),
-      generation: GenerationOptionsConfig.fromMap(map.getMap('generation_options')),
+      services: ServicesConfig.fromMap(map.getMap('services')),
     );
   }
 }

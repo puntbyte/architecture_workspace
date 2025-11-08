@@ -4,53 +4,53 @@ import 'package:clean_architecture_kit/src/utils/json_map_extension.dart';
 /// A private class to hold the default values for the core package.
 class _CoreDefaults {
   static const corePackagePath = 'package:clean_architecture_core/clean_architecture_core.dart';
-  static const repositoryBaseName = 'Repository';
+  static const entityBaseName = 'Entity';
   static const unaryUseCaseName = 'UnaryUseCase';
   static const nullaryUseCaseName = 'NullaryUseCase';
+  static const repositoryBaseName = 'Repository';
 }
 
+/// A strongly-typed representation of the `inheritance` block in `analysis_options.yaml`.
 class InheritanceConfig {
-  final String repositoryBasePath;
-  final String repositoryBaseName;
-  final String unaryUseCasePath;
+  final String entityBaseName;
+  final String entityBasePath;
+
   final String unaryUseCaseName;
-  final String nullaryUseCasePath;
+  final String unaryUseCasePath;
+
   final String nullaryUseCaseName;
+  final String nullaryUseCasePath;
+
+  final String repositoryBaseName;
+  final String repositoryBasePath;
 
   const InheritanceConfig({
+    required this.entityBaseName,
+    required this.entityBasePath,
+
+    required this.unaryUseCaseName,
+    required this.unaryUseCasePath,
+
+    required this.nullaryUseCaseName,
+    required this.nullaryUseCasePath,
+
     required this.repositoryBasePath,
     required this.repositoryBaseName,
-    required this.unaryUseCasePath,
-    required this.unaryUseCaseName,
-    required this.nullaryUseCasePath,
-    required this.nullaryUseCaseName,
   });
 
   factory InheritanceConfig.fromMap(Map<String, dynamic> map) {
     return InheritanceConfig(
-      repositoryBasePath: map.getString(
-        'repository_base_path',
-        orElse: _CoreDefaults.corePackagePath,
-      ),
-      repositoryBaseName: map.getString(
-        'repository_base_name',
-        orElse: _CoreDefaults.repositoryBaseName,
-      ),
+      entityBaseName: map.getString('entity_base_name', _CoreDefaults.entityBaseName),
+      entityBasePath: map.getString('entity_base_path', _CoreDefaults.corePackagePath),
 
-      unaryUseCasePath: map.getString('unary_use_case_path', orElse: _CoreDefaults.corePackagePath),
-      unaryUseCaseName: map.getString(
-        'unary_use_case_name',
-        orElse: _CoreDefaults.unaryUseCaseName,
-      ),
+      unaryUseCaseName: map.getString('unary_use_case_name', _CoreDefaults.unaryUseCaseName),
+      unaryUseCasePath: map.getString('unary_use_case_path', _CoreDefaults.corePackagePath),
 
-      nullaryUseCasePath: map.getString(
-        'nullary_use_case_path',
-        orElse: _CoreDefaults.corePackagePath,
-      ),
-      nullaryUseCaseName: map.getString(
-        'nullary_use_case_name',
-        orElse: _CoreDefaults.nullaryUseCaseName,
-      ),
+      nullaryUseCaseName: map.getString('nullary_use_case_name', _CoreDefaults.nullaryUseCaseName),
+      nullaryUseCasePath: map.getString('nullary_use_case_path', _CoreDefaults.corePackagePath),
+
+      repositoryBaseName: map.getString('repository_base_name', _CoreDefaults.repositoryBaseName),
+      repositoryBasePath: map.getString('repository_base_path', _CoreDefaults.corePackagePath),
     );
   }
 }

@@ -41,7 +41,6 @@ class LayerConfig {
   });
 
   factory LayerConfig.fromMap(Map<String, dynamic> map) {
-    // Now use the extension methods for cleaner parsing
     final layerFirst = map.getMap('layer_first_paths');
     final featureFirst = map.getMap('feature_first_paths');
     final layerDefinitions = map.getMap('layer_definitions');
@@ -51,26 +50,27 @@ class LayerConfig {
     final presentationDefinitions = layerDefinitions.getMap('presentation');
 
     return LayerConfig(
-      projectStructure: map.getString('project_structure', orElse: 'feature_first'),
-      featuresRootPath: _sanitize(featureFirst.getString('features_root', orElse: 'features')),
+      projectStructure: map.getString('project_structure', 'feature_first'),
+      featuresRootPath: _sanitize(featureFirst.getString('features_root', 'features')),
 
       // === Domain Layer Paths ===
-      domainPath: _sanitize(layerFirst.getString('domain', orElse: 'domain')),
-      domainEntitiesPaths: domainDefinitions.getList('entities'),
-      domainUseCasesPaths: domainDefinitions.getList('use_cases'),
-      domainRepositoriesPaths: domainDefinitions.getList('repositories'),
+      domainPath: _sanitize(layerFirst.getString('domain', 'domain')),
+      domainEntitiesPaths: domainDefinitions.getList('entities', ['entities']),
+      domainUseCasesPaths: domainDefinitions.getList('use_cases', ['usecases']),
+      domainRepositoriesPaths: domainDefinitions.getList('repositories', ['contracts']),
 
       // === Data Layer Paths ===
-      dataPath: _sanitize(layerFirst.getString('data', orElse: 'data')),
-      dataModelsPaths: dataDefinitions.getList('models'),
-      dataDataSourcesPaths: dataDefinitions.getList('data_sources'),
-      dataRepositoriesPaths: dataDefinitions.getList('repositories'),
+      dataPath: _sanitize(layerFirst.getString('data', 'data')),
+      dataModelsPaths: dataDefinitions.getList('models', ['models']),
+      dataDataSourcesPaths: dataDefinitions.getList('data_sources', ['sources']),
+      dataRepositoriesPaths: dataDefinitions.getList('repositories', ['repositories']),
 
       // === Presentation Layer Paths ===
-      presentationPath: _sanitize(layerFirst.getString('presentation', orElse: 'presentation')),
-      presentationManagersPaths: presentationDefinitions.getList('managers'),
-      presentationWidgetsPaths: presentationDefinitions.getList('widgets'),
-      presentationPagesPaths: presentationDefinitions.getList('pages'),
+      presentationPath: _sanitize(layerFirst.getString('presentation', 'presentation')),
+      presentationManagersPaths: presentationDefinitions
+          .getList('managers', ['managers', 'bloc', 'cubit', 'provider']),
+      presentationWidgetsPaths: presentationDefinitions.getList('widgets', ['widgets']),
+      presentationPagesPaths: presentationDefinitions.getList('pages', ['pages']),
     );
   }
 

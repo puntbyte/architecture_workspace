@@ -1,20 +1,29 @@
 // lib/clean_architecture_kit.dart
+
+import 'package:clean_architecture_kit/src/lints/disallow_dependency_instantiation.dart';
 import 'package:clean_architecture_kit/src/lints/disallow_entity_in_data_source.dart';
-import 'package:clean_architecture_kit/src/lints/disallow_flutter_imports_in_domain.dart';
-import 'package:clean_architecture_kit/src/lints/disallow_flutter_types_in_domain.dart';
+import 'package:clean_architecture_kit/src/lints/disallow_flutter_in_domain.dart';
 import 'package:clean_architecture_kit/src/lints/disallow_model_in_domain.dart';
 import 'package:clean_architecture_kit/src/lints/disallow_model_return_from_repository.dart';
+import 'package:clean_architecture_kit/src/lints/disallow_public_members_in_implementation.dart';
 import 'package:clean_architecture_kit/src/lints/disallow_repository_in_presentation.dart';
+import 'package:clean_architecture_kit/src/lints/disallow_service_locator.dart';
+import 'package:clean_architecture_kit/src/lints/disallow_throwing_from_repository.dart';
 import 'package:clean_architecture_kit/src/lints/disallow_use_case_in_widget.dart';
 import 'package:clean_architecture_kit/src/lints/enforce_abstract_data_source_dependency.dart';
-import 'package:clean_architecture_kit/src/lints/enforce_custom_return_type.dart';
+import 'package:clean_architecture_kit/src/lints/enforce_abstract_repository_dependency.dart';
+import 'package:clean_architecture_kit/src/lints/enforce_type_safety.dart';
+import 'package:clean_architecture_kit/src/lints/enforce_entity_contract.dart';
+import 'package:clean_architecture_kit/src/lints/enforce_exception_on_data_source.dart';
 import 'package:clean_architecture_kit/src/lints/enforce_file_and_folder_location.dart';
 import 'package:clean_architecture_kit/src/lints/enforce_layer_independence.dart';
 import 'package:clean_architecture_kit/src/lints/enforce_model_inherits_entity.dart';
 import 'package:clean_architecture_kit/src/lints/enforce_model_to_entity_mapping.dart';
 import 'package:clean_architecture_kit/src/lints/enforce_naming_conventions.dart';
-import 'package:clean_architecture_kit/src/lints/enforce_repository_inheritance.dart';
-import 'package:clean_architecture_kit/src/lints/enforce_use_case_inheritance.dart';
+import 'package:clean_architecture_kit/src/lints/enforce_repository_contract.dart';
+import 'package:clean_architecture_kit/src/lints/enforce_repository_implementation_contract.dart';
+import 'package:clean_architecture_kit/src/lints/enforce_try_catch_in_repository.dart';
+import 'package:clean_architecture_kit/src/lints/enforce_use_case_contract.dart';
 import 'package:clean_architecture_kit/src/lints/missing_use_case.dart';
 import 'package:clean_architecture_kit/src/models/clean_architecture_config.dart';
 import 'package:clean_architecture_kit/src/utils/layer_resolver.dart';
@@ -25,53 +34,68 @@ PluginBase createPlugin() => CleanArchitectureKitPlugin();
 
 /// The main plugin class for the `clean_architecture_kit` package.
 class CleanArchitectureKitPlugin extends PluginBase {
-  /// This is the designated initialization method for lints.
   @override
   List<LintRule> getLintRules(CustomLintConfigs configs) {
-    // 1. Read the user's configuration from their `analysis_options.yaml`.
-    final rawConfig = Map<String, dynamic>.from(
-      configs.rules['clean_architecture']?.json ?? {},
-    );
-
-    // 2. If the user hasn't provided the configuration block, we cannot proceed.
-    //    Return an empty list to effectively disable all lints.
+    // Read and parse the user's configuration.
+    final rawConfig = Map<String, dynamic>.from(configs.rules['clean_architecture']?.json ?? {});
     if (rawConfig.isEmpty) return [];
-
-    // 3. Parse the raw JSON map into a strongly-typed configuration object.
     final config = CleanArchitectureConfig.fromMap(rawConfig);
 
-    // 4. Create a single LayerResolver instance to pass to all lints.
+    // Create shared instances of utilities.
     final layerResolver = LayerResolver(config);
 
-    // 5. Create and return the list of all lints, now using the local 'config' variable.
-    return [
-      // Purity Rules
+    // Define the lint rules in logical groups for excellent readability.
+    final purityAndResponsibilityRules = [
       DisallowModelInDomain(config: config, layerResolver: layerResolver),
       DisallowEntityInDataSource(config: config, layerResolver: layerResolver),
       DisallowRepositoryInPresentation(config: config, layerResolver: layerResolver),
       DisallowModelReturnFromRepository(config: config, layerResolver: layerResolver),
-      DisallowFlutterImportsInDomain(config: config, layerResolver: layerResolver),
-      DisallowFlutterTypesInDomain(config: config, layerResolver: layerResolver),
-
       DisallowUseCaseInWidget(config: config, layerResolver: layerResolver),
-      EnforceModelToEntityMapping(config: config, layerResolver: layerResolver),
+      DisallowPublicMembersInImplementation(config: config, layerResolver: layerResolver),
+      DisallowFlutterInDomain(config: config, layerResolver: layerResolver)
+    ];
 
-      // Dependency & Structure Rules
+    final dependencyAndStructureRules = [
       EnforceLayerIndependence(config: config, layerResolver: layerResolver),
+      EnforceFileAndFolderLocation(config: config, layerResolver: layerResolver),
+      DisallowDependencyInstantiation(config: config, layerResolver: layerResolver),
+      DisallowServiceLocator(config: config, layerResolver: layerResolver),
+    ];
+
+    final contractAndInheritanceRules = [
       EnforceAbstractDataSourceDependency(config: config, layerResolver: layerResolver),
-      EnforceFileAndFolderLocation(config: config),
-
+      EnforceAbstractRepositoryDependency(config: config, layerResolver: layerResolver),
+      EnforceRepositoryImplementationContract(config: config, layerResolver: layerResolver),
+      EnforceModelToEntityMapping(config: config, layerResolver: layerResolver),
       EnforceModelInheritsEntity(config: config, layerResolver: layerResolver),
+      EnforceRepositoryContract(config: config, layerResolver: layerResolver),
+      EnforceUseCaseContract(config: config, layerResolver: layerResolver),
+      EnforceEntityContract(config: config, layerResolver: layerResolver),
+    ];
 
+    final errorHandlingRules = [
+      EnforceTryCatchInRepository(config: config, layerResolver: layerResolver),
+      DisallowThrowingFromRepository(config: config, layerResolver: layerResolver),
+      EnforceExceptionOnDataSource(config: config, layerResolver: layerResolver),
+    ];
 
-      // Naming, Type Safety & Inheritance Rules
+    final conventionAndTypeSafetyRules = [
       EnforceNamingConventions(config: config, layerResolver: layerResolver),
-      EnforceCustomReturnType(config: config, layerResolver: layerResolver),
-      EnforceUseCaseInheritance(config: config, layerResolver: layerResolver),
-      EnforceRepositoryInheritance(config: config, layerResolver: layerResolver),
+      EnforceTypeSafety(config: config, layerResolver: layerResolver),
+    ];
 
-      // Code Generation Rule
+    final codeGenerationRules = [
       MissingUseCase(config: config, layerResolver: layerResolver),
+    ];
+
+    // Combine all groups into a single list and return it.
+    return [
+      ...purityAndResponsibilityRules,
+      ...dependencyAndStructureRules,
+      ...contractAndInheritanceRules,
+      ...errorHandlingRules,
+      ...conventionAndTypeSafetyRules,
+      ...codeGenerationRules,
     ];
   }
 }

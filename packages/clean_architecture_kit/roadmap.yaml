@@ -1,0 +1,270 @@
+lints:
+  disallow_cross_data_source_dependency:
+    purpose: >-
+      Enforces SRP on DataSources. A DataSource's single responsibility is to communicate with one 
+      specific source of data (one API, one local database table, etc.). It should never 
+      orchestrate or depend on another DataSource. That orchestration logic belongs in the 
+      Repository.
+    problem_message: >-
+      A DataSource should not depend on another DataSource. Orchestration belongs in the Repository.
+    violation_example: >-
+      ```dart
+      class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
+        final Dio client;
+        // VIOLATION: Injecting another data source.
+        final UserLocalDataSource _localDataSource; // <-- LINT WARNING HERE
+
+        AuthRemoteDataSourceImpl(this.client, this._localDataSource);
+      }
+      ```
+  disallow_third_party_packages_in_domain:
+    purpose: >-
+      Enforces that third-party packages are not used in the domain layer. Third-party packages 
+
+  disallow_business_logic_in_entities:
+    purpose: >-
+      Enforces that business logic is not used in the entities. Business logic belongs in the 
+      domain layer.
+
+  disallow_public_methods_in_usecase:
+    purpose: >-
+      Enforces that public methods are not used in the use cases. Public methods belong in the 
+      presentation layer.
+
+  disallow_public_methods_in_repository_implementation:
+    purpose: >-
+      Enforces encapsulation. The only public members in a repository implementation should be 
+      those that it is contractually obligated to provide (i.e., the ones it @overrides from the 
+      interface). Any other public methods or fields suggest that the class has responsibilities 
+      beyond its core contract, which is a violation of SRP.
+    problem_message: >-
+      Public members in a Repository implementation must override a member from the interface.
+    violation_example: >-
+      ```dart
+      class AuthRepositoryImpl implements AuthRepository {
+        // ...
+        @override
+        FutureEither<UserEntity> getUser(int id) async { /* ... */ }
+
+        // VIOLATION: This helper method is public but not part of the contract.
+        // It should be private (`_parseUser`).
+        UserEntity parseUser(Map<String, dynamic> json) { /* ... */ } // <-- LINT WARNING HERE
+      }
+      ```
+
+  disallow_public_methods_in_data_source_implementation:
+    purpose: >-
+      Enforces that public methods are not used in the data source implementations. Public methods 
+      belong in the presentation layer.
+
+  disallow_dependency_creation_in_constructor:
+    purpose: >-
+      To enforce pure Dependency Injection. In a DI-first architecture, a class should receive its 
+      dependencies from an external source (like a DI container), not create or locate them itself. 
+      This prevents tight coupling to a specific DI framework or instantiation logic.
+    problem_message: >-
+      Do not create or locate dependencies within a constructor. Receive them as parameters instead.
+    violation_example: >-
+      ```dart
+      class DefaultAuthRepository implements AuthRepository {
+        final AuthRemoteDataSource _dataSource;
+
+        // VIOLATION: The repository is creating its own dependency.
+        DefaultAuthRepository() : _dataSource = AuthRemoteDataSourceImpl(); // <-- LINT WARNING HERE
+
+        // Also a violation (Service Locator pattern)
+        // DefaultAuthRepository() : _dataSource = getIt<AuthRemoteDataSource>(); 
+      }
+      ```
+    correction_example: >-
+      ```dart
+      class DefaultAuthRepository implements AuthRepository {
+        final AuthRemoteDataSource _dataSource;
+
+        // Correct: The dependency is "injected" via the constructor.
+        const DefaultAuthRepository(this._dataSource);
+      }
+      ```
+
+  enforce_abstract_repository_dependency:
+    purpose: >-
+      Dependency Inversion. This is the crucial mirror image of your existing 
+      enforce_abstract_data_source_dependency lint, but for the domain layer.
+
+    problem_message: >-
+      UseCases must depend on repository abstractions, not concrete implementations.
+    violation_example: >-
+      ```dart
+      // in domain/usecases/get_user_usecase.dart
+      import 'package:example/data/repositories/default_auth_repository.dart'; // <-- VIOLATION
+
+      class GetUserUsecase {
+        final DefaultAuthRepository _repository; // <-- VIOLATION
+        GetUserUsecase(this._repository);
+      }
+      ```
+  disallow_throwing_from_repository:
+    purpose: >-
+      Predictable Error Flow. The repository's contract is to catch all data-layer exceptions and 
+      convert them into a predictable Failure type.
+    problem_message: >-
+      Repositories must not throw exceptions. Return a Failure object within a Result/Either 
+      instead.
+    violation_example: >-
+      ```dart
+      class AuthRepositoryImpl implements AuthRepository {
+        final AuthRemoteDataSource _dataSource;
+
+        AuthRepositoryImpl(this._dataSource);
+
+        @override
+        FutureEither<UserEntity> getUser(int id) async {
+          try {
+            final user = await _dataSource.getUser(id);
+            return Right(user);
+          } on Exception catch (e) {
+            // VIOLATION: Throwing an exception.
+            throw e; // <-- LINT WARNING HERE
+          }
+        }
+      }
+      ```
+    correction_example: >-
+      ```dart
+      class AuthRepositoryImpl implements AuthRepository {
+        final AuthRemoteDataSource _dataSource;
+
+        AuthRepositoryImpl(this._dataSource);
+
+        @override
+        FutureEither<UserEntity> getUser(int id) async {
+          try {
+            final user = await _dataSource.getUser(id);
+            return Right(user);
+          } on Exception catch (e) {
+            // CORRECT: Returning a Failure object.
+            return Left(Failure(e.toString())); // <-- LINT OK
+          }
+        }
+      }
+      ```
+  enforce_failure_type_in_signatures:
+    purpose: >-
+      To allow the presentation layer to react to specific business errors (e.g., "InvalidPassword",
+      "UserNotFound"), the Left side of a FutureEither returned by a UseCase should be a sealed 
+      class or enum that represents specific Failure types, not a generic Exception.
+    problem_message: >-
+      The return type uses a generic Failure/Exception instead of a domain-specific Failure.
+
+  enforce_use_case_single_responsibility:
+    purpose: >-
+      UseCases should have a single responsibility, which is to orchestrate the flow of data 
+      between the domain layer and the presentation layer. They should not contain any business 
+      logic.
+    problem_message: >-
+      The UseCase should only have one public method, call().
+
+  enforce_repository_exception_handling:
+    purpose: >-
+      A cornerstone of Clean Architecture. A repository's job is to catch all exceptions from the 
+      DataSource (network errors, database errors, etc.) and convert them into a Failure object 
+      inside an Either or Result. This lint would flag any try/catch block that is missing or that 
+      re-throws an exception.      
+
+  enforce_datasource_exception_throwing:
+    purpose: >-
+      This is the other side of the coin. DataSources should live in the "unsafe" world. They 
+      should throw exceptions on failure (throw ServerException(), throw CacheException()) and let 
+      the repository handle them. They should not return Either types.
+
+  enforce_data_exception_type:
+    purpose: >-
+      To keep error handling clean, all exceptions thrown from the data layer should inherit from a 
+      common base class (e.g., DataException). This lint would flag throw Exception('...') and 
+      enforce the use of custom, typed exceptions.
+
+  enforce_repository_implementation_contract:
+    purpose: >-
+      While your naming convention lint implies this, a direct semantic check is more robust. It 
+      ensures that DefaultAuthRepository actually has implements AuthRepository in its definition, 
+      creating an unbreakable link between the data and domain layers.
+
+  disallow_concrete_instantiation_in_constructors:
+    purpose: >-
+      This is the most fundamental Dependency Injection (DI) rule. It prevents classes from creating
+      their own dependencies, forcing them to be "injected" from the outside.
+      A class should not be responsible for creating its own dependencies. This breaks the 
+      Dependency Inversion Principle, creates tight coupling, and makes testing difficult. 
+      Dependencies should be provided via the constructor.
+      This lint would inspect the initializers of a constructor. It would flag any constructor that
+      assigns a dependency by creating a new instance of a concrete class, instead of assigning it 
+      from a constructor parameter.
+    violation_example: >-
+      ```dart
+      // Inside a data repository implementation...
+      class AuthRepositoryImpl implements AuthRepository {
+
+        final AuthRemoteDataSource _dataSource;
+
+        // VIOLATION: disallow_concrete_instantiation_in_constructors
+        // The repository is creating its own dependency. This makes it impossible
+        // to replace AuthRemoteDataSourceImpl with a mock for testing.
+        AuthRepositoryImpl() : _dataSource = DefaultAuthRemoteDataSource(); // <-- LINT WARNING HERE
+
+        // ...
+      }
+      ```
+    correction_example: >-
+      ```dart
+      class AuthRepositoryImpl implements AuthRepository {
+
+        final AuthRemoteDataSource _dataSource;
+
+        // This is correct. The dependency is passed in ("injected").
+        const AuthRepositoryImpl(this._dataSource);
+
+        // ...
+      }
+      ```
+  disallow_service_locator_in_layers:
+    purpose: >-
+      This rule prevents the use of the Service Locator pattern directly within your business 
+      logic, which is often considered an anti-pattern as it hides a class's dependencies.
+      Architectural Principle
+      Dependencies should be explicit. Using a global service locator like getIt<MyService>() 
+      inside a method or class makes the dependency implicit, hiding it from the class's public 
+      API and making the code harder to reason about and test.
+      What It Does
+      This lint would be configurable. In your analysis_options.yaml, you would define the names 
+      of your service locator calls (e.g., ['getIt', 'locator', 'sl']). The lint would then visit 
+      method invocations inside domain, data, and presentation/manager files and flag any call 
+      that matches the configured service locator names.
+
+    violation_example: >-
+      ```dart
+      // Inside a presentation BLoC...
+      class AuthBloc extends Bloc<AuthEvent, AuthState> {
+        AuthBloc() : super(AuthInitial()) {
+          on<LoginButtonPressed>((event, emit) {
+            // VIOLATION: disallow_service_locator_in_layers
+            // The BLoC is fetching its dependency from a global locator.
+            // This dependency is not declared in the constructor and is hidden.
+            final loginUsecase = getIt<LoginUsecase>(); // <-- LINT WARNING HERE
+            loginUsecase.call(event.params);
+          });
+        }
+      }
+      ```
+    correction_example: >-
+      ```dart
+      class AuthBloc extends Bloc<AuthEvent, AuthState> {
+        final LoginUsecase _loginUsecase;
+
+        // The dependency is explicit, declared in the constructor, and easily mockable.
+        AuthBloc(this._loginUsecase) : super(AuthInitial()) {
+          on<LoginButtonPressed>((event, emit) {
+            _loginUsecase.call(event.params);
+          });
+        }
+      }
+      ```
