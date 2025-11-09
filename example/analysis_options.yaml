@@ -48,6 +48,7 @@ custom_lint:
     - enforce_type_safety: true
     - enforce_try_catch_in_repository: true
     - enforce_exception_on_data_source: true
+    - enforce_annotation: true
 
     # --- Code Generation Rule ---
     - missing_use_case: true
@@ -150,12 +151,35 @@ custom_lint:
         repository_base_name: 'Repository'
         repository_base_path: 'package:example/core/repository/repository.dart'
 
-      # [SECTION 6: GENERATION OPTIONS]
-      # Optionally add annotations (like for dependency injection) to generated use cases.
+      # [SECTION 6: SERVICE]
+
       services:
         dependency_injection:
           service_locator_names: [ 'getIt', 'locator', 'sl' ]
 
-          use_case_annotations:
-            - import_path: 'package:injectable/injectable.dart'
-              annotation_text: '@Injectable()'
+
+      # [SECTION 7: ANNOTATIONS]
+      annotations:
+        # Rule 1: For UseCases
+        - on: 'use_case'
+          required:
+            - text: 'Injectable()'
+              import: 'package:injectable/injectable.dart'
+              generate: true
+
+        # Rule 2: For Repository Implementations
+        - on: 'data_repository'
+          required:
+            - text: 'LazySingleton()'
+              import: 'package:injectable/injectable.dart'
+
+        - on: 'entity'
+          forbidden:
+            - text: 'Injectable()'
+            - text: 'Singleton()'
+
+        # Rule 3: For Models that use json_serializable
+        - on: 'model'
+          optional:
+            - text: 'JsonSerializable()'
+              import: 'package:json_annotation/json_annotation.dart'

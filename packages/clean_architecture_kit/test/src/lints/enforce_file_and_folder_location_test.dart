@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:clean_architecture_kit/src/lints/enforce_file_and_folder_location.dart';
+import 'package:clean_architecture_kit/src/lints/location/enforce_file_and_folder_location.dart';
 import 'package:clean_architecture_kit/src/models/clean_architecture_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:mocktail/mocktail.dart';

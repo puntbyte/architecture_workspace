@@ -1,7 +1,7 @@
 // test/src/models/clean_architecture_config_test.dart
 
 import 'package:clean_architecture_kit/src/models/clean_architecture_config.dart';
-import 'package:clean_architecture_kit/src/utils/layer_resolver.dart';
+import 'package:clean_architecture_kit/src/analysis/layer_resolver.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

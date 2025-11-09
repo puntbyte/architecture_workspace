@@ -1,6 +1,6 @@
 // lib/src/utils/naming_utils.dart
 import 'package:clean_architecture_kit/src/models/clean_architecture_config.dart';
-import 'package:clean_architecture_kit/src/utils/string_extension.dart';
+import 'package:clean_architecture_kit/src/utils/extensions/string_extension.dart';
 
 /// A utility class for handling naming conventions and validations.
 class NamingUtils {

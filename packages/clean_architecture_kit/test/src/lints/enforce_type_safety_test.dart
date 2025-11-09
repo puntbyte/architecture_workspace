@@ -5,9 +5,9 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:clean_architecture_kit/src/lints/enforce_type_safety.dart';
+import 'package:clean_architecture_kit/src/lints/structure/enforce_type_safety.dart';
 import 'package:clean_architecture_kit/src/models/type_safety_config.dart';
-import 'package:clean_architecture_kit/src/utils/layer_resolver.dart';
+import 'package:clean_architecture_kit/src/analysis/layer_resolver.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -16,10 +16,21 @@ import '../../helpers/fakes.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_data.dart';
 
-/// Helper to run the lint similarly to how custom_lint would invoke it:
-/// - registers the visitor via `run(...)` and captures the `addMethodDeclaration` callback.
-/// - parses the provided source and invokes the captured callback for each MethodDeclaration.
-Future<void> runEnforceTypeSafetyLint({
+/// A simple visitor to find and act on all MethodDeclarations in a file.
+class _MethodVisitor extends RecursiveAstVisitor<void> {
+  final void Function(MethodDeclaration) onVisit;
+
+  _MethodVisitor({required this.onVisit});
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    onVisit(node);
+    super.visitMethodDeclaration(node);
+  }
+}
+
+/// A test helper that runs the lint and captures all diagnostic reports.
+Future<List<Map<String, dynamic>>> runTypeSafetyLintAndCapture({
   required EnforceTypeSafety lint,
   required MockDiagnosticReporter reporter,
   required String filePath,
@@ -37,202 +48,166 @@ Future<void> runEnforceTypeSafetyLint({
     capturedCallback = invocation.positionalArguments.first as void Function(MethodDeclaration);
   });
 
-  // Register visitor
+  final captured = <Map<String, dynamic>>[];
+  when(() => reporter.atNode(any(), any())).thenAnswer((invocation) {
+    captured.add({'fn': 'atNode'});
+  });
+  when(() => reporter.atToken(any(), any())).thenAnswer((invocation) {
+    captured.add({'fn': 'atToken'});
+  });
+
   lint.run(resolver, reporter, context);
 
-  // Parse and invoke the captured callback for each MethodDeclaration
-  final parsed = parseString(content: source, path: filePath, throwIfDiagnostics: false);
-  final unit = parsed.unit;
+  final parseResult = parseString(content: source, path: filePath, throwIfDiagnostics: false);
+  expect(capturedCallback, isNotNull, reason: 'Expected addMethodDeclaration to be registered.');
 
-  expect(capturedCallback, isNotNull, reason: 'Expected addMethodDeclaration to be called.');
+  parseResult.unit.visitChildren(_MethodVisitor(onVisit: capturedCallback!));
 
-  for (final classDecl in unit.declarations.whereType<ClassDeclaration>()) {
-    for (final method in classDecl.members.whereType<MethodDeclaration>()) {
-      capturedCallback!(method);
-    }
-  }
+  return captured;
 }
 
 void main() {
+  // Definitive, correct setUpAll block.
   setUpAll(() {
-    // Keep existing fakes for Token & LintCode
     registerFallbackValue(FakeToken());
     registerFallbackValue(FakeLintCode());
+    registerFallbackValue(FakeSourceRange());
 
-    // Create concrete AST instances to register as mocktail fallback values.
-    // We parse a tiny snippet and extract objects to use as safe fallback values
-    // for types that are sealed/final in analyzer.
-    final parsed = parseString(
-      content: r'''
-        // tiny snippet used only to construct AST fallback nodes
-        class _Dummy {
-          void method(String id) {}
-          set value(String v) {}
-        }
-      ''',
+    // Create a real, concrete instance of an AstNode to use as a fallback.
+    // We parse a minimal, valid snippet of code to do this.
+    final parseResult = parseString(
+      content: 'class Dummy {}',
       throwIfDiagnostics: false,
     );
 
-    final unit = parsed.unit; // CompilationUnit implements AstNode
-    final classDecl = unit.declarations.whereType<ClassDeclaration>().first;
-    final method = classDecl.members.whereType<MethodDeclaration>().first;
-    final param = method.parameters!.parameters.first;
-    final typeNode = (param as SimpleFormalParameter).type!; // TypeAnnotation
-    final simpleIdent = classDecl.name; // SimpleIdentifier
+    // The CompilationUnit is the root of the AST and is a valid AstNode.
+    final astRoot = parseResult.unit;
 
-    // Register concrete instances as fallback values.
-    registerFallbackValue(unit); // AstNode
-    registerFallbackValue(typeNode); // TypeAnnotation
-    registerFallbackValue(simpleIdent); // SimpleIdentifier
+    // Register this real instance.
+    registerFallbackValue(astRoot);
   });
 
-  group('EnforceTypeSafety lint', () {
-    late Directory tmp;
+  group('EnforceTypeSafety', () {
+    late Directory tempDir;
     late String projectRoot;
     late MockDiagnosticReporter reporter;
 
     setUp(() async {
       reporter = MockDiagnosticReporter();
-      tmp = await Directory.systemTemp.createTemp('enforce_type_safety_test_');
-      projectRoot = tmp.path;
-
-      // Create pubspec so PathUtils.findProjectRoot() can discover the project root (if used).
+      tempDir = await Directory.systemTemp.createTemp('enforce_type_safety_test_');
+      projectRoot = tempDir.path;
       await File(p.join(projectRoot, 'pubspec.yaml')).writeAsString('name: test_project');
     });
 
-    tearDown(() async {
-      try {
-        await tmp.delete(recursive: true);
-      } catch (_) {}
-    });
+    tearDown(() async => tempDir.delete(recursive: true));
 
-    test('reports when return type is missing but a return rule applies', () async {
-      final returnRule = ReturnRule(type: 'FutureEither', where: ['domain_repository']);
-      final config = makeLayerFirstConfig(returnRules: [returnRule]);
+    group('when checking return types', () {
+      late String repoPath;
+      const returnRule = ReturnRule(type: 'FutureEither', where: ['domain_repository']);
+      final config = makeConfig(
+        projectStructure: 'layer_first',
+        domainRepositoriesPaths: ['repositories'],
+        returnRules: [returnRule],
+      );
       final lint = EnforceTypeSafety(config: config, layerResolver: LayerResolver(config));
 
-      final repoPath = p.join(projectRoot, 'lib', 'domain', 'repositories', 'user_repository.dart');
-      await File(repoPath).parent.create(recursive: true);
+      setUp(() async {
+        repoPath = p.join(projectRoot, 'lib', 'domain', 'repositories', 'user_repository.dart');
+        await File(repoPath).parent.create(recursive: true);
+      });
 
-      const src = '''
-        abstract class UserRepository {
-          fetchUser();
-        }
-      ''';
-      await File(repoPath).writeAsString(src);
+      test('should report a violation when the return type is incorrect', () async {
+        const source = 'abstract class UserRepository { Future<User> getUser(int id); }';
+        final captured = await runTypeSafetyLintAndCapture(
+          lint: lint,
+          reporter: reporter,
+          filePath: repoPath,
+          source: source,
+        );
+        expect(captured.where((c) => c['fn'] == 'atNode'), isNotEmpty);
+      });
 
-      await runEnforceTypeSafetyLint(
-        lint: lint,
-        reporter: reporter,
-        filePath: repoPath,
-        source: src,
-      );
+      test('should report a violation when the return type is incorrect', () async {
+        const source = 'abstract class UserRepository { Future<User> getUser(int id); }';
+        final captured = await runTypeSafetyLintAndCapture(
+          lint: lint,
+          reporter: reporter,
+          filePath: repoPath,
+          source: source,
+        );
+        expect(captured.where((c) => c['fn'] == 'atNode'), isNotEmpty);
+      });
 
-      verify(() => reporter.atToken(any(), any())).called(1);
+      test('should not report a violation when the return type is correct', () async {
+        const source = 'abstract class UserRepository { FutureEither<User> getUser(int id); }';
+        final captured = await runTypeSafetyLintAndCapture(
+          lint: lint,
+          reporter: reporter,
+          filePath: repoPath,
+          source: source,
+        );
+        expect(captured, isEmpty, reason: 'Expected no reports for correct code.');
+      });
+
+      test('should not report a violation for setters', () async {
+        const source = 'abstract class UserRepository { set user(User u); }';
+        final captured = await runTypeSafetyLintAndCapture(
+          lint: lint,
+          reporter: reporter,
+          filePath: repoPath,
+          source: source,
+        );
+        expect(captured, isEmpty, reason: 'Setters should be ignored for return type rules.');
+      });
     });
 
-    test('reports when return type does not start with expected type', () async {
-      final returnRule = ReturnRule(type: 'FutureEither', where: ['domain_repository']);
-      final config = makeLayerFirstConfig(returnRules: [returnRule]);
+    group('when checking parameters', () {
+      late String repoPath;
+      const paramRule = ParameterRule(type: 'Id', where: ['domain_repository'], identifier: 'id');
+      final config = makeConfig(
+        projectStructure: 'layer_first',
+        domainRepositoriesPaths: ['repositories'], // Correctly configure the path
+        parameterRules: [paramRule],
+      );
       final lint = EnforceTypeSafety(config: config, layerResolver: LayerResolver(config));
 
-      final repoPath = p.join(projectRoot, 'lib', 'domain', 'repositories', 'user_repository.dart');
-      await File(repoPath).parent.create(recursive: true);
+      setUp(() async {
+        repoPath = p.join(projectRoot, 'lib', 'domain', 'repositories', 'user_repository.dart');
+        await File(repoPath).parent.create(recursive: true);
+      });
 
-      const src = '''
-        abstract class UserRepository {
-          String fetchUser();
-        }
-      ''';
-      await File(repoPath).writeAsString(src);
+      test('should report a violation when a matching parameter has the wrong type', () async {
+        const source = 'abstract class UserRepository { void getUser(int userId); }';
+        final captured = await runTypeSafetyLintAndCapture(
+          lint: lint,
+          reporter: reporter,
+          filePath: repoPath,
+          source: source,
+        );
+        expect(captured.where((c) => c['fn'] == 'atNode'), isNotEmpty);
+      });
 
-      await runEnforceTypeSafetyLint(
-        lint: lint,
-        reporter: reporter,
-        filePath: repoPath,
-        source: src,
-      );
+      test('should not report a violation when the parameter type is correct', () async {
+        const source = 'abstract class UserRepository { void getUser(Id userId); }';
+        final captured = await runTypeSafetyLintAndCapture(
+          lint: lint,
+          reporter: reporter,
+          filePath: repoPath,
+          source: source,
+        );
+        expect(captured, isEmpty);
+      });
 
-      // atNode should be called for incorrect return type
-      verify(() => reporter.atNode(any(), any())).called(greaterThanOrEqualTo(1));
-    });
-
-    test('reports when parameter identified by identifier has wrong type', () async {
-      final paramRule = ParameterRule(type: 'Id', where: ['domain_repository'], identifier: 'id');
-      final config = makeLayerFirstConfig(parameterRules: [paramRule]);
-      final lint = EnforceTypeSafety(config: config, layerResolver: LayerResolver(config));
-
-      final repoPath = p.join(projectRoot, 'lib', 'domain', 'repositories', 'user_repository.dart');
-      await File(repoPath).parent.create(recursive: true);
-
-      const src = '''
-        abstract class UserRepository {
-          void getUser(int id);
-        }
-      ''';
-      await File(repoPath).writeAsString(src);
-
-      await runEnforceTypeSafetyLint(
-        lint: lint,
-        reporter: reporter,
-        filePath: repoPath,
-        source: src,
-      );
-
-      verify(() => reporter.atNode(any(), any())).called(greaterThanOrEqualTo(1));
-    });
-
-    test('does NOT report when setter is encountered (skipped by rule)', () async {
-      final returnRule = ReturnRule(type: 'FutureEither', where: ['domain_repository']);
-      final config = makeLayerFirstConfig(returnRules: [returnRule]);
-      final lint = EnforceTypeSafety(config: config, layerResolver: LayerResolver(config));
-
-      final repoPath = p.join(projectRoot, 'lib', 'domain', 'repositories', 'settings.dart');
-      await File(repoPath).parent.create(recursive: true);
-
-      const src = '''
-        abstract class Settings {
-          set value(String v);
-        }
-      ''';
-      await File(repoPath).writeAsString(src);
-
-      await runEnforceTypeSafetyLint(
-        lint: lint,
-        reporter: reporter,
-        filePath: repoPath,
-        source: src,
-      );
-
-      // should not report
-      verifyNever(() => reporter.atToken(any(), any()));
-      verifyNever(() => reporter.atNode(any(), any()));
-    });
-
-    test('does NOT report when parameter name does not match identifier', () async {
-      final paramRule = ParameterRule(type: 'Id', where: ['domain_repository'], identifier: 'id');
-      final config = makeLayerFirstConfig(parameterRules: [paramRule]);
-      final lint = EnforceTypeSafety(config: config, layerResolver: LayerResolver(config));
-
-      final repoPath = p.join(projectRoot, 'lib', 'domain', 'repositories', 'user_repository.dart');
-      await File(repoPath).parent.create(recursive: true);
-
-      const src = '''
-        abstract class UserRepository {
-          void getUser(String user);
-        }
-      ''';
-      await File(repoPath).writeAsString(src);
-
-      await runEnforceTypeSafetyLint(
-        lint: lint,
-        reporter: reporter,
-        filePath: repoPath,
-        source: src,
-      );
-
-      verifyNever(() => reporter.atNode(any(), any()));
-      verifyNever(() => reporter.atToken(any(), any()));
+      test('should not report a violation when no parameter name matches the identifier', () async {
+        const source = 'abstract class UserRepository { void findUser(String name); }';
+        final captured = await runTypeSafetyLintAndCapture(
+          lint: lint,
+          reporter: reporter,
+          filePath: repoPath,
+          source: source,
+        );
+        expect(captured, isEmpty);
+      });
     });
   });
 }

@@ -1,5 +1,6 @@
 // lib/src/models/layer_config.dart
-import 'package:clean_architecture_kit/src/utils/json_map_extension.dart';
+
+import 'package:clean_architecture_kit/src/utils/extensions/json_map_extension.dart';
 
 class LayerConfig {
   final String projectStructure;

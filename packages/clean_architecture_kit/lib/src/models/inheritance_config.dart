@@ -1,14 +1,6 @@
 // lib/src/models/inheritance_config.dart
-import 'package:clean_architecture_kit/src/utils/json_map_extension.dart';
 
-/// A private class to hold the default values for the core package.
-class _CoreDefaults {
-  static const corePackagePath = 'package:clean_architecture_core/clean_architecture_core.dart';
-  static const entityBaseName = 'Entity';
-  static const unaryUseCaseName = 'UnaryUseCase';
-  static const nullaryUseCaseName = 'NullaryUseCase';
-  static const repositoryBaseName = 'Repository';
-}
+import 'package:clean_architecture_kit/src/utils/extensions/json_map_extension.dart';
 
 /// A strongly-typed representation of the `inheritance` block in `analysis_options.yaml`.
 class InheritanceConfig {
@@ -53,4 +45,13 @@ class InheritanceConfig {
       repositoryBasePath: map.getString('repository_base_path', _CoreDefaults.corePackagePath),
     );
   }
+}
+
+/// A private class to hold the default values for the core package.
+class _CoreDefaults {
+  static const corePackagePath = 'package:clean_architecture_core/clean_architecture_core.dart';
+  static const entityBaseName = 'Entity';
+  static const unaryUseCaseName = 'UnaryUseCase';
+  static const nullaryUseCaseName = 'NullaryUseCase';
+  static const repositoryBaseName = 'Repository';
 }

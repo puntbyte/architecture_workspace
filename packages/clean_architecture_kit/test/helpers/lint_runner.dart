@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:clean_architecture_kit/src/utils/clean_architecture_lint_rule.dart';
-import 'package:clean_architecture_kit/src/utils/layer_resolver.dart';
+import 'package:clean_architecture_kit/src/lints/clean_architecture_lint_rule.dart';
+import 'package:clean_architecture_kit/src/analysis/layer_resolver.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:test/test.dart';
 

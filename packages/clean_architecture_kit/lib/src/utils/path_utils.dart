@@ -1,9 +1,9 @@
 // lib/src/utils/path_utils.dart
 import 'dart:io';
 import 'package:clean_architecture_kit/src/models/clean_architecture_config.dart';
-import 'package:clean_architecture_kit/src/utils/layer_resolver.dart';
+import 'package:clean_architecture_kit/src/analysis/layer_resolver.dart';
 import 'package:clean_architecture_kit/src/utils/naming_utils.dart';
-import 'package:clean_architecture_kit/src/utils/string_extension.dart';
+import 'package:clean_architecture_kit/src/utils/extensions/string_extension.dart';
 import 'package:path/path.dart' as p;
 
 /// A utility class providing static methods for path resolution.

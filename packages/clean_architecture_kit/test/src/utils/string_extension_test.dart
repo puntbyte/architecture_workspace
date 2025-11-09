@@ -1,4 +1,4 @@
-import 'package:clean_architecture_kit/src/utils/string_extension.dart';
+import 'package:clean_architecture_kit/src/utils/extensions/string_extension.dart';
 import 'package:test/test.dart';
 
 void main() {

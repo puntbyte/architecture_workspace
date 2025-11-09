@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:clean_architecture_kit/src/models/naming_config.dart';
-import 'package:clean_architecture_kit/src/utils/layer_resolver.dart';
+import 'package:clean_architecture_kit/src/analysis/layer_resolver.dart';
 import 'package:clean_architecture_kit/src/utils/naming_utils.dart';
 
 /// A utility class for common semantic analysis tasks.

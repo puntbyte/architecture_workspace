@@ -13,6 +13,7 @@ abstract interface class Auth {} // <-- LINT WARNING HERE (multiple)
 // VIOLATION: enforce_repository_contract (does not implement 'Repository')
 abstract interface class AnalyticsRepository {} // <-- LINT WARNING HERE
 
+// ISSUE: enforce_type_safety is not flagging the following class but it should
 abstract interface class BadReturnTypeRepository implements Repository {
   // VIOLATION: enforce_type_safety (returns Future instead of FutureEither) (not working)
   Future<User> getUser(int id); // <-- LINT WARNING HERE

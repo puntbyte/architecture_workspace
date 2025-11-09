@@ -1,6 +1,6 @@
 // test/src/utils/layer_resolver_test.dart
 import 'package:clean_architecture_kit/src/models/clean_architecture_config.dart';
-import 'package:clean_architecture_kit/src/utils/layer_resolver.dart';
+import 'package:clean_architecture_kit/src/analysis/layer_resolver.dart';
 import 'package:test/test.dart';
 
 /// A helper function to create a complete and valid [CleanArchitectureConfig]

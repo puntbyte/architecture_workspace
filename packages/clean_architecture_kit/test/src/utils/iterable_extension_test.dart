@@ -1,6 +1,6 @@
 // test/src/utils/extensions/iterable_extension_test.dart
 
-import 'package:clean_architecture_kit/src/utils/iterable_extension.dart';
+import 'package:clean_architecture_kit/src/utils/extensions/iterable_extension.dart';
 import 'package:test/test.dart';
 
 void main() {

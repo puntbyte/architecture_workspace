@@ -1,27 +1,6 @@
 // lib/src/models/naming_config.dart
 
-import 'package:clean_architecture_kit/src/utils/json_map_extension.dart';
-
-/// Represents a single naming rule with allowed and forbidden patterns.
-class NamingRule {
-  final String pattern;
-  final List<String> antiPatterns;
-
-  const NamingRule({required this.pattern, this.antiPatterns = const []});
-
-  factory NamingRule.from(dynamic data, String defaultPattern) {
-    if (data is String) return NamingRule(pattern: data);
-
-    if (data is Map<String, dynamic>) {
-      return NamingRule(
-        pattern: data.getString('pattern', defaultPattern),
-        antiPatterns: data.getList('anti_pattern'), // CORRECTED
-      );
-    }
-
-    return NamingRule(pattern: defaultPattern);
-  }
-}
+import 'package:clean_architecture_kit/src/models/rules/naming_rule.dart';
 
 /// A strongly-typed representation of the `naming_conventions` block in `analysis_options.yaml`.
 class NamingConfig {
@@ -54,9 +33,15 @@ class NamingConfig {
       useCase: NamingRule.from(map['use_case'], '{{name}}'),
       useCaseRecordParameter: NamingRule.from(map['use_case_record_parameter'], '_{{name}}Params'),
       repositoryInterface: NamingRule.from(map['repository_interface'], '{{name}}Repository'),
-      repositoryImplementation: NamingRule.from(map['repository_implementation'], '{{type}}{{name}}Repository'),
+      repositoryImplementation: NamingRule.from(
+        map['repository_implementation'],
+        '{{type}}{{name}}Repository',
+      ),
       dataSourceInterface: NamingRule.from(map['data_source_interface'], '{{name}}DataSource'),
-      dataSourceImplementation: NamingRule.from(map['data_source_implementation'], 'Default{{name}}DataSource'),
+      dataSourceImplementation: NamingRule.from(
+        map['data_source_implementation'],
+        'Default{{name}}DataSource',
+      ),
     );
   }
 }
