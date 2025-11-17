@@ -34,6 +34,13 @@ ArchitectureConfig makeConfig({
   dynamic useCaseNaming = '{{name}}',
   dynamic eventNaming = '{{name}}Event',
   dynamic stateNaming = '{{name}}State',
+  dynamic managerNaming = '{{name}}Manager',
+  dynamic blocNaming = '{{name}}Bloc',
+  dynamic cubitNaming = '{{name}}Cubit',
+  dynamic repositoryNaming = '{{name}}Repository',
+  dynamic sourceNaming = '{{name}}Source',
+  dynamic pageNaming = '{{name}}Page',
+  dynamic widgetNaming = '{{name}}Widget',
   // ... add other naming configs as needed
 
   // type_safeties (pass rule objects for type safety)

@@ -31,9 +31,10 @@ class ArchitectureConfig {
     return ArchitectureConfig(
       layers: LayerConfig.fromMap(map),
       naming: NamingConfig.fromMap(map.getMap('naming_conventions')),
-      typeSafety: TypeSafetyConfig.fromMap(map.getMap('type_safeties')),
-      inheritance: InheritanceConfig.fromMap(map.getMap('inheritances')),
-      annotations: AnnotationsConfig.fromMap(map.getMap('annotations')),
+      // FIX: Pass the raw map instead of trying to extract a sub-map
+      typeSafety: TypeSafetyConfig.fromMap(map),
+      inheritance: InheritanceConfig.fromMap(map),
+      annotations: AnnotationsConfig.fromMap(map),
       services: ServicesConfig.fromMap(map.getMap('services')),
     );
   }

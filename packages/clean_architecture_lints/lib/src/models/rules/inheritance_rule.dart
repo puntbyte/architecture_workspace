@@ -1,3 +1,5 @@
+// lib/src/models/rules/inheritance_rule.dart
+
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
 
 /// Represents a single, user-defined inheritance rule.
@@ -14,7 +16,14 @@ class InheritanceRule {
     this.suggested = const [],
   });
 
-  factory InheritanceRule.fromMap(Map<String, dynamic> map) {
+  /// A failable factory. Returns null if the essential 'on' key is missing.
+  static InheritanceRule? tryFromMap(Map<String, dynamic> map) {
+    final on = map.getString('on');
+    // THE DEFINITIVE FIX (Part 1): If 'on' is missing, the rule is invalid.
+    if (on.isEmpty) {
+      return null;
+    }
+
     List<InheritanceDetail> parseDetails(String key) {
       final data = map[key];
       if (data is Map<String, dynamic>) {
@@ -31,7 +40,7 @@ class InheritanceRule {
     }
 
     return InheritanceRule(
-      on: map.getString('on'),
+      on: on,
       required: parseDetails('required'),
       forbidden: parseDetails('forbidden'),
       suggested: parseDetails('suggested'),

@@ -3,10 +3,7 @@
 import 'package:clean_architecture_lints/src/models/rules/dependency_injection_rule.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
 
-/// The parent configuration class for all service-related rules.
-/// It acts as a namespace for configurations like dependency injection, logging, etc.
 class ServicesConfig {
-  /// The specific rules for dependency injection.
   final DependencyInjectionRule dependencyInjection;
 
   const ServicesConfig({
@@ -14,9 +11,13 @@ class ServicesConfig {
   });
 
   factory ServicesConfig.fromMap(Map<String, dynamic> map) {
+    // THE DEFINITIVE FIX:
+    // We must get the 'dependency_injection' sub-map from the 'services' map,
+    // and pass THAT to the DependencyInjectionRule factory.
     return ServicesConfig(
-      // Finds the 'dependency_injection' block in the YAML and parses it.
-      dependencyInjection: DependencyInjectionRule.fromMap(map.getMap('dependency_injection')),
+      dependencyInjection: DependencyInjectionRule.fromMap(
+        map.getMap('services').getMap('dependency_injection'),
+      ),
     );
   }
 }
