@@ -1,0 +1,154 @@
+// lib/src/fixes/create_to_entity_method_fix.dart
+
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/source/source_range.dart';
+
+// Deliberate import of internal AST locator utility used by many analyzer plugins.
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
+import 'package:clean_architecture_lints/src/analysis/layer_resolver.dart';
+import 'package:clean_architecture_lints/src/models/architecture_config.dart';
+import 'package:clean_architecture_lints/src/utils/extensions/iterable_extension.dart';
+import 'package:clean_architecture_lints/src/utils/syntax_builder.dart';
+import 'package:code_builder/code_builder.dart' as cb;
+import 'package:custom_lint_builder/custom_lint_builder.dart';
+import 'package:dart_style/dart_style.dart';
+
+/// A quick fix that generates or corrects the `toEntity()` method in a Model class.
+class CreateToEntityMethodFix extends Fix {
+  final ArchitectureConfig config;
+
+  CreateToEntityMethodFix({required this.config});
+
+  @override
+  List<String> get filesToAnalyze => const ['**.dart'];
+
+  @override
+  void run(
+    CustomLintResolver resolver,
+    ChangeReporter reporter,
+    CustomLintContext context,
+    Diagnostic diagnostic,
+    List<Diagnostic> others,
+  ) {
+    context.addPostRunCallback(() async {
+      final resolvedUnit = await resolver.getResolvedUnitResult();
+      final node = NodeLocator2(diagnostic.offset).searchWithin(resolvedUnit.unit);
+      final modelNode = node?.thisOrAncestorOfType<ClassDeclaration>();
+      if (modelNode == null) return;
+
+      final classElement = modelNode.declaredFragment?.element;
+      if (classElement == null) return;
+
+      final layerResolver = LayerResolver(config);
+      final entitySupertype = classElement.allSupertypes.firstWhereOrNull((st) {
+        final source = st.element.firstFragment.libraryFragment.source;
+        return layerResolver.getComponent(source.fullName) == ArchComponent.entity;
+      });
+      final entityElement = entitySupertype?.element;
+      if (entityElement is! ClassElement) return;
+
+      // THE FIX: Safely guard against a null entity name.
+      final entityName = entityElement.name;
+      if (entityName == null) return;
+
+      final modelName = modelNode.name.lexeme;
+      final existingMethod = modelNode.members.whereType<MethodDeclaration>().firstWhereOrNull(
+        (m) => m.name.lexeme == 'toEntity',
+      );
+
+      final message = existingMethod != null
+          ? 'Correct `toEntity()` method in `$modelName`'
+          : 'Create `toEntity()` method in `$modelName`';
+
+      reporter.createChangeBuilder(message: message, priority: 90).addDartFileEdit((builder) {
+        final method = _buildToEntityMethod(
+          modelNode: modelNode,
+          entityElement: entityElement,
+          entityName: entityName,
+        );
+        final emitter = cb.DartEmitter(useNullSafetySyntax: true);
+
+        final formattedBlock = DartFormatter(
+          languageVersion: DartFormatter.latestLanguageVersion,
+        ).format(method.accept(emitter).toString());
+
+        if (existingMethod != null) {
+          builder.addReplacement(
+            SourceRange(existingMethod.offset, existingMethod.length),
+            (editBuilder) => editBuilder.write(formattedBlock),
+          );
+        } else {
+          final insertionOffset = modelNode.rightBracket.offset;
+          builder.addInsertion(insertionOffset, (editBuilder) {
+            final lines = formattedBlock.split('\n');
+            editBuilder.write('\n');
+            for (var i = 0; i < lines.length; i++) {
+              final line = lines[i];
+              if (line.isNotEmpty || i < lines.length - 1) {
+                editBuilder
+                  ..write('  ')
+                  ..write(line);
+                if (i < lines.length - 1) {
+                  editBuilder.writeln();
+                }
+              }
+            }
+          });
+        }
+      });
+    });
+  }
+
+  /// Builds the `toEntity` method using code_builder for safety and clarity.
+  cb.Method _buildToEntityMethod({
+    required ClassDeclaration modelNode,
+    required ClassElement entityElement,
+    required String entityName, // Now guaranteed to be non-null.
+  }) {
+    final modelFieldNames = modelNode.members
+        .whereType<FieldDeclaration>()
+        .expand((f) => f.fields.variables)
+        .map((v) => v.name.lexeme)
+        .toSet();
+
+    final positionalArgs = <cb.Expression>[];
+    final namedArgs = <String, cb.Expression>{};
+    final constructor = entityElement.unnamedConstructor;
+
+    if (constructor != null) {
+      // Use the correct `formalParameters` property.
+      for (final param in constructor.formalParameters) {
+        // THE FIX: Safely guard against a null parameter name.
+        final paramName = param.name;
+        if (paramName == null) continue;
+
+        final mapping = modelFieldNames.contains(paramName)
+            ? cb.refer(paramName) // Now safe
+            : cb.refer("throw UnimplementedError('TODO: Map field \"$paramName\"')");
+
+        if (param.isNamed) {
+          namedArgs[paramName] = mapping; // Now safe
+        } else if (param.isPositional) {
+          positionalArgs.add(mapping);
+        }
+      }
+    }
+
+    final body = SyntaxBuilder.call(
+      cb.refer(entityName), // Now safe
+      positional: positionalArgs,
+      named: namedArgs,
+    ).returned.statement;
+
+    return SyntaxBuilder.method(
+      name: 'toEntity',
+      returns: cb.refer(entityName), // Now safe
+      body: body,
+      annotations: [cb.refer('override')],
+    );
+  }
+}

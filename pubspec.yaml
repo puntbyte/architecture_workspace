@@ -7,15 +7,13 @@ environment:
 
 workspace:
   - packages/clean_architecture_core
-  - packages/clean_architecture_kit
-  - example
+  - packages/clean_architecture_lints
+  - examples/feature_first_example
 
 dev_dependencies:
   melos: ^7.3.0
 
   very_good_analysis: ^10.0.0
-
-
 
 melos:
   scripts:
