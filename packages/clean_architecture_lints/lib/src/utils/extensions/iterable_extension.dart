@@ -13,3 +13,14 @@ extension IterableExtension<T> on Iterable<T> {
     return null;
   }
 }
+
+/// An extension on a nullable `Iterable` to provide null-safe helpers.
+extension NullableIterableExtension<T> on Iterable<T?> {
+  /// Returns a new lazy [Iterable] with all `null` elements removed.
+  /// The resulting iterable is correctly typed as `Iterable<T>`.
+  Iterable<T> whereNotNull() sync* {
+    for (final element in this) {
+      if (element != null) yield element;
+    }
+  }
+}

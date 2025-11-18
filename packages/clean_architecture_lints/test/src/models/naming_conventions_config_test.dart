@@ -2,7 +2,6 @@
 
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/models/naming_conventions_config.dart';
-import 'package:clean_architecture_lints/src/models/rules/naming_rule.dart';
 import 'package:clean_architecture_lints/src/utils/config_keys.dart';
 import 'package:test/test.dart';
 

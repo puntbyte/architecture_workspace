@@ -1,7 +1,6 @@
 // lib/src/models/rules/naming_rule.dart
 
-import 'package:clean_architecture_lints/src/utils/config_keys.dart';
-import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
+part of 'package:clean_architecture_lints/src/models/naming_conventions_config.dart';
 
 class NamingRule {
   final List<String> on;
