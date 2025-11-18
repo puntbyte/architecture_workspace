@@ -1,41 +1,50 @@
-// test/src/lints/contracts/enforce_use_case_contract_test.dart
+// test/src/lints/contract/enforce_use_case_contract_test.dart
 
 import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:clean_architecture_lints/src/analysis/layer_resolver.dart';
 import 'package:clean_architecture_lints/src/lints/contract/enforce_use_case_contract.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import '../../../helpers/fakes.dart';
 import '../../../helpers/test_data.dart';
-import '../../../helpers/test_lint_runner.dart';
 
 void main() {
-  setUpAll(() {
-    registerFallbackValue(FakeToken());
-    registerFallbackValue(FakeLintCode());
-  });
-
   group('EnforceUseCaseContract Lint', () {
     late PhysicalResourceProvider resourceProvider;
     late AnalysisContextCollection contextCollection;
     late Directory tempDir;
-    late String projectLib;
+    late String projectPath;
 
     void writeFile(String path, String content) {
       final file = resourceProvider.getFile(path);
-      file.parent.create();
+      Directory(p.dirname(path)).createSync(recursive: true);
       file.writeAsStringSync(content);
     }
 
-    setUpAll(() {
+    Future<List<Diagnostic>> runLint({
+      required String filePath,
+      String? usecaseDir = 'usecases',
+      List<Map<String, dynamic>>? inheritances,
+    }) async {
+      final config = makeConfig(usecaseDir: usecaseDir, inheritances: inheritances);
+      final lint = EnforceUseCaseContract(config: config, layerResolver: LayerResolver(config));
+
+      final resolvedUnit =
+          await contextCollection.contextFor(filePath).currentSession.getResolvedUnit(filePath)
+              as ResolvedUnitResult;
+
+      return lint.testRun(resolvedUnit);
+    }
+
+    setUp(() {
       resourceProvider = PhysicalResourceProvider.INSTANCE;
       tempDir = Directory.systemTemp.createTempSync('usecase_contract_test_');
-      final projectPath = p.join(tempDir.path, 'test_project');
-      projectLib = p.join(projectPath, 'lib');
+      projectPath = p.join(tempDir.path, 'test_project');
+      Directory(projectPath).createSync(recursive: true);
 
       writeFile(p.join(projectPath, 'pubspec.yaml'), 'name: test_project');
       writeFile(
@@ -43,11 +52,8 @@ void main() {
         '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", "packageUri": "lib/"}]}',
       );
       writeFile(
-        p.join(projectLib, 'core', 'usecase', 'usecase.dart'),
-        '''
-        abstract class UnaryUsecase {}
-        abstract class NullaryUsecase {}
-        ''',
+        p.join(projectPath, 'lib', 'core', 'usecase', 'usecase.dart'),
+        'abstract class UnaryUsecase {} abstract class NullaryUsecase {}',
       );
 
       contextCollection = AnalysisContextCollection(
@@ -56,135 +62,106 @@ void main() {
       );
     });
 
-    tearDownAll(() {
-      if (tempDir.existsSync()) {
-        tempDir.deleteSync(recursive: true);
-      }
+    tearDown(() {
+      tempDir.deleteSync(recursive: true);
     });
 
-    test('should report violation when use case does not extend base use case', () async {
-      final config = makeConfig(usecaseDir: 'usecases');
-      final lint = EnforceUseCaseContract(config: config, layerResolver: LayerResolver(config));
-      final path = p.join(projectLib, 'features', 'auth', 'domain', 'usecases', 'login.dart');
-      const source = 'class Login {}';
-      writeFile(path, source);
-
-      final capturedCodes = await runContractLint(
-        source: source,
-        path: path,
-        lint: lint,
-        contextCollection: contextCollection,
+    test('should report violation when use case does not extend a base use case', () async {
+      final path = p.join(
+        projectPath,
+        'lib',
+        'features',
+        'auth',
+        'domain',
+        'usecases',
+        'login.dart',
       );
+      writeFile(path, 'class Login {}');
 
-      expect(capturedCodes, hasLength(1), reason: 'Should detect missing UseCase inheritance');
+      final lints = await runLint(filePath: path);
+
+      expect(lints, hasLength(1));
+      expect(lints.first.diagnosticCode.name, 'enforce_use_case_contract');
       expect(
-        capturedCodes.first.problemMessage,
-        contains('must implement one of the base use case classes'),
+        lints.first.problemMessage.messageText(includeUrl: false),
+        'UseCases must extend one of the base use case classes: UnaryUsecase or NullaryUsecase.',
       );
     });
 
     test('should not report violation when use case extends UnaryUsecase', () async {
-      final config = makeConfig(usecaseDir: 'usecases');
-      final lint = EnforceUseCaseContract(config: config, layerResolver: LayerResolver(config));
       final path = p.join(
-        projectLib,
+        projectPath,
+        'lib',
         'features',
         'order',
         'domain',
         'usecases',
         'create_order.dart',
       );
-      const source = '''
+      writeFile(path, '''
         import 'package:test_project/core/usecase/usecase.dart';
         class CreateOrder extends UnaryUsecase {}
-      ''';
-      writeFile(path, source);
+      ''');
 
-      final capturedCodes = await runContractLint(
-        source: source,
-        path: path,
-        lint: lint,
-        contextCollection: contextCollection,
-      );
-
-      expect(capturedCodes, isEmpty, reason: 'Should allow UnaryUsecase inheritance');
+      final lints = await runLint(filePath: path);
+      expect(lints, isEmpty);
     });
 
     test('should not report violation when use case extends NullaryUsecase', () async {
-      final config = makeConfig(usecaseDir: 'usecases');
-      final lint = EnforceUseCaseContract(config: config, layerResolver: LayerResolver(config));
       final path = p.join(
-        projectLib,
+        projectPath,
+        'lib',
         'features',
         'product',
         'domain',
         'usecases',
         'get_products.dart',
       );
-      const source = '''
+      writeFile(path, '''
         import 'package:test_project/core/usecase/usecase.dart';
         class GetProducts extends NullaryUsecase {}
-      ''';
-      writeFile(path, source);
+      ''');
 
-      final capturedCodes = await runContractLint(
-        source: source,
-        path: path,
-        lint: lint,
-        contextCollection: contextCollection,
-      );
-
-      expect(capturedCodes, isEmpty, reason: 'Should allow NullaryUsecase inheritance');
+      final lints = await runLint(filePath: path);
+      expect(lints, isEmpty);
     });
 
-    test('should not report violation for abstract use case classes', () async {
-      final config = makeConfig(usecaseDir: 'usecases');
-      final lint = EnforceUseCaseContract(config: config, layerResolver: LayerResolver(config));
+    test('should not report violation for an abstract use case class', () async {
       final path = p.join(
-        projectLib,
+        projectPath,
+        'lib',
         'features',
         'shared',
         'domain',
         'usecases',
         'base_usecase.dart',
       );
-      const source = 'abstract class BaseUsecase {}';
-      writeFile(path, source);
+      writeFile(path, 'abstract class BaseUsecase {}');
 
-      final capturedCodes = await runContractLint(
-        source: source,
-        path: path,
-        lint: lint,
-        contextCollection: contextCollection,
-      );
-
-      expect(capturedCodes, isEmpty, reason: 'Should skip abstract classes');
+      final lints = await runLint(filePath: path);
+      expect(lints, isEmpty, reason: 'Lint should only apply to concrete classes.');
     });
 
-    test('should stay silent when a custom inheritance rule is defined', () async {
-      final config = makeConfig(
-        usecaseDir: 'usecases',
-        inheritanceRules: [
+    test('should be ignored when a custom inheritance rule for use cases is defined', () async {
+      final path = p.join(
+        projectPath,
+        'lib',
+        'features',
+        'custom',
+        'domain',
+        'usecases',
+        'custom.dart',
+      );
+      writeFile(path, 'class CustomUseCase {}');
+
+      final lints = await runLint(
+        filePath: path,
+        inheritances: [
           {'on': 'usecase'},
         ],
       );
-      final lint = EnforceUseCaseContract(config: config, layerResolver: LayerResolver(config));
-      final path = p.join(projectLib, 'features', 'custom', 'domain', 'usecases', 'custom.dart');
-      const source = 'class CustomUseCase {}';
-      writeFile(path, source);
 
-      final capturedCodes = await runContractLint(
-        source: source,
-        path: path,
-        lint: lint,
-        contextCollection: contextCollection,
-      );
-
-      expect(
-        capturedCodes,
-        isEmpty,
-        reason: 'Should defer to the generic enforce_inheritance lint',
-      );
+      expect(lints, isEmpty, reason: 'Should defer to the generic enforce_inheritance lint.');
     });
   });
 }
