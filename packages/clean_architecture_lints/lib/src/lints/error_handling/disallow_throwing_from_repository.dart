@@ -29,7 +29,7 @@ class DisallowThrowingFromRepository extends ArchitectureLintRule {
 
   @override
   void run(CustomLintResolver resolver, DiagnosticReporter reporter, CustomLintContext context) {
-    // This rule only applies to repository implementations.
+    // This rule only applies to files identified as repository implementations.
     final component = layerResolver.getComponent(resolver.source.fullName);
     if (component != ArchComponent.repository) return;
 
