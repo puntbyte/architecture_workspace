@@ -51,7 +51,7 @@ class EnforceAbstractRepositoryDependency extends ArchitectureLintRule {
             // THE DEFINITIVE FIX: Use the correct fragment chain to get the source.
             final superSource = superElement.firstFragment.libraryFragment.source;
             return (superElement is ClassElement && superElement.isAbstract) &&
-                layerResolver.getComponent(superSource.fullName) == ArchComponent.contract;
+                layerResolver.getComponent(superSource.fullName) == ArchComponent.port;
           },
         );
 

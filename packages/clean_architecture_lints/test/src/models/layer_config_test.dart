@@ -9,7 +9,7 @@ void main() {
       test('should parse valid configuration', () {
         final map = {
           'entity': ['entities', 'models'],
-          'contract': ['contracts'],
+          'port': ['ports'],
           'usecase': ['usecases', 'interactors'],
         };
 
@@ -17,7 +17,7 @@ void main() {
 
         expect(rule, isNotNull);
         expect(rule.entity, ['entities', 'models']);
-        expect(rule.contract, ['contracts']);
+        expect(rule.port, ['ports']);
         expect(rule.usecase, ['usecases', 'interactors']);
       });
 
@@ -26,46 +26,46 @@ void main() {
         final rule = DomainLayerRule.fromMap(map);
 
         expect(rule.entity, ['entities']);
-        expect(rule.contract, ['contracts']);
+        expect(rule.port, ['ports']);
         expect(rule.usecase, ['usecases']);
       });
 
       test('should handle single string values', () {
         final map = {
           'entity': 'custom_entity',
-          'contract': 'custom_contract',
+          'port': 'custom_port',
           'usecase': 'custom_usecase',
         };
         final rule = DomainLayerRule.fromMap(map);
 
         expect(rule.entity, ['custom_entity']);
-        expect(rule.contract, ['custom_contract']);
+        expect(rule.port, ['custom_port']);
         expect(rule.usecase, ['custom_usecase']);
       });
 
       test('should handle mixed single and list values', () {
         final map = {
           'entity': ['entities', 'models'],
-          'contract': 'contracts',
+          'port': 'ports',
           'usecase': ['usecases'],
         };
         final rule = DomainLayerRule.fromMap(map);
 
         expect(rule.entity, ['entities', 'models']);
-        expect(rule.contract, ['contracts']);
+        expect(rule.port, ['ports']);
         expect(rule.usecase, ['usecases']);
       });
 
       test('should ignore null values and use defaults', () {
         final map = <String, dynamic>{
           'entity': null,
-          'contract': ['contracts'],
+          'port': ['ports'],
           'usecase': null,
         };
         final rule = DomainLayerRule.fromMap(map);
 
         expect(rule.entity, ['entities']); // default
-        expect(rule.contract, ['contracts']);
+        expect(rule.port, ['ports']);
         expect(rule.usecase, ['usecases']); // default
       });
     });
@@ -196,7 +196,7 @@ void main() {
         final map = {
           'domain': {
             'entity': 'entities',
-            'contract': 'contracts',
+            'port': 'ports',
             'usecase': 'usecases',
           },
           'data': {
@@ -214,7 +214,7 @@ void main() {
         final config = LayerConfig.fromMap(map);
 
         expect(config.domain.entity, ['entities']);
-        expect(config.domain.contract, ['contracts']);
+        expect(config.domain.port, ['ports']);
         expect(config.domain.usecase, ['usecases']);
         expect(config.data.model, ['models']);
         expect(config.data.repository, ['repositories']);

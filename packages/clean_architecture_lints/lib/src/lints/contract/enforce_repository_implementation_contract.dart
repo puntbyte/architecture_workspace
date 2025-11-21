@@ -48,7 +48,7 @@ class EnforceRepositoryImplementationContract extends ArchitectureLintRule {
         final source = supertype.element.library.firstFragment.source;
 
         // We then ask the LayerResolver what kind of component it is.
-        return layerResolver.getComponent(source.fullName) == ArchComponent.contract;
+        return layerResolver.getComponent(source.fullName) == ArchComponent.port;
       });
 
       if (!hasContractSupertype) {

@@ -73,7 +73,7 @@ custom_lint:
       layer_definitions:
         domain:
           entity: 'entities'
-          contract: 'contracts'
+          ports: 'ports'
           usecase: 'usecases'
         data:
           model: 'models'
@@ -87,13 +87,13 @@ custom_lint:
       # A list of custom, user-defined inheritance rules, enforced by `enforce_inheritance`.
       # Core rules (Entity, Repository, UseCase) are handled by their own lints but can be overridden here.
       inheritances:
-        # Overriding the default Entity contract to user defined.
+        # Overriding the default Entity port to user defined.
         - on: 'entity'
           required:
             name: 'Entity'
             import: 'package:example/core/entity/entity.dart'
 
-        # Example of overriding the default UseCase contract.
+        # Example of overriding the default UseCase port.
         - on: 'usecase'
           required:
             - name: 'NullUseCase'
@@ -167,14 +167,14 @@ custom_lint:
       # A unified list of rules to enforce strong types and migrate away from unsafe primitives.
       type_safeties:
         # Rule 1: Enforce FutureEither on return types.
-        - on: [ 'usecase', 'contract' ]
+        - on: [ 'usecase', 'port' ]
           returns:
             unsafe_type: 'Future'
             safe_type: 'FutureEither'
             import: 'package:example/core/utils/types.dart'
 
-        # Rule 2: Enforce IntId for integer `id` parameters in contracts.
-        - on: 'contract'
+        # Rule 2: Enforce IntId for integer `id` parameters in ports.
+        - on: ['port', 'usecase', 'repository', 'source']
           parameters:
             - unsafe_type: 'int'
               identifier: 'id'

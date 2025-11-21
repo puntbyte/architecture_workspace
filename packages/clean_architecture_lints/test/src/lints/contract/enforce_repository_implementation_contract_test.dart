@@ -31,7 +31,7 @@ void main() {
       String contractDir = 'contracts',
       String repositoryDir = 'repositories',
     }) async {
-      final config = makeConfig(contractDir: contractDir, repositoryDir: repositoryDir);
+      final config = makeConfig(portDir: contractDir, repositoryDir: repositoryDir);
       final lint = EnforceRepositoryImplementationContract(
         config: config,
         layerResolver: LayerResolver(config),

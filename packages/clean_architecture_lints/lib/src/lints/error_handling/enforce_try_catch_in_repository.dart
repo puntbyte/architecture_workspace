@@ -41,7 +41,7 @@ class EnforceTryCatchInRepository extends ArchitectureLintRule {
 
       // Is the target of the method call a DataSource?
       final targetComponent = layerResolver.getComponent(source.fullName);
-      if (targetComponent == ArchComponent.source ||
+      if (targetComponent == ArchComponent.sourceInterface ||
           targetComponent == ArchComponent.sourceImplementation) {
         // If it is a DataSource call, check if it's inside a `TryStatement`.
         if (node.thisOrAncestorOfType<TryStatement>() == null) {

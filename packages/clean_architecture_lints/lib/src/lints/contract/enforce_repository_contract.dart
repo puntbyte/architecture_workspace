@@ -22,7 +22,7 @@ class EnforceRepositoryContract extends ArchitectureLintRule {
   final bool _isIgnored;
 
   EnforceRepositoryContract({required super.config, required super.layerResolver})
-    : _isIgnored = config.inheritances.rules.any((r) => r.on == ArchComponent.contract.id),
+    : _isIgnored = config.inheritances.rules.any((r) => r.on == ArchComponent.port.id),
       super(code: _code);
 
   @override
@@ -31,7 +31,7 @@ class EnforceRepositoryContract extends ArchitectureLintRule {
     if (_isIgnored) return;
 
     // This lint only applies to files identified as repository contracts.
-    if (layerResolver.getComponent(resolver.source.fullName) != ArchComponent.contract) return;
+    if (layerResolver.getComponent(resolver.source.fullName) != ArchComponent.port) return;
 
     context.registry.addClassDeclaration((node) {
       // Only check abstract classes, which are used as repository interfaces/contracts.

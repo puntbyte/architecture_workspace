@@ -44,7 +44,7 @@ class MissingUseCase extends ArchitectureLintRule {
   @override
   void run(CustomLintResolver resolver, DiagnosticReporter reporter, CustomLintContext context) {
     final component = layerResolver.getComponent(resolver.source.fullName);
-    if (component != ArchComponent.contract) return;
+    if (component != ArchComponent.port) return;
 
     // Retrieve the resolved unit from the shared state. If it's not there,
     // something went wrong, and we should bail out.

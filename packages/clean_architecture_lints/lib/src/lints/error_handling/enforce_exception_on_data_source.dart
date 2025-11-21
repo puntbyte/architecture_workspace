@@ -34,7 +34,7 @@ class EnforceExceptionOnDataSource extends ArchitectureLintRule {
   @override
   void run(CustomLintResolver resolver, DiagnosticReporter reporter, CustomLintContext context) {
     final component = layerResolver.getComponent(resolver.source.fullName);
-    if (component != ArchComponent.source && component != ArchComponent.sourceImplementation) {
+    if (component != ArchComponent.sourceInterface && component != ArchComponent.sourceImplementation) {
       return;
     }
 

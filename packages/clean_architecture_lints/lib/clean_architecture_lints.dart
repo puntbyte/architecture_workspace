@@ -23,9 +23,9 @@ import 'package:clean_architecture_lints/src/lints/purity/disallow_entity_in_dat
 import 'package:clean_architecture_lints/src/lints/purity/disallow_flutter_in_domain.dart';
 import 'package:clean_architecture_lints/src/lints/purity/disallow_model_in_domain.dart';
 import 'package:clean_architecture_lints/src/lints/purity/disallow_model_return_from_repository.dart';
-import 'package:clean_architecture_lints/src/lints/structure/disallow_public_members_in_implementation.dart';
+import 'package:clean_architecture_lints/src/lints/purity/enforce_contract_api.dart';
 import 'package:clean_architecture_lints/src/lints/structure/enforce_annotations.dart';
-import 'package:clean_architecture_lints/src/lints/structure/enforce_model_to_entity_mapping.dart';
+import 'package:clean_architecture_lints/src/lints/purity/require_to_entity_method.dart';
 import 'package:clean_architecture_lints/src/lints/structure/enforce_type_safety.dart';
 import 'package:clean_architecture_lints/src/lints/structure/missing_use_case.dart';
 import 'package:clean_architecture_lints/src/models/architecture_config.dart';
@@ -99,9 +99,9 @@ class CleanArchitectureLintsPlugin extends PluginBase {
     ];
 
     final structureRules = [
-      DisallowPublicMembersInImplementation(config: config, layerResolver: layerResolver),
+      EnforceContractApi(config: config, layerResolver: layerResolver),
       EnforceAnnotations(config: config, layerResolver: layerResolver),
-      EnforceModelToEntityMapping(config: config, layerResolver: layerResolver),
+      RequireToEntityMethod(config: config, layerResolver: layerResolver),
       EnforceTypeSafety(config: config, layerResolver: layerResolver),
     ];
 

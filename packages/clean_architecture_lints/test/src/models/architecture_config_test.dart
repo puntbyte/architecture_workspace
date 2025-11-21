@@ -42,11 +42,11 @@ void main() {
         final config = ArchitectureConfig.fromMap(partialConfig);
 
         // Verify specified values
-        expect(config.module.type, ModuleType.layerFirst);
-        expect(config.module.features, 'my_features');
+        expect(config.modules.type, ModuleType.layerFirst);
+        expect(config.modules.features, 'my_features');
 
         // Verify defaults for unspecified values
-        expect(config.module.core, 'core'); // Default
+        expect(config.modules.core, 'core'); // Default
         expect(config.typeSafeties.rules, isEmpty);
         expect(config.inheritances.rules, isEmpty);
         expect(config.annotations.rules, isEmpty);
@@ -100,7 +100,7 @@ Map<String, dynamic> _createCompleteConfig() {
     'layer_definitions': {
       'domain': {
         'entity': 'entities_dir',
-        'contract': 'contracts_dir',
+        'port': 'ports_dir',
         'usecase': 'usecases_dir',
       },
       'data': {
@@ -128,7 +128,7 @@ Map<String, dynamic> _createCompleteConfig() {
     ],
     'type_safeties': [
       {
-        'on': ['usecase', 'contract'],
+        'on': ['usecase', 'port'],
         'returns': {
           'unsafe_type': 'Future',
           'safe_type': 'FutureEither',
@@ -136,7 +136,7 @@ Map<String, dynamic> _createCompleteConfig() {
         },
       },
       {
-        'on': 'contract',
+        'on': 'port',
         'parameters': [
           {
             'identifier': 'id',
@@ -191,24 +191,24 @@ void _verifyCompleteConfig(ArchitectureConfig config) {
 }
 
 void _verifyModuleConfig(ArchitectureConfig config) {
-  expect(config.module.type, ModuleType.featureFirst);
-  expect(config.module.core, 'core_module');
-  expect(config.module.features, 'features_module');
-  expect(config.module.domain, 'domain_layer');
-  expect(config.module.data, 'data_layer');
-  expect(config.module.presentation, 'presentation_layer');
+  expect(config.modules.type, ModuleType.featureFirst);
+  expect(config.modules.core, 'core_module');
+  expect(config.modules.features, 'features_module');
+  expect(config.modules.domain, 'domain_layer');
+  expect(config.modules.data, 'data_layer');
+  expect(config.modules.presentation, 'presentation_layer');
 }
 
 void _verifyLayerConfig(ArchitectureConfig config) {
-  expect(config.layer.domain.entity, ['entities_dir']);
-  expect(config.layer.domain.contract, ['contracts_dir']);
-  expect(config.layer.domain.usecase, ['usecases_dir']);
-  expect(config.layer.data.model, ['models_dir']);
-  expect(config.layer.data.repository, ['repositories_dir']);
-  expect(config.layer.data.source, ['sources_dir']);
-  expect(config.layer.presentation.page, ['pages_dir']);
-  expect(config.layer.presentation.widget, ['widgets_dir']);
-  expect(config.layer.presentation.manager, ['managers_dir', 'bloc', 'cubit']);
+  expect(config.layers.domain.entity, ['entities_dir']);
+  expect(config.layers.domain.port, ['ports_dir']);
+  expect(config.layers.domain.usecase, ['usecases_dir']);
+  expect(config.layers.data.model, ['models_dir']);
+  expect(config.layers.data.repository, ['repositories_dir']);
+  expect(config.layers.data.source, ['sources_dir']);
+  expect(config.layers.presentation.page, ['pages_dir']);
+  expect(config.layers.presentation.widget, ['widgets_dir']);
+  expect(config.layers.presentation.manager, ['managers_dir', 'bloc', 'cubit']);
 }
 
 void _verifyNamingConfig(ArchitectureConfig config) {
@@ -225,9 +225,9 @@ void _verifyTypeSafetyConfig(ArchitectureConfig config) {
   expect(config.typeSafeties.rules, hasLength(2));
   final returnRule = config.typeSafeties.rules.first;
   final paramRule = config.typeSafeties.rules[1];
-  expect(returnRule.on, ['usecase', 'contract']);
+  expect(returnRule.on, ['usecase', 'port']);
   expect(returnRule.returns.first.safeType, 'FutureEither');
-  expect(paramRule.on, ['contract']);
+  expect(paramRule.on, ['port']);
   expect(paramRule.parameters.first.safeType, 'IntId');
   expect(paramRule.parameters.first.identifier, 'id');
 }
@@ -255,17 +255,17 @@ void _verifyServicesConfig(ArchitectureConfig config) {
 
 void _verifyDefaultConfig(ArchitectureConfig config) {
   // Module defaults
-  expect(config.module.type, ModuleType.featureFirst);
-  expect(config.module.core, 'core');
-  expect(config.module.features, 'features');
-  expect(config.module.domain, 'domain');
-  expect(config.module.data, 'data');
-  expect(config.module.presentation, 'presentation');
+  expect(config.modules.type, ModuleType.featureFirst);
+  expect(config.modules.core, 'core');
+  expect(config.modules.features, 'features');
+  expect(config.modules.domain, 'domain');
+  expect(config.modules.data, 'data');
+  expect(config.modules.presentation, 'presentation');
 
   // Layer defaults
-  expect(config.layer.domain.entity, ['entities']);
-  expect(config.layer.data.model, ['models']);
-  expect(config.layer.presentation.manager, ['managers']);
+  expect(config.layers.domain.entity, ['entities']);
+  expect(config.layers.data.model, ['models']);
+  expect(config.layers.presentation.manager, ['managers']);
 
   // Other configs default to empty rules
   expect(config.namingConventions.rules, isEmpty);

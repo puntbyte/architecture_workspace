@@ -9,42 +9,46 @@ import 'package:clean_architecture_lints/src/analysis/layer_resolver.dart';
 class SemanticUtils {
   const SemanticUtils._();
 
-  /// Checks if an executable element is an architectural override of a contract.
-  ///
-  /// An architectural override means the element implements or extends a member
-  /// from a class that is defined in a domain 'contract' directory.
+  /// Checks if an executable element is an override of a member from an
+  /// architectural contract (a Port). This is the definitive check.
   static bool isArchitecturalOverride(ExecutableElement element, LayerResolver layerResolver) {
-    // FIX 2: Check for a null name early. An element with no name cannot be an override.
-    final elementName = element.name;
-    if (elementName == null) return false;
-
     final enclosingClass = element.enclosingElement;
     if (enclosingClass is! InterfaceElement) return false;
+    if (element.isStatic || element.name == null) return false;
 
+    // Iterate through all interfaces and superclasses this class implements or extends.
     for (final supertype in enclosingClass.allSupertypes) {
-      final path = _getSourcePath(supertype);
-      if (path != null && layerResolver.getComponent(path) == ArchComponent.contract) {
-        // Use the non-nullable elementName for lookups.
-        if (supertype.getMethod(elementName) != null || supertype.getGetter(elementName) != null) {
+      final supertypeElement = supertype.element;
+      final sourcePath = supertypeElement.library.firstFragment.source.fullName;
+
+      // Check if this supertype is defined in a "port" file.
+      if (layerResolver.getComponent(sourcePath) == ArchComponent.port) {
+        // Check if the Port interface itself DIRECTLY DECLARES a member with the same name.
+        if (element is MethodElement && supertypeElement.methods.any((m) => m.name == element.name)) {
           return true;
+        }
+        // FIX: Check `getters` and `setters` lists separately, as `accessors` does not exist.
+        if (element is PropertyAccessorElement) {
+          if (supertypeElement.getters.any((g) => g.name == element.name) ||
+              supertypeElement.setters.any((s) => s.name == element.name)) {
+            return true;
+          }
         }
       }
     }
+
     return false;
   }
 
   /// Recursively checks if a type or any of its generic arguments is from Flutter.
   static bool isFlutterType(DartType? type) {
     if (type == null) return false;
-
-    // FIX 1: Use `library?.firstFragment.source.uri` to access the URI.
     final uri = type.element?.library?.firstFragment.source.uri;
     if (uri != null) {
       final isFlutterPackage = uri.isScheme('package') && uri.pathSegments.firstOrNull == 'flutter';
       final isDartUi = uri.isScheme('dart') && uri.pathSegments.firstOrNull == 'ui';
       if (isFlutterPackage || isDartUi) return true;
     }
-
     if (type is InterfaceType) {
       return type.typeArguments.any(isFlutterType);
     }
@@ -59,21 +63,15 @@ class SemanticUtils {
       ArchComponent componentToFind,
       ) {
     if (type == null) return false;
-
     final path = _getSourcePath(type);
-    if (path != null && layerResolver.getComponent(path) == componentToFind) {
-      return true;
-    }
-
+    if (path != null && layerResolver.getComponent(path) == componentToFind) return true;
     if (type is InterfaceType) {
       return type.typeArguments.any((arg) => isComponent(arg, layerResolver, componentToFind));
     }
     return false;
   }
 
-  /// A robust helper to get the absolute file path from a DartType.
   static String? _getSourcePath(DartType? type) {
-    // This helper was already correct and uses the modern API.
     return type?.element?.library?.firstFragment.source.fullName;
   }
 }

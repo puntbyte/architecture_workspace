@@ -45,7 +45,7 @@ class DisallowRepositoryInPresentation extends ArchitectureLintRule {
       required DartType? type,
     }) {
       // The core logic: check if the type is a repository contract.
-      if (SemanticUtils.isComponent(type, layerResolver, ArchComponent.contract)) {
+      if (SemanticUtils.isComponent(type, layerResolver, ArchComponent.port)) {
         reporter.atEntity(reportNode, _code);
       }
     }

@@ -35,8 +35,8 @@ class PathUtils {
 
     if (projectRoot == null || segments == null) return null;
 
-    final modules = config.module;
-    final layers = config.layer;
+    final modules = config.modules;
+    final layers = config.layers;
     final useCaseDir = layers.domain.usecase.firstOrNull ?? 'usecases';
 
     // Handle feature-first architecture

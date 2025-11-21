@@ -33,7 +33,7 @@ class EnforceCustomInheritance extends ArchitectureLintRule {
     : _rules = {
         for (final rule in config.inheritances.rules)
           if (rule.on != ArchComponent.entity.id &&
-              rule.on != ArchComponent.contract.id &&
+              rule.on != ArchComponent.port.id &&
               rule.on != ArchComponent.usecase.id)
             rule.on: rule,
       },

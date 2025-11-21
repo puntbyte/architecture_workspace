@@ -30,7 +30,7 @@ void main() {
       String? contractDir = 'contracts', // Default directory for contracts
       List<Map<String, dynamic>>? inheritances,
     }) async {
-      final config = makeConfig(contractDir: contractDir, inheritances: inheritances);
+      final config = makeConfig(portDir: contractDir, inheritances: inheritances);
       final lint = EnforceRepositoryContract(config: config, layerResolver: LayerResolver(config));
 
       final resolvedUnit =

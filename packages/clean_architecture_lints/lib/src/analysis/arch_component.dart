@@ -8,31 +8,36 @@ enum ArchComponent {
   // --- Domain Components ---
   domain('domain', label: 'Domain'),
   entity('entity', label: 'Entity'),
-  contract('contract', label: 'Repository Interface'),
-  usecase('usecase', label: 'Use Case'),
-  usecaseParameter('usecase.parameter', label: 'Use Case Parameter'),
+  port('port', label: 'Port'),
+  usecase('usecase', label: 'Usecase'),
+  usecaseParameter('usecase.parameter', label: 'Usecase Parameter'),
 
   // --- Data Components ---
   data('data', label: 'Data'),
   model('model', label: 'Model'),
-  repository('repository.implementation', label: 'Repository Implementation'),
-  source('source.interface', label: 'Data Source Interface'),
-  sourceImplementation('source.implementation', label: 'Data Source Implementation'),
+  repository('repository', label: 'Repository (Implementation)'),
+  source('source', label: 'Source'),
+  sourceInterface('source.interface', label: 'Source Interface'),
+  sourceImplementation('source.implementation', label: 'Source Implementation'),
 
   // --- Presentation Components ---
   presentation('presentation', label: 'Presentation'),
-  page('page', label: 'Page'),
-  widget('widget', label: 'Widget'),
-  manager('manager', label: 'Manager'),
+  manager('manager', label: 'Manager (Bloc/Cubit)'),
+
   event('event', label: 'Event'),
   eventInterface('event.interface', label: 'Event Interface'),
   eventImplementation('event.implementation', label: 'Event Implementation'),
+
   state('state', label: 'State'),
   stateInterface('state.interface', label: 'State Interface'),
   stateImplementation('state.implementation', label: 'State Implementation'),
 
+  page('page', label: 'Page'),
+  widget('widget', label: 'Widget'),
+
   // --- Unknown Component ---
-  unknown('unknown', label: 'Unknown');
+  unknown('unknown', label: 'Unknown')
+  ;
 
   /// The `snake_case` identifier used in `analysis_options.yaml`.
   final String id;
@@ -44,48 +49,47 @@ enum ArchComponent {
 
   /// A reverse lookup to find an enum value from its string [id].
   static ArchComponent fromId(String id) =>
-      values.firstWhere((value) => value.id == id, orElse: () => ArchComponent.unknown);
+      values.firstWhere((value) => value.id == id, orElse: () => .unknown);
 
   Set<ArchComponent> get children => switch (this) {
-    ArchComponent.domain => {ArchComponent.entity, ArchComponent.contract, ArchComponent.usecase},
-    ArchComponent.data => {ArchComponent.model, ArchComponent.repository, ArchComponent.source},
-    ArchComponent.presentation => {
-      ArchComponent.page,
-      ArchComponent.widget,
-      ArchComponent.manager,
-    },
-    ArchComponent.usecase => {ArchComponent.usecaseParameter},
-    ArchComponent.manager => {ArchComponent.event, ArchComponent.state},
-    ArchComponent.event => {ArchComponent.eventInterface, ArchComponent.eventImplementation},
-    ArchComponent.state => {ArchComponent.stateInterface, ArchComponent.stateImplementation},
+    .domain => {.entity, .port, .usecase},
+    .usecase => {.usecaseParameter},
+
+    .data => {.model, .repository, .source},
+    .source => {.sourceInterface, .sourceImplementation},
+
+    .presentation => {.page, .widget, .manager},
+    .manager => {.event, .state},
+    .event => {.eventInterface, .eventImplementation},
+    .state => {.stateInterface, .stateImplementation},
+
     _ => {},
   };
 
+  /// Recursively gets all direct and indirect children of this component.
+  Set<ArchComponent> get allChildren {
+    final collectedChildren = <ArchComponent>{};
+    _collectChildren(this, collectedChildren);
+    return collectedChildren;
+  }
+
+  /// A helper for the recursive traversal.
+  static void _collectChildren(ArchComponent component, Set<ArchComponent> collected) {
+    for (final child in component.children) {
+      if (collected.add(child)) _collectChildren(child, collected);
+    }
+  }
+
+  static Set<ArchComponent> get layer => {.domain, .data, .presentation};
+
+  // for the time being we can keep them until we remove dependencies on this components
   // --- Layer Composition Getters ---
+  @Deprecated('Use `ArchComponent.domain` instead')
+  static Set<ArchComponent> get domainLayer => {.entity, .port, .usecase};
 
-  /// Returns a set of all components that belong to the Domain Layer.
-  static Set<ArchComponent> get domainLayer => {
-    entity,
-    contract,
-    usecase,
-  };
+  @Deprecated('Use `ArchComponent.data` instead')
+  static Set<ArchComponent> get dataLayer => {.model, .repository, .source};
 
-  /// Returns a set of all components that belong to the Data Layer.
-  static Set<ArchComponent> get dataLayer => {
-    model,
-    repository,
-    source,
-    sourceImplementation,
-  };
-
-  /// Returns a set of all components that belong to the Presentation Layer.
-  static Set<ArchComponent> get presentationLayer => {
-    page,
-    widget,
-    manager,
-    event,
-    eventImplementation,
-    state,
-    stateImplementation,
-  };
+  @Deprecated('Use `ArchComponent.presentation` instead')
+  static Set<ArchComponent> get presentationLayer => {.page, .widget, .manager, .event, .state};
 }

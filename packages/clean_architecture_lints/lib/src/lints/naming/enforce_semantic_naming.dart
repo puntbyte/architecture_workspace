@@ -1,6 +1,5 @@
 // lib/srcs/lints/naming/enforce_semantic_naming.dart
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/lints/architecture_lint_rule.dart';
@@ -12,7 +11,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 class EnforceSemanticNaming extends ArchitectureLintRule {
   static const _code = LintCode(
     name: 'enforce_semantic_naming',
-    problemMessage: 'The name `{0}` does not follow the required grammatical structure for a {1}.',
+    problemMessage: 'The name `{0}` does not follow the grammatical structure `{1}` for a {2}.',
   );
 
   final NaturalLanguageUtils nlpUtils;
@@ -25,60 +24,72 @@ class EnforceSemanticNaming extends ArchitectureLintRule {
 
   @override
   void run(CustomLintResolver resolver, DiagnosticReporter reporter, CustomLintContext context) {
-    context.registry.addClassDeclaration((node) async { // ASYNC
-      final filePath = resolver.source.fullName;
+    context.registry.addClassDeclaration((node) {
       final className = node.name.lexeme;
-
-      // Determine the precise component type for this class.
-      final component = layerResolver.getComponent(filePath, className: className);
+      final component = layerResolver.getComponent(resolver.source.fullName, className: className);
       if (component == ArchComponent.unknown) return;
 
-      // Get the specific naming rule for this component.
       final rule = config.namingConventions.getRuleFor(component);
-
-      // Only proceed if a grammar rule is defined for this component.
       final grammar = rule?.grammar;
-      if (grammar != null || grammar!.isEmpty) return;
+      if (grammar == null || grammar.isEmpty) return;
 
       final validator = _GrammarValidator(grammar, nlpUtils);
-      final isValid = await validator.isValid(className, node);
-
-      if (!isValid) {
-        reporter.atToken(
-          node.name,
-          LintCode(
-            name: _code.name,
-            problemMessage: 'The name `$className` does not follow the grammatical structure '
-                '`$grammar` for a ${component.label}.',
-          ),
-        );
+      if (!validator.isValid(className)) {
+        reporter.atToken(node.name, _code, arguments: [className, grammar, component.label]);
       }
     });
   }
 }
 
-
 /// A private helper class for parsing and validating a grammar pattern.
 class _GrammarValidator {
   final String grammar;
   final NaturalLanguageUtils nlp;
+
   _GrammarValidator(this.grammar, this.nlp);
 
-  Future<bool> isValid(String className, ClassDeclaration node) async {
+  bool isValid(String className) {
     final words = className.splitPascalCase();
     if (words.isEmpty) return false;
 
-    // This is a placeholder for a true grammar parser. For now, it handles
-    // the most common `use_case` grammar. A full implementation would be a
-    // recursive descent parser for your grammar syntax.
+    // --- Heuristic-based Grammar Parsing ---
+
+    // Case 1: {{verb.present}}{{noun.phrase}} (e.g., Usecases)
     if (grammar == '{{verb.present}}{{noun.phrase}}') {
       if (words.length < 2) return false;
-      final isVerb = nlp.isVerb(words.first);
-      final isNoun = nlp.isNoun(words.last);
-      return isVerb && isNoun;
+      return nlp.isVerb(words.first) && nlp.isNoun(words.last);
     }
 
-    // Default to true if the grammar is not yet supported by this simple parser.
+    // Case 2: {{noun.phrase}}SomeSuffix (e.g., Models, Managers)
+    if (grammar.startsWith('{{noun.phrase}}')) {
+      final suffix = grammar.substring('{{noun.phrase}}'.length);
+      // It's possible for the suffix to be empty if the grammar is just {{noun.phrase}}
+      if (suffix.isNotEmpty && !className.endsWith(suffix)) return false;
+
+      final baseName = suffix.isNotEmpty
+          ? className.substring(0, className.length - suffix.length)
+          : className;
+
+      final baseWords = baseName.splitPascalCase();
+      if (baseWords.isEmpty) return false;
+
+      // --- FIX IS HERE ---
+      // A noun phrase should end with a noun and should not contain any verbs.
+      // This correctly invalidates names like "FetchUserModel".
+      final endsWithNoun = nlp.isNoun(baseWords.last);
+      final containsNoVerbs = !baseWords.any(nlp.isVerb);
+
+      return endsWithNoun && containsNoVerbs;
+    }
+
+    // Case 3: {{subject}}({{adjective}}|{{verb.gerund}}|{{verb.past}}) (e.g., States)
+    if (grammar.contains('{{adjective}}|{{verb.gerund}}|{{verb.past}}')) {
+      if (words.length < 2) return false;
+      final lastWord = words.last;
+      return nlp.isAdjective(lastWord) || nlp.isVerbGerund(lastWord) || nlp.isVerbPast(lastWord);
+    }
+
+    // Default to true if the grammar is not yet supported by our heuristics.
     return true;
   }
 }

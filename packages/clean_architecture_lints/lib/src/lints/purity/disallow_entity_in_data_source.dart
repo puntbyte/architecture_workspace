@@ -31,7 +31,7 @@ class DisallowEntityInDataSource extends ArchitectureLintRule {
   void run(CustomLintResolver resolver, DiagnosticReporter reporter, CustomLintContext context) {
     // This rule applies to both the interface and implementation of a DataSource.
     final component = layerResolver.getComponent(resolver.source.fullName);
-    if (component != ArchComponent.source && component != ArchComponent.sourceImplementation) {
+    if (component != ArchComponent.sourceInterface && component != ArchComponent.sourceImplementation) {
       return;
     }
 

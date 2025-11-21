@@ -14,8 +14,8 @@ import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension
 /// The main configuration class that parses the entire configuration from
 /// `analysis_options.yaml`.
 class ArchitectureConfig {
-  final ModuleConfig module;
-  final LayerConfig layer;
+  final ModuleConfig modules;
+  final LayerConfig layers;
   final InheritancesConfig inheritances;
   final NamingConventionsConfig namingConventions;
   final TypeSafetiesConfig typeSafeties;
@@ -24,8 +24,8 @@ class ArchitectureConfig {
   final ServicesConfig services;
 
   const ArchitectureConfig({
-    required this.module,
-    required this.layer,
+    required this.modules,
+    required this.layers,
     required this.inheritances,
     required this.namingConventions,
     required this.typeSafeties,
@@ -38,8 +38,8 @@ class ArchitectureConfig {
   /// Missing sections will result in default configurations.
   factory ArchitectureConfig.fromMap(Map<String, dynamic> map) {
     return ArchitectureConfig(
-      module: ModuleConfig.fromMap(map.asMap(ConfigKey.root.modules)),
-      layer: LayerConfig.fromMap(map.asMap(ConfigKey.root.layers)),
+      modules: ModuleConfig.fromMap(map.asMap(ConfigKey.root.modules)),
+      layers: LayerConfig.fromMap(map.asMap(ConfigKey.root.layers)),
       inheritances: InheritancesConfig.fromMap(map),
       namingConventions: NamingConventionsConfig.fromMap(map),
       typeSafeties: TypeSafetiesConfig.fromMap(map),

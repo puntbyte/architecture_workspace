@@ -59,8 +59,8 @@ class _LayerKeys {
   String get entityDir => 'entities';
   String get usecase => 'usecase';
   String get usecaseDir => 'usecases';
-  String get contract => 'contract';
-  String get contractDir => 'contracts';
+  String get port => 'port';
+  String get portDir => 'ports';
 
   // Data Layer
   String get model => 'model';
