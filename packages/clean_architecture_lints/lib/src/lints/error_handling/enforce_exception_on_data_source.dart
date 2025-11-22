@@ -7,22 +7,14 @@ import 'package:clean_architecture_lints/src/lints/architecture_lint_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that forbids DataSource methods from returning wrapper types like `Either` or `Result`.
-///
-/// **Reasoning:** DataSources represent the outermost boundary of the data layer.
-/// They are expected to interact with external services (APIs, databases) that can
-/// fail. The clean architecture convention is for these sources to throw specific,
-/// typed exceptions on failure. The Repository layer is then responsible for
-/// catching these exceptions and converting them into business-friendly `Failure`
-/// objects, typically wrapped in an `Either` type. This prevents raw exceptions
-/// from leaking into the domain or presentation layers.
 class EnforceExceptionOnDataSource extends ArchitectureLintRule {
   static const _code = LintCode(
     name: 'enforce_exception_on_data_source',
     problemMessage:
-        'DataSources should throw exceptions on failure, not return wrapper types like '
+    'DataSources should throw exceptions on failure, not return wrapper types like '
         'Either/Result.',
     correctionMessage:
-        'Change the return type to a simple Future and throw a specific Exception on failure.',
+    'Change the return type to a simple Future and throw a specific Exception on failure.',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
 
@@ -32,14 +24,22 @@ class EnforceExceptionOnDataSource extends ArchitectureLintRule {
   }) : super(code: _code);
 
   @override
-  void run(CustomLintResolver resolver, DiagnosticReporter reporter, CustomLintContext context) {
+  void run(
+      CustomLintResolver resolver,
+      DiagnosticReporter reporter,
+      CustomLintContext context,
+      ) {
     final component = layerResolver.getComponent(resolver.source.fullName);
-    if (component != ArchComponent.sourceInterface && component != ArchComponent.sourceImplementation) {
-      return;
-    }
+
+    // FIX: Allow the base 'source' component as well as specific subtypes.
+    // LayerResolver returns 'source' for the directory by default.
+    final isDataSource = component == ArchComponent.source ||
+        component == ArchComponent.sourceInterface ||
+        component == ArchComponent.sourceImplementation;
+
+    if (!isDataSource) return;
 
     // Get a set of all "safe types" that are used for return values from the config.
-    // These are the types (like FutureEither) that are forbidden in a DataSource.
     final forbiddenReturnTypes = config.typeSafeties.rules
         .expand((rule) => rule.returns)
         .map((detail) => detail.safeType)
@@ -53,12 +53,9 @@ class EnforceExceptionOnDataSource extends ArchitectureLintRule {
 
       final returnTypeSource = returnTypeNode.toSource();
 
-      // Check if the method's return type contains any of the forbidden type names.
-      // This is more robust than `startsWith` as it handles generic types like Future<Either<...>>.
       for (final forbiddenType in forbiddenReturnTypes) {
         if (returnTypeSource.contains(forbiddenType)) {
           reporter.atNode(returnTypeNode, _code);
-          // Report once per method and stop checking.
           return;
         }
       }
