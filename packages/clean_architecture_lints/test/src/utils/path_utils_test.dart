@@ -2,7 +2,7 @@
 
 import 'dart:io';
 
-import 'package:clean_architecture_lints/src/utils/path_utils.dart';
+import 'package:clean_architecture_lints/src/utils/file/path_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

@@ -7,8 +7,8 @@ import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/lints/architecture_lint_rule.dart';
-import 'package:clean_architecture_lints/src/utils/ast_utils.dart';
-import 'package:clean_architecture_lints/src/utils/semantic_utils.dart';
+import 'package:clean_architecture_lints/src/utils/ast/ast_utils.dart';
+import 'package:clean_architecture_lints/src/utils/ast/semantic_utils.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that forbids any reference to a Repository within the presentation layer.
@@ -37,7 +37,7 @@ class DisallowRepositoryInPresentation extends ArchitectureLintRule {
   void run(CustomLintResolver resolver, DiagnosticReporter reporter, CustomLintContext context) {
     // This rule applies to any file within the presentation layer.
     final component = layerResolver.getComponent(resolver.source.fullName);
-    if (!ArchComponent.presentationLayer.contains(component)) return;
+    if (!ArchComponent.presentation.allChildren.contains(component)) return;
 
     /// A generic helper that checks the type and reports an error on the correct node.
     void validate({

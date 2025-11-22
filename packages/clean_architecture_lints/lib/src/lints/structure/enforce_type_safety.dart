@@ -6,7 +6,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/lints/architecture_lint_rule.dart';
 import 'package:clean_architecture_lints/src/models/type_safeties_config.dart';
-import 'package:clean_architecture_lints/src/utils/ast_utils.dart';
+import 'package:clean_architecture_lints/src/utils/ast/ast_utils.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that enforces strong types in method signatures, migrating

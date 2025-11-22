@@ -110,15 +110,4 @@ enum ArchComponent {
   /// Returns a set of the top-level layers.
   /// Renamed to `layers` (plural) to avoid conflict with the instance getter.
   static Set<ArchComponent> get layers => {.domain, .data, .presentation};
-
-  // for the time being we can keep them until we remove dependencies on this components
-  // --- Layer Composition Getters ---
-  @Deprecated('Use `ArchComponent.domain` instead')
-  static Set<ArchComponent> get domainLayer => {.entity, .port, .usecase};
-
-  @Deprecated('Use `ArchComponent.data` instead')
-  static Set<ArchComponent> get dataLayer => {.model, .repository, .source};
-
-  @Deprecated('Use `ArchComponent.presentation` instead')
-  static Set<ArchComponent> get presentationLayer => {.page, .widget, .manager, .event, .state};
 }

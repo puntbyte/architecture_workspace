@@ -36,7 +36,7 @@ class TypeSafetyRule {
 
   /// Parses return type checks from the map.
   static List<TypeSafetyDetail> _parseReturns(Map<String, dynamic> map) {
-    final returnsData = map['returns'];
+    final returnsData = map[ConfigKey.rule.returns];
     if (returnsData is Map<String, dynamic>) {
       final detail = TypeSafetyDetail.tryFromMap(returnsData);
       return detail != null ? [detail] : [];
@@ -46,7 +46,7 @@ class TypeSafetyRule {
 
   /// Parses parameter type checks from the map.
   static List<TypeSafetyDetail> _parseParameters(Map<String, dynamic> map) {
-    final paramsData = map['parameters'];
+    final paramsData = map[ConfigKey.rule.parameters];
     if (paramsData is List) {
       return paramsData
           .whereType<Map<String, dynamic>>()

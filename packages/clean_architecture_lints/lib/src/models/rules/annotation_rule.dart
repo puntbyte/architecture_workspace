@@ -18,8 +18,8 @@ class AnnotationRule {
 
   /// Creates an instance from a map, returning null if essential data is missing.
   static AnnotationRule? tryFromMap(Map<String, dynamic> map) {
-    final on = _parseOn(map);
-    if (on == null) return null;
+    final on = map.asStringList(ConfigKey.rule.on);
+    if (on.isEmpty) return null;
 
     return AnnotationRule(
       on: on,
@@ -27,12 +27,6 @@ class AnnotationRule {
       forbidden: _parseDetails(map, ConfigKey.rule.forbidden),
       allowed: _parseDetails(map, ConfigKey.rule.allowed),
     );
-  }
-
-  /// Parses the 'on' field, returning null if empty or missing.
-  static List<String>? _parseOn(Map<String, dynamic> map) {
-    final on = map.asStringList(ConfigKey.rule.on);
-    return on.isEmpty ? null : on;
   }
 
   /// Parses details for a given key (required/forbidden/allowed).

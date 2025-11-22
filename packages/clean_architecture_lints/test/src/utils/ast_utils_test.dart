@@ -2,7 +2,7 @@
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:clean_architecture_lints/src/utils/ast_utils.dart';
+import 'package:clean_architecture_lints/src/utils/ast/ast_utils.dart';
 import 'package:test/test.dart';
 
 void main() {

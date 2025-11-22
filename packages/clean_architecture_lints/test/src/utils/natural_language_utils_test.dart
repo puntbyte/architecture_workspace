@@ -1,6 +1,6 @@
 // test/src/utils/natural_language_utils_test.dart
 
-import 'package:clean_architecture_lints/src/utils/natural_language_utils.dart';
+import 'package:clean_architecture_lints/src/utils/nlp/natural_language_utils.dart';
 import 'package:test/test.dart';
 
 void main() {

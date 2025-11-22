@@ -8,8 +8,7 @@ import 'package:clean_architecture_lints/src/analysis/layer_resolver.dart';
 class SemanticUtils {
   const SemanticUtils._();
 
-  /// Checks if an executable element is an override of a member from an
-  /// architectural contract (a Port).
+  /// Checks if an executable element overrides a member from an architectural contract.
   static bool isArchitecturalOverride(ExecutableElement element, LayerResolver layerResolver) {
     final enclosingClass = element.enclosingElement;
     if (enclosingClass is! InterfaceElement) return false;
@@ -20,18 +19,15 @@ class SemanticUtils {
 
     for (final supertype in enclosingClass.allSupertypes) {
       final supertypeElement = supertype.element;
-      // FIX: Use the robust library source check
-      final source = supertypeElement.library?.firstFragment.source;
-      if (source == null) continue;
 
-      // Check if this supertype is defined in a "port" file.
+      // Safe access to source
+      final source = supertypeElement.library.firstFragment.source;
+
+      // Check if this supertype is defined in a "port" file (Contract).
       if (layerResolver.getComponent(source.fullName) == ArchComponent.port) {
-        // Check methods
         if (element is MethodElement) {
           if (supertypeElement.methods.any((m) => m.name == elementName)) return true;
         }
-
-        // Check getters/setters
         if (element is PropertyAccessorElement) {
           if (supertypeElement.getters.any((g) => g.name == elementName) ||
               supertypeElement.setters.any((s) => s.name == elementName)) {

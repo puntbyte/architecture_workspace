@@ -15,6 +15,7 @@ class NamingUtils {
     final pascal = methodName.toPascalCase();
     final rule = config.namingConventions.getRuleFor(ArchComponent.usecase);
     if (rule == null) return pascal;
+    // Simple replacement, assumes {{name}} exists in pattern
     return rule.pattern.replaceAll('{{name}}', pascal);
   }
 

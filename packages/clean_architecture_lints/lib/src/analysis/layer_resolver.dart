@@ -3,7 +3,7 @@
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/models/architecture_config.dart';
 import 'package:clean_architecture_lints/src/models/module_config.dart';
-import 'package:clean_architecture_lints/src/utils/naming_utils.dart';
+import 'package:clean_architecture_lints/src/utils/nlp/naming_utils.dart';
 import 'package:path/path.dart' as p;
 
 class LayerResolver {
@@ -16,23 +16,26 @@ class LayerResolver {
     final componentFromPath = _getComponentFromPath(path);
 
     if (className != null) {
-      if (componentFromPath == ArchComponent.manager) {
+      if (componentFromPath == .manager) {
         return _refineComponent(
           className: className,
-          baseComponent: ArchComponent.manager,
+          baseComponent: .manager,
           potentialComponents: [
-            ArchComponent.eventInterface, ArchComponent.stateInterface,
-            ArchComponent.manager, ArchComponent.stateImplementation,
-            ArchComponent.eventImplementation,
+            .eventInterface,
+            .stateInterface,
+            .manager,
+            .stateImplementation,
+            .eventImplementation,
           ],
         );
       }
-      if (componentFromPath == ArchComponent.source) {
+      if (componentFromPath == .source) {
         return _refineComponent(
           className: className,
-          baseComponent: ArchComponent.source,
+          baseComponent: .source,
           potentialComponents: [
-            ArchComponent.sourceImplementation, ArchComponent.sourceInterface,
+            .sourceImplementation,
+            .sourceInterface,
           ],
         );
       }
@@ -43,13 +46,13 @@ class LayerResolver {
   ArchComponent _getComponentFromPath(String path) {
     final segments = _getRelativePathSegments(path);
     if (segments == null || !_isPathInArchitecturalLayer(segments)) {
-      return ArchComponent.unknown;
+      return .unknown;
     }
     for (final segment in segments.reversed) {
       final component = _componentDirectoryMap[segment];
       if (component != null) return component;
     }
-    return ArchComponent.unknown;
+    return .unknown;
   }
 
   ArchComponent _refineComponent({
@@ -87,15 +90,27 @@ class LayerResolver {
   static Map<String, ArchComponent> _createComponentDirectoryMap(ArchitectureConfig config) {
     final map = <String, ArchComponent>{};
     final layers = config.layers;
-    for (final dir in layers.domain.entity) { map[dir] = ArchComponent.entity; }
-    for (final dir in layers.domain.port) { map[dir] = ArchComponent.port; }
-    for (final dir in layers.domain.usecase) { map[dir] = ArchComponent.usecase; }
-    for (final dir in layers.data.model) { map[dir] = ArchComponent.model; }
-    for (final dir in layers.data.repository) { map[dir] = ArchComponent.repository; }
-    for (final dir in layers.data.source) { map[dir] = ArchComponent.source; }
-    for (final dir in layers.presentation.page) { map[dir] = ArchComponent.page; }
-    for (final dir in layers.presentation.widget) { map[dir] = ArchComponent.widget; }
-    for (final dir in layers.presentation.manager) { map[dir] = ArchComponent.manager; }
+
+    // Local helper to reduce repetition
+    void register(List<String> directories, ArchComponent component) {
+      for (final dir in directories) { map[dir] = component; }
+    }
+
+    // Domain
+    register(layers.domain.entity, ArchComponent.entity);
+    register(layers.domain.port, ArchComponent.port);
+    register(layers.domain.usecase, ArchComponent.usecase);
+
+    // Data
+    register(layers.data.model, ArchComponent.model);
+    register(layers.data.repository, ArchComponent.repository);
+    register(layers.data.source, ArchComponent.source);
+
+    // Presentation
+    register(layers.presentation.page, ArchComponent.page);
+    register(layers.presentation.widget, ArchComponent.widget);
+    register(layers.presentation.manager, ArchComponent.manager);
+
     return map;
   }
 }

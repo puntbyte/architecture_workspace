@@ -8,7 +8,7 @@ import 'package:clean_architecture_lints/src/models/module_config.dart';
 import 'package:clean_architecture_lints/src/models/naming_conventions_config.dart';
 import 'package:clean_architecture_lints/src/models/services_config.dart';
 import 'package:clean_architecture_lints/src/models/type_safeties_config.dart';
-import 'package:clean_architecture_lints/src/utils/config_keys.dart';
+import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
 
 /// The main configuration class that parses the entire configuration from
@@ -45,7 +45,7 @@ class ArchitectureConfig {
       typeSafeties: TypeSafetiesConfig.fromMap(map),
       dependencies: DependenciesConfig.fromMap(map),
       annotations: AnnotationsConfig.fromMap(map),
-      services: ServicesConfig.fromMap(map.asMap(ConfigKey.root.services)),
+      services: ServicesConfig.fromMap(map),
     );
   }
 }

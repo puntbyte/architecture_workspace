@@ -31,7 +31,7 @@ class DisallowDependencyInstantiation extends ArchitectureLintRule {
   void run(CustomLintResolver resolver, DiagnosticReporter reporter, CustomLintContext context) {
     // This rule applies to concrete implementation classes in the data and presentation layers.
     final component = layerResolver.getComponent(resolver.source.fullName);
-    if (component == ArchComponent.unknown || ArchComponent.domainLayer.contains(component)) {
+    if (component == ArchComponent.unknown || ArchComponent.domain.allChildren.contains(component)) {
       return;
     }
 

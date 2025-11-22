@@ -7,7 +7,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:clean_architecture_lints/src/analysis/layer_resolver.dart';
 import 'package:clean_architecture_lints/src/lints/naming/enforce_semantic_naming.dart';
-import 'package:clean_architecture_lints/src/utils/natural_language_utils.dart';
+import 'package:clean_architecture_lints/src/utils/nlp/natural_language_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

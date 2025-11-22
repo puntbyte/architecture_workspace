@@ -5,30 +5,39 @@ import 'dart:io';
 import 'package:clean_architecture_lints/src/models/architecture_config.dart';
 import 'package:clean_architecture_lints/src/models/module_config.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/string_extension.dart';
-import 'package:clean_architecture_lints/src/utils/naming_utils.dart';
+import 'package:clean_architecture_lints/src/utils/nlp/naming_utils.dart';
 import 'package:path/path.dart' as p;
 
 /// A utility class providing static methods for file system path resolution.
 class PathUtils {
   const PathUtils._();
 
-  /// Walks up the directory tree from [fileAbsolutePath] to find the first
-  /// directory containing a `pubspec.yaml` file.
+  /// Walks up to find `pubspec.yaml`.
   static String? findProjectRoot(String fileAbsolutePath) {
-    var dir = Directory(p.dirname(fileAbsolutePath));
-    while (true) {
-      if (File(p.join(dir.path, 'pubspec.yaml')).existsSync()) {
-        return dir.path;
-      }
-      // Stop if we reach the file system root.
-      if (p.equals(dir.parent.path, dir.path)) return null;
+    // Guard against non-file paths
+    if (fileAbsolutePath.isEmpty) return null;
 
-      dir = dir.parent;
+    try {
+      var dir = Directory(p.dirname(fileAbsolutePath));
+      // Safety max depth to prevent infinite loops in weird file systems
+      var depth = 0;
+      const maxDepth = 50;
+
+      while (depth < maxDepth) {
+        if (File(p.join(dir.path, 'pubspec.yaml')).existsSync()) {
+          return dir.path;
+        }
+        final parent = dir.parent;
+        if (p.equals(parent.path, dir.path)) return null; // Reached root
+        dir = parent;
+        depth++;
+      }
+    } catch (_) {
+      return null;
     }
+    return null;
   }
 
-  /// Calculates the absolute path to the correct `usecases` directory based
-  /// on the architecture type (feature-first vs. layer-first).
   static String? getUseCasesDirectoryPath(String repoPath, ArchitectureConfig config) {
     final projectRoot = findProjectRoot(repoPath);
     final segments = _getRelativePathSegments(repoPath);
@@ -37,19 +46,25 @@ class PathUtils {
 
     final modules = config.modules;
     final layers = config.layers;
-    final useCaseDir = layers.domain.usecase.firstOrNull ?? 'usecases';
+    // Fallback to 'usecases' if config is empty
+    final useCaseDirName = layers.domain.usecase.firstOrNull ?? 'usecases';
 
-    // Handle feature-first architecture
     if (modules.type == ModuleType.featureFirst &&
         segments.length >= 2 &&
         segments.first == modules.features) {
       final featureName = segments[1];
-      return p.join(projectRoot, 'lib', modules.features, featureName, modules.domain, useCaseDir);
+      return p.join(
+        projectRoot,
+        'lib',
+        modules.features,
+        featureName,
+        modules.domain,
+        useCaseDirName,
+      );
     }
 
-    // Handle layer-first architecture
     if (modules.type == ModuleType.layerFirst) {
-      return p.join(projectRoot, 'lib', modules.domain, useCaseDir);
+      return p.join(projectRoot, 'lib', modules.domain, useCaseDirName);
     }
 
     return null;
@@ -69,7 +84,6 @@ class PathUtils {
     return p.join(useCaseDir, useCaseFileName);
   }
 
-  /// Normalizes a path and returns the segments after the `lib/` directory.
   static List<String>? _getRelativePathSegments(String absolutePath) {
     final normalized = p.normalize(absolutePath);
     final segments = p.split(normalized);

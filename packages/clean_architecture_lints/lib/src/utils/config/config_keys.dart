@@ -8,6 +8,9 @@
 class ConfigKey {
   const ConfigKey._();
 
+  /// The root key for the plugin configuration.
+  static const String cleanArchitecture = 'clean_architecture';
+
   static const root = _RootKeys();
   static const module = _ModuleKeys();
   static const layer = _LayerKeys();
@@ -15,6 +18,21 @@ class ConfigKey {
   static const service = _ServiceKeys();
   static const dependency = _DependencyKeys();
   static const proxy = _ProxyKeys();
+
+  /// General keys used across multiple configuration blocks.
+  static const common = _CommonKeys();
+}
+
+class _CommonKeys {
+  const _CommonKeys();
+
+  String get on => 'on';
+  String get name => 'name';
+  String get import => 'import';
+  String get allowed => 'allowed';
+  String get forbidden => 'forbidden';
+  String get required => 'required';
+  String get message => 'message';
 }
 
 /// Keys for the top-level blocks within the `clean_architecture` configuration.
@@ -109,6 +127,9 @@ class _RuleKeys {
   String get unsafeType => 'unsafe_type';
   String get safeType => 'safe_type';
 
+  String get parameters => 'parameters';
+  String get returns => 'returns';
+
   // Annotations Keys
   String get message => 'message';
 }
@@ -119,6 +140,7 @@ class _ServiceKeys {
 
   String get dependencyInjection => 'dependency_injection';
   String get serviceLocator => 'service_locator';
+  String get locatorNames => 'name';
 }
 
 class _ProxyKeys {

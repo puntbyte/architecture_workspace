@@ -1,6 +1,6 @@
 // test/src/utils/naming_utils_test.dart
 
-import 'package:clean_architecture_lints/src/utils/naming_utils.dart';
+import 'package:clean_architecture_lints/src/utils/nlp/naming_utils.dart';
 import 'package:test/test.dart';
 
 import '../../helpers/test_data.dart';

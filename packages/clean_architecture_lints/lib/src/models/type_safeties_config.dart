@@ -1,6 +1,6 @@
 // lib/src/models/type_safeties_config.dart
 
-import 'package:clean_architecture_lints/src/utils/config_keys.dart';
+import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
 
 part 'details/type_safety_detail.dart';

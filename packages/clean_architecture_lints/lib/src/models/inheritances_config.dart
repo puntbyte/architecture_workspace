@@ -1,6 +1,6 @@
 // lib/src/models/inheritances_config.dart
 
-import 'package:clean_architecture_lints/src/utils/config_keys.dart';
+import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/iterable_extension.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
 

@@ -12,11 +12,11 @@ import 'package:clean_architecture_lints/src/lints/dependency/disallow_service_l
 import 'package:clean_architecture_lints/src/lints/dependency/disallow_use_case_in_widget.dart';
 import 'package:clean_architecture_lints/src/lints/dependency/enforce_abstract_data_source_dependency.dart';
 import 'package:clean_architecture_lints/src/lints/dependency/enforce_abstract_repository_dependency.dart';
+import 'package:clean_architecture_lints/src/lints/dependency/enforce_layer_independence.dart';
 import 'package:clean_architecture_lints/src/lints/error_handling/disallow_throwing_from_repository.dart';
 import 'package:clean_architecture_lints/src/lints/error_handling/enforce_exception_on_data_source.dart';
 import 'package:clean_architecture_lints/src/lints/error_handling/enforce_try_catch_in_repository.dart';
 import 'package:clean_architecture_lints/src/lints/location/enforce_file_and_folder_location.dart';
-import 'package:clean_architecture_lints/src/lints/dependency/enforce_layer_independence.dart';
 import 'package:clean_architecture_lints/src/lints/naming/enforce_naming_conventions.dart';
 import 'package:clean_architecture_lints/src/lints/naming/enforce_semantic_naming.dart';
 import 'package:clean_architecture_lints/src/lints/purity/disallow_entity_in_data_source.dart';
@@ -24,12 +24,12 @@ import 'package:clean_architecture_lints/src/lints/purity/disallow_flutter_in_do
 import 'package:clean_architecture_lints/src/lints/purity/disallow_model_in_domain.dart';
 import 'package:clean_architecture_lints/src/lints/purity/disallow_model_return_from_repository.dart';
 import 'package:clean_architecture_lints/src/lints/purity/enforce_contract_api.dart';
-import 'package:clean_architecture_lints/src/lints/structure/enforce_annotations.dart';
 import 'package:clean_architecture_lints/src/lints/purity/require_to_entity_method.dart';
+import 'package:clean_architecture_lints/src/lints/structure/enforce_annotations.dart';
 import 'package:clean_architecture_lints/src/lints/structure/enforce_type_safety.dart';
 import 'package:clean_architecture_lints/src/lints/structure/missing_use_case.dart';
 import 'package:clean_architecture_lints/src/models/architecture_config.dart';
-import 'package:clean_architecture_lints/src/utils/natural_language_utils.dart';
+import 'package:clean_architecture_lints/src/utils/nlp/natural_language_utils.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:dictionaryx/dictionary_msa.dart';
 
@@ -54,12 +54,11 @@ class CleanArchitectureLintsPlugin extends PluginBase {
 
     // 3. Define the lint rules in logical groups for excellent readability and maintenance.
     final contractRules = [
+      EnforceCustomInheritance(config: config, layerResolver: layerResolver),
       EnforceEntityContract(config: config, layerResolver: layerResolver),
       EnforceRepositoryContract(config: config, layerResolver: layerResolver),
-      EnforceUseCaseContract(config: config, layerResolver: layerResolver),
       EnforceRepositoryImplementationContract(config: config, layerResolver: layerResolver),
-      // The generic engine for user-defined inheritance rules.
-      EnforceCustomInheritance(config: config, layerResolver: layerResolver),
+      EnforceUseCaseContract(config: config, layerResolver: layerResolver),
     ];
 
     final dependencyRules = [
@@ -69,6 +68,7 @@ class CleanArchitectureLintsPlugin extends PluginBase {
       DisallowUseCaseInWidget(config: config, layerResolver: layerResolver),
       EnforceAbstractDataSourceDependency(config: config, layerResolver: layerResolver),
       EnforceAbstractRepositoryDependency(config: config, layerResolver: layerResolver),
+      EnforceLayerIndependence(config: config, layerResolver: layerResolver),
     ];
 
     final errorHandlingRules = [
@@ -77,13 +77,8 @@ class CleanArchitectureLintsPlugin extends PluginBase {
       EnforceTryCatchInRepository(config: config, layerResolver: layerResolver),
     ];
 
-    final generationRules = [
-      MissingUseCase(config: config, layerResolver: layerResolver),
-    ];
-
     final locationRules = [
       EnforceFileAndFolderLocation(config: config, layerResolver: layerResolver),
-      EnforceLayerIndependence(config: config, layerResolver: layerResolver),
     ];
 
     final namingRules = [
@@ -96,13 +91,14 @@ class CleanArchitectureLintsPlugin extends PluginBase {
       DisallowFlutterInDomain(config: config, layerResolver: layerResolver),
       DisallowModelInDomain(config: config, layerResolver: layerResolver),
       DisallowModelReturnFromRepository(config: config, layerResolver: layerResolver),
+      EnforceContractApi(config: config, layerResolver: layerResolver),
+      RequireToEntityMethod(config: config, layerResolver: layerResolver),
     ];
 
     final structureRules = [
-      EnforceContractApi(config: config, layerResolver: layerResolver),
       EnforceAnnotations(config: config, layerResolver: layerResolver),
-      RequireToEntityMethod(config: config, layerResolver: layerResolver),
       EnforceTypeSafety(config: config, layerResolver: layerResolver),
+      MissingUseCase(config: config, layerResolver: layerResolver),
     ];
 
     // 4. Combine all groups into a single list using the spread operator.
@@ -110,7 +106,6 @@ class CleanArchitectureLintsPlugin extends PluginBase {
       ...contractRules,
       ...dependencyRules,
       ...errorHandlingRules,
-      ...generationRules,
       ...locationRules,
       ...namingRules,
       ...purityRules,

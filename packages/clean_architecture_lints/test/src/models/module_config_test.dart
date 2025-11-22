@@ -1,7 +1,7 @@
 // test/src/models/module_config_test.dart
 
 import 'package:clean_architecture_lints/src/models/module_config.dart';
-import 'package:clean_architecture_lints/src/utils/config_keys.dart';
+import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:test/test.dart';
 
 void main() {

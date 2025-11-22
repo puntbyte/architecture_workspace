@@ -1,11 +1,9 @@
 // lib/src/models/layer_config.dart
 
-import 'package:clean_architecture_lints/src/utils/config_keys.dart';
+import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
 
-part 'package:clean_architecture_lints/src/models/rules/domain_layer_rule.dart';
-part 'package:clean_architecture_lints/src/models/rules/data_layer_rule.dart';
-part 'package:clean_architecture_lints/src/models/rules/presentation_layer_rule.dart';
+part 'package:clean_architecture_lints/src/models/rules/layer_rules.dart';
 
 /// The parent configuration class for all layer and path definitions.
 class LayerConfig {

@@ -8,7 +8,7 @@ import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/analysis/layer_resolver.dart';
 import 'package:clean_architecture_lints/src/models/architecture_config.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/iterable_extension.dart';
-import 'package:clean_architecture_lints/src/utils/syntax_builder.dart';
+import 'package:clean_architecture_lints/src/utils/codegen/syntax_builder.dart';
 import 'package:code_builder/code_builder.dart' as cb;
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:dart_style/dart_style.dart';
