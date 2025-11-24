@@ -2,7 +2,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/lints/architecture_lint_rule.dart';
-// CORRECT IMPORT:
 import 'package:clean_architecture_lints/src/models/inheritances_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
@@ -18,13 +17,10 @@ class EnforceEntityContract extends ArchitectureLintRule {
     import: 'package:clean_architecture_core/clean_architecture_core.dart',
   );
 
-  final bool _hasCustomRule;
-
-  EnforceEntityContract({
+  const EnforceEntityContract({
     required super.config,
     required super.layerResolver,
-  }) : _hasCustomRule = config.inheritances.ruleFor(ArchComponent.entity.id) != null,
-        super(code: _code);
+  }) : super(code: _code);
 
   @override
   void run(
@@ -32,7 +28,6 @@ class EnforceEntityContract extends ArchitectureLintRule {
       DiagnosticReporter reporter,
       CustomLintContext context,
       ) {
-    if (_hasCustomRule) return;
     if (layerResolver.getComponent(resolver.source.fullName) != ArchComponent.entity) return;
 
     context.registry.addClassDeclaration((node) {
@@ -41,7 +36,10 @@ class EnforceEntityContract extends ArchitectureLintRule {
       final element = node.declaredFragment?.element;
       if (element == null) return;
 
-      final requiredSupertypes = [
+      final customRule = config.inheritances.ruleFor(ArchComponent.entity.id);
+      final requiredSupertypes = customRule?.required.isNotEmpty == true
+          ? customRule!.required
+          : [
         _defaultRule,
         InheritanceDetail(
           name: 'Entity',
@@ -74,10 +72,44 @@ class EnforceEntityContract extends ArchitectureLintRule {
 
     return element.allSupertypes.any((supertype) {
       final superElement = supertype.element;
+
       if (superElement.name != detail.name) return false;
 
       final libraryUri = superElement.library.firstFragment.source.uri.toString();
-      return libraryUri == detail.import;
+      final configUri = detail.import!;
+
+      // 1. Exact Match
+      if (libraryUri == configUri) return true;
+
+      // 2. Suffix Match (Handles file:// vs package: difference in tests)
+      final libSuffix = _extractPathSuffix(libraryUri);
+      final configSuffix = _extractPathSuffix(configUri);
+
+      if (libSuffix != null && configSuffix != null && libSuffix == configSuffix) {
+        return true;
+      }
+
+      return libraryUri.endsWith(configUri);
     });
+  }
+
+  String? _extractPathSuffix(String uriString) {
+    final uri = Uri.tryParse(uriString);
+    if (uri == null) return null;
+
+    if (uri.scheme == 'package') {
+      // package:example/core/entity.dart -> core/entity.dart
+      if (uri.pathSegments.length > 1) {
+        return uri.pathSegments.sublist(1).join('/');
+      }
+    } else if (uri.scheme == 'file') {
+      // file:///.../lib/core/entity.dart -> core/entity.dart
+      final segments = uri.pathSegments;
+      final libIndex = segments.lastIndexOf('lib');
+      if (libIndex != -1 && libIndex < segments.length - 1) {
+        return segments.sublist(libIndex + 1).join('/');
+      }
+    }
+    return uriString;
   }
 }

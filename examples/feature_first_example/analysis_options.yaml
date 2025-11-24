@@ -14,7 +14,7 @@ analyzer:
 custom_lint:
   rules:
     # --- ENABLE ALL LINT RULES ---
-    # Purity & Responsibility Rules
+    # 1. Purity & Responsibility Rules
     - disallow_model_in_domain: true
     - disallow_entity_in_data_source: true
     - disallow_repository_in_presentation: true
@@ -25,32 +25,34 @@ custom_lint:
     - disallow_dependency_instantiation: true
     - disallow_service_locator: true
 
-    # Contract & Inheritance Rules
+    # 2. Contract & Inheritance Rules
     - enforce_model_to_entity_mapping: true
     - enforce_model_inherits_entity: true
-    - enforce_repository_contract: true
-    - enforce_use_case_contract: true
+    - enforce_port_contract: true # Replaces enforce_repository_contract
+    - enforce_usecase_contract: true # Replaces enforce_use_case_contract (naming fix)
     - enforce_entity_contract: true
-    - enforce_repository_implementation_contract: true
-    - enforce_custom_inheritance: true # Generic engine for custom rules
+    - enforce_repository_contract: true # Replaces enforce_repository_implementation_contract
+    - enforce_custom_inheritance: true
 
-    # Dependency & Structure Rules
+    # 3. Dependency & Structure Rules
     - enforce_layer_independence: true
     - enforce_abstract_data_source_dependency: true
     - enforce_abstract_repository_dependency: true
     - enforce_file_and_folder_location: true
 
-    # Type Safety & Error Handling Rules
+    # 4. Type Safety & Error Handling Rules
     - enforce_type_safety: true
     - disallow_throwing_from_repository: true
     - enforce_try_catch_in_repository: true
     - enforce_exception_on_data_source: true
+    - convert_exceptions_to_failures: true # Enable the new rule
+    - disallow_throwing_from_presentation: true # Enable the new rule
 
-    # Naming Convention Rules
+    # 5. Naming Convention Rules
     - enforce_naming_conventions: true
     - enforce_semantic_naming: true
 
-    # Code Generation Rule
+    # 6. Code Generation Rule
     - missing_use_case: true
 
     # --- CONFIGURATION BLOCK ---

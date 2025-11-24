@@ -6,7 +6,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/lints/architecture_lint_rule.dart';
 import 'package:clean_architecture_lints/src/models/error_handlers_config.dart';
-import 'package:clean_architecture_lints/src/models/type_definitions_config.dart';
+import 'package:clean_architecture_lints/src/models/type_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that enforces 1-to-1 mapping between Exceptions and Failures in catch blocks.
@@ -134,7 +134,7 @@ class ConvertExceptionsToFailures extends ArchitectureLintRule {
     return false;
   }
 
-  bool _matchesType(DartType? type, TypeDefinition definition) {
+  bool _matchesType(DartType? type, TypeRule definition) {
     final element = type?.element;
     if (element == null) return false;
 

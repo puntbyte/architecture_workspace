@@ -1,4 +1,6 @@
-part of 'package:clean_architecture_lints/src/models/inheritances_config.dart';
+// lib/src/models/rules/inheritance_rule.dart
+
+part of '../inheritances_config.dart';
 
 /// Represents a single, user-defined inheritance rule.
 class InheritanceRule {
@@ -27,13 +29,11 @@ class InheritanceRule {
     );
   }
 
-  /// Parses the 'on' field, returning null if empty or missing.
   static String? _parseOn(Map<String, dynamic> map) {
     final on = map.asString(ConfigKey.rule.on);
     return on.isEmpty ? null : on;
   }
 
-  /// Parses details for a given key (required/allowed/forbidden).
   static List<InheritanceDetail> _parseDetails(Map<String, dynamic> map, String key) {
     final data = map[key];
 

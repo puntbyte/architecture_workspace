@@ -8,7 +8,7 @@ import 'package:clean_architecture_lints/src/models/dependencies_config.dart';
 import 'package:clean_architecture_lints/src/models/module_config.dart';
 import 'package:clean_architecture_lints/src/models/naming_conventions_config.dart';
 import 'package:clean_architecture_lints/src/models/services_config.dart';
-import 'package:clean_architecture_lints/src/models/type_definitions_config.dart';
+import 'package:clean_architecture_lints/src/models/type_config.dart';
 import 'package:clean_architecture_lints/src/models/type_safeties_config.dart';
 import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
@@ -24,7 +24,7 @@ class ArchitectureConfig {
   final DependenciesConfig dependencies;
   final AnnotationsConfig annotations;
   final ServicesConfig services;
-  final TypeDefinitionsConfig typeDefinitions;
+  final TypeConfig typeDefinitions;
   final ErrorHandlersConfig errorHandlers;
 
   const ArchitectureConfig({
@@ -52,7 +52,7 @@ class ArchitectureConfig {
       dependencies: DependenciesConfig.fromMap(map),
       annotations: AnnotationsConfig.fromMap(map),
       services: ServicesConfig.fromMap(map),
-      typeDefinitions: TypeDefinitionsConfig.fromMap(map),
+      typeDefinitions: TypeConfig.fromMap(map),
       errorHandlers: ErrorHandlersConfig.fromMap(map),
     );
   }
