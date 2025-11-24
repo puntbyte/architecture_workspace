@@ -152,6 +152,7 @@ class _RuleKeys {
 
   // Annotations Keys
   String get message => 'message';
+  String get component => 'component';
 }
 
 class _ServiceKeys {

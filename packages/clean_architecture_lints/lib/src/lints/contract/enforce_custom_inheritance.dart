@@ -4,14 +4,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/lints/architecture_lint_rule.dart';
+// Correctly import the parent config file to access InheritanceDetail and InheritanceRule
 import 'package:clean_architecture_lints/src/models/inheritances_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A generic lint that enforces all custom inheritance rules defined in the
 /// `inheritances` block of the configuration.
-///
-/// This lint takes precedence over default presets. If a rule is defined here,
-/// the corresponding preset lint (e.g., EnforceEntityContract) will skip execution.
 class EnforceCustomInheritance extends ArchitectureLintRule {
   static const _requiredCode = LintCode(
     name: 'custom_inheritance_required',
@@ -31,18 +29,16 @@ class EnforceCustomInheritance extends ArchitectureLintRule {
     required super.config,
     required super.layerResolver,
   }) : _rules = {
-         // We load ALL rules here. The presets will check if a rule exists
-         // for their component and step aside if it does.
-         for (final rule in config.inheritances.rules) rule.on: rule,
-       },
-       super(code: _requiredCode);
+    for (final rule in config.inheritances.rules) rule.on: rule,
+  },
+        super(code: _requiredCode);
 
   @override
   void run(
-    CustomLintResolver resolver,
-    DiagnosticReporter reporter,
-    CustomLintContext context,
-  ) {
+      CustomLintResolver resolver,
+      DiagnosticReporter reporter,
+      CustomLintContext context,
+      ) {
     if (_rules.isEmpty) return;
 
     context.registry.addClassDeclaration((node) {
@@ -51,7 +47,6 @@ class EnforceCustomInheritance extends ArchitectureLintRule {
       final element = node.declaredFragment?.element;
       if (element == null) return;
 
-      // Identify component (e.g., 'entity', 'widget', 'manager')
       final component = layerResolver.getComponent(
         resolver.source.fullName,
         className: node.name.lexeme,
@@ -59,26 +54,29 @@ class EnforceCustomInheritance extends ArchitectureLintRule {
 
       if (component == ArchComponent.unknown) return;
 
-      // Check if there is a custom rule for this specific component
       final rule = _rules[component.id];
       if (rule == null) return;
 
-      // 1. ALLOWED (Override)
+      // 1. ALLOWED CHECK (Short-circuit)
       if (rule.allowed.isNotEmpty) {
         final isAllowed = rule.allowed.any(
-          (allowed) => _hasSupertype(element, allowed, context),
+              (detail) => _satisfiesDetail(element, detail, context),
         );
         if (isAllowed) return;
       }
 
-      // 2. REQUIRED
+      // 2. REQUIRED CHECK
       if (rule.required.isNotEmpty) {
         final hasRequired = rule.required.any(
-          (req) => _hasSupertype(element, req, context),
+              (detail) => _satisfiesDetail(element, detail, context),
         );
 
         if (!hasRequired) {
-          final requiredNames = rule.required.map((r) => r.name).join(' or ');
+          // UX FIX: Convert raw component IDs to readable Labels
+          final requiredNames = rule.required
+              .map(_getDisplayName)
+              .join(' or ');
+
           reporter.atToken(
             node.name,
             _requiredCode,
@@ -87,21 +85,67 @@ class EnforceCustomInheritance extends ArchitectureLintRule {
         }
       }
 
-      // 3. FORBIDDEN
+      // 3. FORBIDDEN CHECK
       for (final forbidden in rule.forbidden) {
-        if (_hasSupertype(element, forbidden, context)) {
+        if (_satisfiesDetail(element, forbidden, context)) {
           reporter.atToken(
             node.name,
             _forbiddenCode,
-            arguments: [component.label, forbidden.name],
+            arguments: [
+              component.label,
+              _getDisplayName(forbidden)
+            ],
           );
         }
       }
     });
   }
 
-  bool _hasSupertype(ClassElement element, InheritanceDetail detail, CustomLintContext context) {
-    final expectedUri = _normalizeConfigImport(detail.import, context.pubspec.name);
+  /// Returns the class Name or the Component Label for error messages.
+  String _getDisplayName(InheritanceDetail detail) {
+    if (detail.name != null) return detail.name!;
+    if (detail.component != null) {
+      return ArchComponent.fromId(detail.component!).label;
+    }
+    return 'Unknown Type';
+  }
+
+  bool _satisfiesDetail(
+      ClassElement element,
+      InheritanceDetail detail,
+      CustomLintContext context,
+      ) {
+    if (detail.component != null) {
+      return _isComponentSupertype(element, detail.component!);
+    }
+
+    if (detail.name != null && detail.import != null) {
+      return _hasSpecificSupertype(element, detail, context);
+    }
+
+    return false;
+  }
+
+  bool _isComponentSupertype(ClassElement element, String componentId) {
+    final targetComponent = ArchComponent.fromId(componentId);
+    if (targetComponent == ArchComponent.unknown) return false;
+
+    return element.allSupertypes.any((supertype) {
+      final superElement = supertype.element;
+      // [Analyzer 8.0.0] Use firstFragment.source
+      final source = superElement.library.firstFragment.source;
+
+      final superComp = layerResolver.getComponent(source.fullName);
+      return superComp == targetComponent;
+    });
+  }
+
+  bool _hasSpecificSupertype(
+      ClassElement element,
+      InheritanceDetail detail,
+      CustomLintContext context,
+      ) {
+    final expectedUri = _normalizeConfigImport(detail.import!, context.pubspec.name);
 
     return element.allSupertypes.any((supertype) {
       final superElement = supertype.element;

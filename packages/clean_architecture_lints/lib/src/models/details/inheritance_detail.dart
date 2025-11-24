@@ -1,24 +1,30 @@
-// lib/src/models/details/inheritance_detail.dart
-
 part of 'package:clean_architecture_lints/src/models/inheritances_config.dart';
 
 /// Represents the details of a single base class in an inheritance rule.
 class InheritanceDetail {
-  final String name;
-  final String import;
+  final String? name;
+  final String? import;
+  final String? component;
 
   const InheritanceDetail({
-    required this.name,
-    required this.import,
+    this.name,
+    this.import,
+    this.component,
   });
 
   /// Creates an instance from a map, returning null if required fields are missing.
   static InheritanceDetail? tryFromMap(Map<String, dynamic> map) {
-    final name = map.asString(ConfigKey.rule.name);
-    final import = map.asString(ConfigKey.rule.import);
+    // We can access ConfigKey and extensions here because they are imported in the parent.
+    final name = map.asStringOrNull(ConfigKey.rule.name);
+    final component = map.asStringOrNull(ConfigKey.rule.component);
 
-    if (name.isEmpty || import.isEmpty) return null;
+    // Must have either a class Name OR a Component reference
+    if (name == null && component == null) return null;
 
-    return InheritanceDetail(name: name, import: import);
+    return InheritanceDetail(
+      name: name,
+      import: map.asStringOrNull(ConfigKey.rule.import),
+      component: component,
+    );
   }
 }

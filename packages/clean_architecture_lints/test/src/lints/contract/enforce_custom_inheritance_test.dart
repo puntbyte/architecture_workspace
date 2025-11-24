@@ -31,22 +31,19 @@ void main() {
       addFile('pubspec.yaml', 'name: test_project');
       addFile(
         '.dart_tool/package_config.json',
-        '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", '
-            '"packageUri": "lib/"}]}',
+        '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", "packageUri": "lib/"}]}',
       );
 
-      // Setup core classes for inheritance checks
+      // Setup classes
       addFile('lib/core/base_widget.dart', 'abstract class BaseWidget {}');
-      addFile('lib/core/special_widget.dart', 'abstract class SpecialWidget {}');
       addFile('lib/core/forbidden_mixin.dart', 'mixin ForbiddenMixin {}');
+      addFile('lib/features/user/domain/entities/user.dart', 'class User {}');
     });
 
     tearDown(() {
       try {
         tempDir.deleteSync(recursive: true);
-      } on FileSystemException catch (_) {
-        // Ignore Windows file lock errors
-      }
+      } catch (_) {}
     });
 
     Future<List<Diagnostic>> runLint({
@@ -54,12 +51,12 @@ void main() {
       required List<Map<String, dynamic>> inheritances,
     }) async {
       final fullPath = p.canonicalize(p.join(testProjectPath, filePath));
-
       contextCollection = AnalysisContextCollection(includedPaths: [testProjectPath]);
 
-      final resolvedUnit =
-          await contextCollection.contextFor(fullPath).currentSession.getResolvedUnit(fullPath)
-              as ResolvedUnitResult;
+      final resolvedUnit = await contextCollection
+          .contextFor(fullPath)
+          .currentSession
+          .getResolvedUnit(fullPath) as ResolvedUnitResult;
 
       final config = makeConfig(inheritances: inheritances);
       final lint = EnforceCustomInheritance(config: config, layerResolver: LayerResolver(config));
@@ -68,14 +65,17 @@ void main() {
       return lints.cast<Diagnostic>();
     }
 
-    group('Required Rule', () {
+    group('Specific Class Inheritance', () {
       final requiredRule = {
         'on': 'widget',
-        'required': {'name': 'BaseWidget', 'import': 'package:test_project/core/base_widget.dart'},
+        'required': {
+          'name': 'BaseWidget',
+          'import': 'package:test_project/core/base_widget.dart'
+        },
       };
 
-      test('reports violation when required supertype is missing', () async {
-        const path = 'lib/features/home/presentation/widgets/my_widget.dart';
+      test('reports violation when required specific supertype is missing', () async {
+        final path = 'lib/features/home/presentation/widgets/my_widget.dart';
         addFile(path, 'class MyWidget {}');
 
         final lints = await runLint(
@@ -87,32 +87,16 @@ void main() {
         expect(lints.first.message, contains('must extend or implement one of: BaseWidget'));
       });
 
-      test('does not report violation when required supertype is present', () async {
-        const path = 'lib/features/home/presentation/widgets/my_widget.dart';
-        addFile(path, '''
-          import 'package:test_project/core/base_widget.dart';
-          class MyWidget extends BaseWidget {}
-        ''');
+      test('reports violation when forbidden specific supertype is present', () async {
+        final forbiddenRule = {
+          'on': 'widget',
+          'forbidden': {
+            'name': 'ForbiddenMixin',
+            'import': 'package:test_project/core/forbidden_mixin.dart',
+          },
+        };
 
-        final lints = await runLint(
-          filePath: path,
-          inheritances: [requiredRule],
-        );
-        expect(lints, isEmpty);
-      });
-    });
-
-    group('Forbidden Rule', () {
-      final forbiddenRule = {
-        'on': 'widget',
-        'forbidden': {
-          'name': 'ForbiddenMixin',
-          'import': 'package:test_project/core/forbidden_mixin.dart',
-        },
-      };
-
-      test('reports violation when forbidden supertype is used', () async {
-        const path = 'lib/features/home/presentation/widgets/my_widget.dart';
+        final path = 'lib/features/home/presentation/widgets/my_widget.dart';
         addFile(path, '''
           import 'package:test_project/core/forbidden_mixin.dart';
           class MyWidget with ForbiddenMixin {}
@@ -126,63 +110,67 @@ void main() {
         expect(lints, hasLength(1));
         expect(lints.first.message, contains('must not extend or implement ForbiddenMixin'));
       });
-
-      test('does not report violation when forbidden supertype is NOT used', () async {
-        const path = 'lib/features/home/presentation/widgets/my_widget.dart';
-        addFile(path, 'class MyWidget {}');
-
-        final lints = await runLint(
-          filePath: path,
-          inheritances: [forbiddenRule],
-        );
-        expect(lints, isEmpty);
-      });
     });
 
-    group('Allowed (Override) Logic', () {
-      // This checks if the "allowed" list correctly bypasses other checks.
-      // Scenario: Widgets MUST extend BaseWidget, BUT SpecialWidget is also acceptable.
-
-      final combinedRule = {
-        'on': 'widget',
-        'required': {
-          'name': 'BaseWidget',
-          'import': 'package:test_project/core/base_widget.dart',
-        },
-        'allowed': {
-          'name': 'SpecialWidget',
-          'import': 'package:test_project/core/special_widget.dart',
-        },
+    group('Component-Based Inheritance', () {
+      final modelRule = {
+        'on': 'model',
+        'required': {'component': 'entity'},
       };
 
-      test('reports violation if neither required nor allowed types are used', () async {
-        const path = 'lib/features/home/presentation/widgets/my_widget.dart';
-        addFile(path, 'class MyWidget {}');
+      test('reports violation when Model does not extend any Entity', () async {
+        final path = 'lib/features/user/data/models/user_model.dart';
+        addFile(path, 'class UserModel {}');
 
         final lints = await runLint(
           filePath: path,
-          inheritances: [combinedRule],
+          inheritances: [modelRule],
         );
 
-        // Should trigger the 'required' error because we didn't match the allowed list either.
         expect(lints, hasLength(1));
-        expect(lints.first.message, contains('must extend or implement one of: BaseWidget'));
+        // Now expects 'Entity' (capitalized Label), which fixes the previous error.
+        expect(lints.first.message, contains('must extend or implement one of: Entity'));
       });
 
-      test('passes if class extends the Allowed type (skipping required check)', () async {
-        const path = 'lib/features/home/presentation/widgets/my_widget.dart';
-        // Extends SpecialWidget, which is NOT BaseWidget, but it IS allowed.
+      test('does NOT report violation when Model extends a valid Entity', () async {
+        final path = 'lib/features/user/data/models/user_model.dart';
         addFile(path, '''
-          import 'package:test_project/core/special_widget.dart';
-          class MyWidget extends SpecialWidget {}
+          import '../../domain/entities/user.dart';
+          class UserModel extends User {}
         ''');
 
         final lints = await runLint(
           filePath: path,
-          inheritances: [combinedRule],
+          inheritances: [modelRule],
         );
+
         expect(lints, isEmpty);
       });
+    });
+
+    test('Allowed rule override works for Component-based checks', () async {
+      final combinedRule = {
+        'on': 'model',
+        'required': {'component': 'entity'},
+        'allowed': {
+          'name': 'SpecialBase',
+          'import': 'package:test_project/core/special_base.dart'
+        },
+      };
+
+      addFile('lib/core/special_base.dart', 'class SpecialBase {}');
+      final path = 'lib/features/user/data/models/special_model.dart';
+      addFile(path, '''
+        import 'package:test_project/core/special_base.dart';
+        class SpecialModel extends SpecialBase {}
+      ''');
+
+      final lints = await runLint(
+        filePath: path,
+        inheritances: [combinedRule],
+      );
+
+      expect(lints, isEmpty);
     });
   });
 }

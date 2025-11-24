@@ -32,6 +32,8 @@ class CreateUseCaseFix extends DartFix {
       ) {
     context.addPostRunCallback(() async {
       final resolvedUnit = await resolver.getResolvedUnitResult();
+
+      // [Analyzer 8.0.0] Use nodeCovering
       final node = resolvedUnit.unit.nodeCovering(offset: diagnostic.offset);
 
       final methodNode = node?.thisOrAncestorOfType<MethodDeclaration>();
@@ -88,22 +90,24 @@ class CreateUseCaseFix extends DartFix {
     final returnTypeRef = cb.refer(returnType?.getDisplayString() ?? 'void');
     final outputType = extractOutputType(returnType);
 
+    // Resolve base class names from config or use defaults
+    final rules = config.inheritances.ruleFor(ArchComponent.usecase.id)?.required ?? [];
+
+    // Look for a configured class that looks like a Unary/Nullary base
+    final configuredUnary = rules
+        .firstWhereOrNull((d) => d.name?.contains('Unary') ?? false)
+        ?.name;
+
+    final configuredNullary = rules
+        .firstWhereOrNull((d) => d.name?.contains('Nullary') ?? false)
+        ?.name;
+
     final paramConfig = buildParameterConfigFromParams(
       params: method.parameters?.parameters ?? [],
       methodName: methodName,
       outputType: outputType,
-      unaryName: config.inheritances
-          .ruleFor(ArchComponent.usecase.id)
-          ?.required
-          .firstWhereOrNull((d) => d.name.contains('Unary'))
-          ?.name ??
-          'UnaryUsecase',
-      nullaryName: config.inheritances
-          .ruleFor(ArchComponent.usecase.id)
-          ?.required
-          .firstWhereOrNull((d) => d.name.contains('Nullary'))
-          ?.name ??
-          'NullaryUsecase',
+      unaryName: configuredUnary ?? 'UnaryUsecase',
+      nullaryName: configuredNullary ?? 'NullaryUsecase',
     );
 
     if (paramConfig.recordTypeDef != null) {
@@ -154,7 +158,6 @@ class CreateUseCaseFix extends DartFix {
       final astInfo = _extractParamFromAst(param);
 
       if (astInfo.name == null) {
-        // Fallback if something is terribly wrong with AST
         return UseCaseGenerationConfig(
             baseClassName: cb.refer(nullaryName),
             genericTypes: [outputType],
@@ -165,17 +168,13 @@ class CreateUseCaseFix extends DartFix {
       final paramType = cb.refer(astInfo.type ?? 'dynamic');
       final paramName = astInfo.name!;
       final isNamed = astInfo.isNamed;
-
-      // For optional positional ([int? id]), we treat it as a single param for the Unary case.
       final isPositional = !isNamed;
 
       return UseCaseGenerationConfig(
         baseClassName: cb.refer(unaryName),
         genericTypes: [outputType, paramType],
         callParams: [SyntaxBuilder.parameter(name: paramName, type: paramType)],
-        // If it's positional (even optional), we pass it as positional to repo.
         repoCallPositionalArgs: isPositional ? [cb.refer(paramName)] : [],
-        // If named, pass as named.
         repoCallNamedArgs: isNamed ? {paramName: cb.refer(paramName)} : {},
       );
     }
@@ -265,26 +264,28 @@ class CreateUseCaseFix extends DartFix {
       importChecked(repoLibrary.firstFragment.source.uri);
     }
 
-    // Import Annotations (e.g. Injectable)
+    // Import Annotations
     config.annotations.ruleFor(ArchComponent.usecase.id)?.required.forEach((detail) {
       if (detail.import != null) importChecked(Uri.parse(detail.import!));
     });
 
     // Import Base UseCase Classes
     config.inheritances.ruleFor(ArchComponent.usecase.id)?.required.forEach((detail) {
-      importChecked(Uri.parse(detail.import));
+      if (detail.import != null) importChecked(Uri.parse(detail.import!));
     });
 
-    // Import Type Safety Types (e.g. FutureEither, Failure)
+    // Import Type Safety Types
     for (final rule in config.typeSafeties.rules) {
       for (final detail in rule.returns) {
         if (detail.import != null) importChecked(Uri.parse(detail.import!));
       }
     }
 
-    // Helper to import types found in method signature
+    // Import types from method signature
     void importType(DartType? type) {
       if (type == null || (type.element?.library?.isInSdk ?? false)) return;
+
+      // [Analyzer 8.0.0] Use firstFragment.source
       final source = type.element?.library?.firstFragment.source;
       if (source != null) importChecked(source.uri);
 
@@ -295,7 +296,6 @@ class CreateUseCaseFix extends DartFix {
 
     importType(method.returnType?.type);
     for (final param in method.parameters?.parameters ?? <FormalParameter>[]) {
-      // Try to resolve param type
       final paramEl = param.declaredFragment?.element;
       if (paramEl != null) importType(paramEl.type);
     }
@@ -304,14 +304,11 @@ class CreateUseCaseFix extends DartFix {
   cb.Reference extractOutputType(DartType? returnType) {
     if (returnType is! InterfaceType) return cb.refer('void');
 
-    // Handle Future<T>
     if (returnType.isDartAsyncFuture || returnType.isDartAsyncFutureOr) {
       final inner = returnType.typeArguments.firstOrNull;
       if (inner is InterfaceType) {
-        // Handle Future<Either<L, R>> -> Extract R
-        // Assuming standard Either where R is the last arg.
+        // Heuristic: If inner type is generic (e.g. Either<L, R>), try to get the success type (R).
         if (inner.typeArguments.isNotEmpty) {
-          // Heuristic: Last generic arg is usually the success type
           return cb.refer(inner.typeArguments.last.getDisplayString());
         }
         return cb.refer(inner.getDisplayString());

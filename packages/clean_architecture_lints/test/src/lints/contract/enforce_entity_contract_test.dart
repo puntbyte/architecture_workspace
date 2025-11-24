@@ -17,7 +17,6 @@ void main() {
     late Directory tempDir;
     late String testProjectPath;
 
-    // Helper to write files safely using canonical paths
     void addFile(String relativePath, String content) {
       final fullPath = p.join(testProjectPath, p.normalize(relativePath));
       final file = File(fullPath);
@@ -26,27 +25,23 @@ void main() {
     }
 
     setUp(() {
-      // [Windows Fix] Use canonical path to avoid mixed separator issues
       tempDir = Directory.systemTemp.createTempSync('entity_contract_test_');
       testProjectPath = p.canonicalize(tempDir.path);
 
       addFile('pubspec.yaml', 'name: test_project');
       addFile(
         '.dart_tool/package_config.json',
-        '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", '
-            '"packageUri": "lib/"}]}',
+        '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", "packageUri": "lib/"}]}',
       );
 
-      // Create a local definition of Entity to simulate the core package or local core
+      // Create a local definition of Entity
       addFile('lib/core/entity/entity.dart', 'abstract class Entity {}');
     });
 
     tearDown(() {
       try {
         tempDir.deleteSync(recursive: true);
-      } on FileSystemException catch (_) {
-        // Ignore Windows file lock errors
-      }
+      } catch (_) {}
     });
 
     Future<List<Diagnostic>> runLint({
@@ -56,9 +51,10 @@ void main() {
       final fullPath = p.canonicalize(p.join(testProjectPath, filePath));
       contextCollection = AnalysisContextCollection(includedPaths: [testProjectPath]);
 
-      final resolvedUnit =
-          await contextCollection.contextFor(fullPath).currentSession.getResolvedUnit(fullPath)
-              as ResolvedUnitResult;
+      final resolvedUnit = await contextCollection
+          .contextFor(fullPath)
+          .currentSession
+          .getResolvedUnit(fullPath) as ResolvedUnitResult;
 
       final config = makeConfig(inheritances: inheritances);
       final lint = EnforceEntityContract(config: config, layerResolver: LayerResolver(config));
@@ -68,7 +64,7 @@ void main() {
     }
 
     test('reports violation when entity does not extend Entity', () async {
-      const path = 'lib/features/login/domain/entities/user.dart';
+      final path = 'lib/features/login/domain/entities/user.dart';
       addFile(path, 'class User {}');
 
       final lints = await runLint(filePath: path);
@@ -78,7 +74,7 @@ void main() {
     });
 
     test('does not report violation when entity extends Entity (Local Core)', () async {
-      const path = 'lib/features/login/domain/entities/user.dart';
+      final path = 'lib/features/login/domain/entities/user.dart';
       addFile(path, '''
         import 'package:test_project/core/entity/entity.dart';
         class User extends Entity {} 
@@ -89,7 +85,7 @@ void main() {
     });
 
     test('ignores abstract entity classes', () async {
-      const path = 'lib/features/shared/domain/entities/base_user.dart';
+      final path = 'lib/features/shared/domain/entities/base_user.dart';
       addFile(path, 'abstract class BaseUser {}');
 
       final lints = await runLint(filePath: path);
@@ -97,7 +93,7 @@ void main() {
     });
 
     test('ignores files outside of the entity directory', () async {
-      const path = 'lib/features/login/presentation/pages/login_page.dart';
+      final path = 'lib/features/login/presentation/pages/login_page.dart';
       addFile(path, 'class LoginPage {}');
 
       final lints = await runLint(filePath: path);
@@ -105,19 +101,14 @@ void main() {
     });
 
     test('DISABLES itself when a custom inheritance rule for Entity is defined', () async {
-      // Reasoning: If the user defines a custom rule, EnforceCustomInheritance takes over.
-      // This lint should strictly do nothing to avoid duplicate errors.
-
       final customConfig = [
         {
           'on': 'entity',
-          'required': {'name': 'CustomBase', 'import': 'pkg:x'},
-        },
+          'required': {'name': 'CustomBase', 'import': 'pkg:x'}
+        }
       ];
 
-      const path = 'lib/features/login/domain/entities/user.dart';
-      // This code violates BOTH default (Entity) and custom (CustomBase).
-      // However, EnforceEntityContract should report NOTHING because it is disabled.
+      final path = 'lib/features/login/domain/entities/user.dart';
       addFile(path, 'class User {}');
 
       final lints = await runLint(

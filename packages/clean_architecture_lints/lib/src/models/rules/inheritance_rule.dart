@@ -1,5 +1,3 @@
-// lib/src/models/rules/inheritance_rule.dart
-
 part of 'package:clean_architecture_lints/src/models/inheritances_config.dart';
 
 /// Represents a single, user-defined inheritance rule.
@@ -18,8 +16,8 @@ class InheritanceRule {
 
   /// Creates an instance from a map, returning null if essential data is missing.
   static InheritanceRule? tryFromMap(Map<String, dynamic> map) {
-    final on = map.asString(ConfigKey.rule.on);
-    if (on.isEmpty) return null;
+    final on = _parseOn(map);
+    if (on == null) return null;
 
     return InheritanceRule(
       on: on,
@@ -27,6 +25,12 @@ class InheritanceRule {
       allowed: _parseDetails(map, ConfigKey.rule.allowed),
       forbidden: _parseDetails(map, ConfigKey.rule.forbidden),
     );
+  }
+
+  /// Parses the 'on' field, returning null if empty or missing.
+  static String? _parseOn(Map<String, dynamic> map) {
+    final on = map.asString(ConfigKey.rule.on);
+    return on.isEmpty ? null : on;
   }
 
   /// Parses details for a given key (required/allowed/forbidden).

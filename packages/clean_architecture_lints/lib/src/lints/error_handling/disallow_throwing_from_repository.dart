@@ -6,21 +6,21 @@ import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/lints/architecture_lint_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-/// A lint that forbids `throw` expressions inside a repository implementation.
+/// A lint that forbids `throw` and `rethrow` expressions inside a repository implementation
+/// based on the `error_handlers` configuration.
 ///
-/// **Reasoning:** Repositories act as a safety boundary. They are responsible for
-/// catching all exceptions from the data layer (DataSources) and converting them
-/// into a predictable `Failure` object (usually via `Either`).
+/// **Category:** Error Handling
 ///
-/// **Note:** This does not flag `rethrow` statements. If you need to catch-log-rethrow,
-/// that is technically permitted by this rule, though often discouraged in strict
-/// functional error handling.
+/// **Reasoning:** Repositories act as a "Boundary". They are responsible for catching
+/// exceptions from the Data Source and converting them into a `Failure` object (typically
+/// wrapped in an `Either`). Throwing or rethrowing exceptions breaks this boundary,
+/// leaking infrastructure details into the Domain layer.
 class DisallowThrowingFromRepository extends ArchitectureLintRule {
   static const _code = LintCode(
     name: 'disallow_throwing_from_repository',
     problemMessage:
-        'Do not throw exceptions from a repository. Return a Failure object in a Left(...) instead.',
-    correctionMessage: 'Wrap the operation in a try/catch block and return a Failure.',
+    'Repositories should not throw or rethrow exceptions. Convert them to a Failure object.',
+    correctionMessage: 'Wrap the operation in a try/catch block and return a Failure (Left).',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
 
@@ -31,19 +31,41 @@ class DisallowThrowingFromRepository extends ArchitectureLintRule {
 
   @override
   void run(
-    CustomLintResolver resolver,
-    DiagnosticReporter reporter,
-    CustomLintContext context,
-  ) {
-    // 1. Check Component: Only runs on Repository Implementations
+      CustomLintResolver resolver,
+      DiagnosticReporter reporter,
+      CustomLintContext context,
+      ) {
+    // 1. Scope: Only runs on Repository Implementations
     final component = layerResolver.getComponent(resolver.source.fullName);
     if (component != ArchComponent.repository) return;
 
-    // 2. Listen for 'throw'
-    context.registry.addThrowExpression((node) {
-      // This listener triggers on `throw Exception()`.
-      // It does NOT trigger on `rethrow;` (which is a RethrowExpression).
-      reporter.atNode(node, _code);
-    });
+    // 2. Config: Check Error Handler rules
+    final rule = config.errorHandlers.ruleFor(ArchComponent.repository.id);
+
+    // Default behaviors if no config is provided (Strict Boundary)
+    bool forbidThrow = true;
+    bool forbidRethrow = true;
+
+    if (rule != null) {
+      // If config exists, we strictly follow the 'forbidden' operations list.
+      // We flatten the list of operations from all forbidden rules.
+      final forbiddenOps = rule.forbidden.expand((r) => r.operations).toSet();
+      forbidThrow = forbiddenOps.contains('throw');
+      forbidRethrow = forbiddenOps.contains('rethrow');
+    }
+
+    // 3. Check 'throw'
+    if (forbidThrow) {
+      context.registry.addThrowExpression((node) {
+        reporter.atNode(node, _code);
+      });
+    }
+
+    // 4. Check 'rethrow'
+    if (forbidRethrow) {
+      context.registry.addRethrowExpression((node) {
+        reporter.atNode(node, _code);
+      });
+    }
   }
 }

@@ -25,6 +25,7 @@ void main() {
     }
 
     setUp(() {
+      // [Windows Fix] Use canonical path
       tempDir = Directory.systemTemp.createTempSync('enforce_exception_test_');
       testProjectPath = p.canonicalize(tempDir.path);
 
@@ -34,20 +35,22 @@ void main() {
         '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", "packageUri": "lib/"}]}',
       );
 
-      // Define the "safe type" that should be forbidden in DataSources.
-      addFile('lib/core/either.dart', 'class Either<L, R> {}');
+      // Define the types referenced in the config
+      addFile('lib/core/types.dart', '''
+        class FutureEither<L, R> {}
+        class Either<L, R> {}
+      ''');
     });
 
     tearDown(() {
       try {
         tempDir.deleteSync(recursive: true);
-      } on FileSystemException catch (_) {
-        // Ignore Windows file lock errors
-      }
+      } catch (_) {}
     });
 
     Future<List<Diagnostic>> runLint({
       required String filePath,
+      Map<String, dynamic>? typeDefinitions,
       List<Map<String, dynamic>>? typeSafeties,
     }) async {
       final fullPath = p.canonicalize(p.join(testProjectPath, filePath));
@@ -59,7 +62,11 @@ void main() {
           .currentSession
           .getResolvedUnit(fullPath) as ResolvedUnitResult;
 
-      final config = makeConfig(typeSafeties: typeSafeties);
+      final config = makeConfig(
+        typeDefinitions: typeDefinitions,
+        typeSafeties: typeSafeties,
+      );
+
       final lint = EnforceExceptionOnDataSource(
         config: config,
         layerResolver: LayerResolver(config),
@@ -69,65 +76,97 @@ void main() {
       return lints.cast<Diagnostic>();
     }
 
-    // The type safety config that defines `Either` as a "safe" type (wrapper).
-    // This implies it is FORBIDDEN in DataSources.
-    final typeSafetyConfig = [
+    // --- Config Scenarios ---
+
+    // Scenario 1: Config using Semantic Keys (referencing type_definitions)
+    final semanticTypeDefinitions = {
+      'result': {
+        'wrapper': {'name': 'FutureEither', 'import': 'package:test_project/core/types.dart'},
+        'future': {'name': 'Future'}
+      }
+    };
+    final semanticTypeSafeties = [
       {
-        'on': ['usecase'],
+        'on': ['source'], // source interface & implementation
         'returns': {
-          'unsafe_type': 'Future',
-          'safe_type': 'Either',
-          'import': 'package:test_project/core/either.dart',
-        },
-      },
+          'unsafe_type': 'result.wrapper', // Should resolve to 'FutureEither'
+          'safe_type': 'result.future'
+        }
+      }
     ];
 
-    test('reports violation when a data source interface returns a forbidden wrapper type', () async {
+    // Scenario 2: Config using Raw Names (Legacy/Simple support)
+    final rawTypeSafeties = [
+      {
+        'on': ['source'],
+        'returns': {
+          'unsafe_type': 'Either',
+          'safe_type': 'Future'
+        }
+      }
+    ];
+
+    test('reports violation when return type matches unsafe type via Semantic Key', () async {
       final path = 'lib/features/user/data/sources/user_source.dart';
       addFile(path, '''
-        import 'package:test_project/core/either.dart';
+        import 'package:test_project/core/types.dart';
         abstract class UserSource {
-          Future<Either<Exception, bool>> login();
+          // 'FutureEither' corresponds to 'result.wrapper' which is unsafe for 'source'
+          FutureEither<Exception, bool> login(); 
         }
       ''');
 
-      final lints = await runLint(filePath: path, typeSafeties: typeSafetyConfig);
+      final lints = await runLint(
+        filePath: path,
+        typeDefinitions: semanticTypeDefinitions,
+        typeSafeties: semanticTypeSafeties,
+      );
 
       expect(lints, hasLength(1));
-      expect(lints.first.message, contains('DataSources should throw exceptions on failure'));
+      expect(lints.first.message, contains('not return wrapper types like `FutureEither`'));
     });
 
-    test('reports violation when a data source implementation returns a forbidden wrapper type', () async {
+    test('reports violation when return type matches unsafe type via Raw Name', () async {
       final path = 'lib/features/user/data/sources/user_source_impl.dart';
       addFile(path, '''
-        import 'package:test_project/core/either.dart';
+        import 'package:test_project/core/types.dart';
         class UserSourceImpl {
+          // 'Either' is explicitly unsafe in rawTypeSafeties
           Either<Exception, bool> login() => throw UnimplementedError();
         }
       ''');
 
-      final lints = await runLint(filePath: path, typeSafeties: typeSafetyConfig);
+      final lints = await runLint(
+        filePath: path,
+        typeSafeties: rawTypeSafeties,
+      );
+
       expect(lints, hasLength(1));
+      expect(lints.first.message, contains('not return wrapper types like `Either`'));
     });
 
-    test('does not report violation when a data source returns a simple type', () async {
+    test('does not report violation when return type is safe', () async {
       final path = 'lib/features/user/data/sources/user_source.dart';
       addFile(path, '''
         abstract class UserSource {
-          Future<String> getToken();
+          Future<String> getToken(); // OK
         }
       ''');
 
-      final lints = await runLint(filePath: path, typeSafeties: typeSafetyConfig);
+      final lints = await runLint(
+        filePath: path,
+        typeDefinitions: semanticTypeDefinitions,
+        typeSafeties: semanticTypeSafeties,
+      );
       expect(lints, isEmpty);
     });
 
-    test('does not report violation when type_safeties config is empty', () async {
+    test('does not report violation when type safety config is empty', () async {
       final path = 'lib/features/user/data/sources/user_source.dart';
       addFile(path, '''
-        import 'package:test_project/core/either.dart';
+        import 'package:test_project/core/types.dart';
         abstract class UserSource {
-          Future<Either<Exception, bool>> login();
+          FutureEither<Exception, bool> login();
         }
       ''');
 
@@ -138,13 +177,18 @@ void main() {
     test('ignores files that are not DataSources (e.g. Repositories)', () async {
       final path = 'lib/features/user/data/repositories/user_repository.dart';
       addFile(path, '''
-        import 'package:test_project/core/either.dart';
+        import 'package:test_project/core/types.dart';
         class UserRepository {
-          Future<Either<Exception, bool>> login() async => throw UnimplementedError();
+          // Repositories CAN return FutureEither (defined by other rules, but allowed by this one)
+          FutureEither<Exception, bool> login() async => throw UnimplementedError();
         }
       ''');
 
-      final lints = await runLint(filePath: path, typeSafeties: typeSafetyConfig);
+      final lints = await runLint(
+        filePath: path,
+        typeDefinitions: semanticTypeDefinitions,
+        typeSafeties: semanticTypeSafeties,
+      );
       expect(lints, isEmpty);
     });
   });

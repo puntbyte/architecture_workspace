@@ -1,18 +1,11 @@
-// lib/src/lints/contract/enforce_entity_contract.dart
-
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/lints/architecture_lint_rule.dart';
-import 'package:clean_architecture_lints/src/lints/contract/enforce_custom_inheritance.dart';
+// CORRECT IMPORT:
 import 'package:clean_architecture_lints/src/models/inheritances_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-/// Default preset for Entities.
-///
-/// **Behavior:**
-/// - Enforces extending `Entity` from `clean_architecture_core` OR a local core file.
-/// - **Disable:** If you define a rule for `entity` in `analysis_options.yaml`, this lint
-///   stops running, allowing [EnforceCustomInheritance] to handle your custom rule.
 class EnforceEntityContract extends ArchitectureLintRule {
   static const _code = LintCode(
     name: 'enforce_entity_contract',
@@ -31,14 +24,14 @@ class EnforceEntityContract extends ArchitectureLintRule {
     required super.config,
     required super.layerResolver,
   }) : _hasCustomRule = config.inheritances.ruleFor(ArchComponent.entity.id) != null,
-       super(code: _code);
+        super(code: _code);
 
   @override
   void run(
-    CustomLintResolver resolver,
-    DiagnosticReporter reporter,
-    CustomLintContext context,
-  ) {
+      CustomLintResolver resolver,
+      DiagnosticReporter reporter,
+      CustomLintContext context,
+      ) {
     if (_hasCustomRule) return;
     if (layerResolver.getComponent(resolver.source.fullName) != ArchComponent.entity) return;
 
@@ -48,7 +41,6 @@ class EnforceEntityContract extends ArchitectureLintRule {
       final element = node.declaredFragment?.element;
       if (element == null) return;
 
-      // Default Logic: Allow External Package OR Local Project Core
       final requiredSupertypes = [
         _defaultRule,
         InheritanceDetail(
@@ -57,25 +49,35 @@ class EnforceEntityContract extends ArchitectureLintRule {
         ),
       ];
 
-      final hasCorrectSupertype = requiredSupertypes.any((detail) {
-        return element.allSupertypes.any((supertype) {
-          final superElement = supertype.element;
-          if (superElement.name != detail.name) return false;
-          final uri = superElement.library.firstFragment.source.uri.toString();
-          // Check against normalized local URI or exact package URI
-          return uri == detail.import || uri == _normalizeLocal(detail.import, context);
-        });
-      });
+      final hasCorrectSupertype = requiredSupertypes.any(
+            (detail) => _hasSupertype(element, detail),
+      );
 
       if (!hasCorrectSupertype) {
-        reporter.atToken(node.name, _code, arguments: ['Entity']);
+        final requiredNames = requiredSupertypes
+            .map((r) => r.name)
+            .where((n) => n != null)
+            .toSet()
+            .join(' or ');
+
+        reporter.atToken(
+          node.name,
+          _code,
+          arguments: [requiredNames],
+        );
       }
     });
   }
 
-  String _normalizeLocal(String importPath, CustomLintContext context) {
-    // Helper to handle the comparison for the local file definition above
-    if (!importPath.startsWith('package:')) return importPath;
-    return importPath;
+  bool _hasSupertype(ClassElement element, InheritanceDetail detail) {
+    if (detail.name == null || detail.import == null) return false;
+
+    return element.allSupertypes.any((supertype) {
+      final superElement = supertype.element;
+      if (superElement.name != detail.name) return false;
+
+      final libraryUri = superElement.library.firstFragment.source.uri.toString();
+      return libraryUri == detail.import;
+    });
   }
 }
