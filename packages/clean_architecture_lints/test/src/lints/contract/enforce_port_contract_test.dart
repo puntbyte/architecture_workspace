@@ -37,7 +37,7 @@ void main() {
       );
 
       // Create the local core repository definition to simulate the base contract
-      addFile('lib/core/repository/repository.dart', 'abstract class Repository {}');
+      addFile('lib/core/repository/port.dart', 'abstract class Repository {}');
     });
 
     tearDown(() {
@@ -85,7 +85,7 @@ void main() {
     test('reports no violation when extending local Repository', () async {
       const path = 'lib/features/user/domain/ports/user_repository.dart';
       addFile(path, '''
-        import 'package:test_project/core/repository/repository.dart';
+        import 'package:test_project/core/repository/port.dart';
         abstract class UserRepository extends Repository {}
       ''');
 

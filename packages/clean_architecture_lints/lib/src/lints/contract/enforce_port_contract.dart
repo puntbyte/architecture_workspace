@@ -42,7 +42,7 @@ class EnforcePortContract extends ArchitectureLintRule {
       final element = node.declaredFragment?.element;
       if (element == null) return;
 
-      final localCoreUri = 'package:${context.pubspec.name}/core/repository/repository.dart';
+      final localCoreUri = 'package:${context.pubspec.name}/core/repository/port.dart';
 
       final hasCorrectSupertype = element.allSupertypes.any((supertype) {
         final superElement = supertype.element;

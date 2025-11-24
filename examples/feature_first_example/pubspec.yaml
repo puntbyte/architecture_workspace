@@ -1,6 +1,5 @@
 name: example
-description: A demonstration project for the clean_architecture_kit package.
-version: 2.0.0
+description: A demonstration project for the clean_architecture_lints package.
 
 publish_to: 'none'
 

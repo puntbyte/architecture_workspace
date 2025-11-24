@@ -1,12 +1,14 @@
 // lib/src/models/architecture_config.dart
 
 import 'package:clean_architecture_lints/src/models/annotations_config.dart';
+import 'package:clean_architecture_lints/src/models/error_handlers_config.dart';
 import 'package:clean_architecture_lints/src/models/inheritances_config.dart';
 import 'package:clean_architecture_lints/src/models/layer_config.dart';
 import 'package:clean_architecture_lints/src/models/dependencies_config.dart';
 import 'package:clean_architecture_lints/src/models/module_config.dart';
 import 'package:clean_architecture_lints/src/models/naming_conventions_config.dart';
 import 'package:clean_architecture_lints/src/models/services_config.dart';
+import 'package:clean_architecture_lints/src/models/type_definitions_config.dart';
 import 'package:clean_architecture_lints/src/models/type_safeties_config.dart';
 import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
@@ -22,6 +24,8 @@ class ArchitectureConfig {
   final DependenciesConfig dependencies;
   final AnnotationsConfig annotations;
   final ServicesConfig services;
+  final TypeDefinitionsConfig typeDefinitions;
+  final ErrorHandlersConfig errorHandlers;
 
   const ArchitectureConfig({
     required this.modules,
@@ -32,6 +36,8 @@ class ArchitectureConfig {
     required this.dependencies,
     required this.annotations,
     required this.services,
+    required this.typeDefinitions,
+    required this.errorHandlers,
   });
 
   /// Creates an instance from a configuration map.
@@ -46,6 +52,8 @@ class ArchitectureConfig {
       dependencies: DependenciesConfig.fromMap(map),
       annotations: AnnotationsConfig.fromMap(map),
       services: ServicesConfig.fromMap(map),
+      typeDefinitions: TypeDefinitionsConfig.fromMap(map),
+      errorHandlers: ErrorHandlersConfig.fromMap(map),
     );
   }
 }

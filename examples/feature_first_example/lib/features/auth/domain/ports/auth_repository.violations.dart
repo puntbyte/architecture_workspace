@@ -1,11 +1,31 @@
-// example/lib/features/auth/domain/contracts/contracts.violations.dart
+// example/lib/features/auth/domain/contracts/auth_repository.violations.dart
 
 import 'package:example/core/repository/repository.dart';
 import 'package:example/core/utils/types.dart';
-// VIOLATION: enforce_layer_independence (importing from the data layer)
 import 'package:example/features/auth/data/models/user_model.dart';
-import 'package:example/features/auth/domain/entities/entities.violations.dart';
+// LINT: disallow_model_in_domain
+// Reason: Domain cannot know about Data Models.import 'package:example/features/auth/data/models/user_model.dart';
+import 'package:example/features/auth/domain/entities/user.violations.dart';
 import 'package:example/features/auth/domain/entities/user.dart';
+
+// LINT: enforce_naming_conventions
+// Reason: Must end with 'Repository'.
+abstract interface class AuthRepo implements Repository {
+
+  // LINT: enforce_type_safety
+  // Reason: Must return FutureEither, not raw Future.
+  Future<User> login(String username);
+
+  // LINT: disallow_model_in_domain
+  // Reason: Returning a Model in the domain.
+  Future<UserModel> unsafeLogin();
+}
+
+// LINT: enforce_repository_contract
+// Reason: Must extend base `Repository`.
+abstract interface class BadInheritanceRepository {
+  void doSomething();
+}
 
 // VIOLATION: enforce_repository_inheritance (does not extend Repository)
 abstract interface class IAnalyticsRepository {
@@ -16,9 +36,6 @@ abstract interface class IAnalyticsRepository {
 abstract interface class BadReturnTypeRepository implements Repository {
   Future<UserEntity> getUser(int id); // <-- LINT WARNING HERE
 }
-
-// VIOLATION: enforce_naming_conventions (name does not end with "Repository")
-abstract interface class AuthRepo implements Repository {} // <-- LINT WARNING HERE
 
 abstract interface class BadSignatureRepository implements Repository {
   // VIOLATION: disallow_model_in_domain (uses a Model in a return type)

@@ -1,13 +1,16 @@
-// example/lib/core/usecase/usecase.dart
+// lib/core/usecase/usecase.dart
+
 import 'package:example/core/utils/types.dart';
 
-/// A base class for use cases.
+/// Base interface for Use Cases.
 abstract interface class Usecase {}
 
-abstract interface class UnaryUsecase<ReturnType, ParameterType> extends Usecase {
-  FutureEither<ReturnType> call(ParameterType parameter);
-}
-
+/// Base interface for Use Cases with no parameters.
 abstract interface class NullaryUsecase<ReturnType> extends Usecase {
   FutureEither<ReturnType> call();
+}
+
+/// Base interface for Use Cases with a single parameter.
+abstract interface class UnaryUsecase<ReturnType, ParameterType> extends Usecase {
+  FutureEither<ReturnType> call(ParameterType parameter);
 }

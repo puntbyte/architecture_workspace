@@ -3,6 +3,21 @@
 // VIOLATION: disallow_entity_in_data_source (importing a pure domain Entity)
 import "package:example/features/auth/domain/entities/user.dart";
 
+import 'package:example/core/utils/types.dart';
+// LINT: disallow_entity_in_data_source
+// Reason: Pure entities should not be used in DataSources. Use Models.
+import 'package:example/features/auth/domain/entities/user.dart';
+
+abstract interface class BadSource {
+  // LINT: enforce_exception_on_data_source
+  // Reason: DataSources should throw exceptions, not return Either.
+  FutureEither<void> badMethod();
+
+  // LINT: disallow_entity_in_data_source
+  // Reason: Returning Entity instead of Model.
+  Future<User> fetchUser();
+}
+
 // VIOLATION: enforce_naming_conventions (name does not match the '{{name}}DataSource' template)
 abstract interface class AuthRemoteDS { // <-- LINT WARNING HERE
   // VIOLATION: disallow_entity_in_data_source (should return UserModel, not the pure User entity)

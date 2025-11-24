@@ -1,6 +1,28 @@
-// example/lib/features/auth/presentation/widgets/login_button.violations.dart
+// example/lib/features/auth/presentation/widgets/login_form.violations.dart
 import 'package:flutter/material.dart';
 import 'package:example/features/auth/domain/usecases/get_user.dart';
+
+import 'package:flutter/material.dart';
+// LINT: disallow_use_case_in_widget
+// Reason: Widgets shouldn't call UseCases. Logic belongs in Managers.
+import 'package:example/features/auth/domain/usecases/login_user.dart';
+
+class LoginForm extends StatelessWidget {
+  final LoginUser loginUser; // <-- Violation
+
+  const LoginForm({super.key, required this.loginUser});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        // LINT: disallow_use_case_in_widget
+        loginUser(user: 'a', pass: 'b');
+      },
+      child: const Text('Login'),
+    );
+  }
+}
 
 /// This widget demonstrates a common architectural violation where a developer
 /// injects a UseCase directly into a widget to take a shortcut.

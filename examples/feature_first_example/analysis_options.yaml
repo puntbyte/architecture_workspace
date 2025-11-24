@@ -53,9 +53,9 @@ custom_lint:
     # Code Generation Rule
     - missing_use_case: true
 
-    # --- SHARED CONFIGURATION BLOCK ---
+    # --- CONFIGURATION BLOCK ---
     - clean_architecture:
-      # [Section 1] This single block now defines the entire high-level project structure.
+      # [1. Structure] Define the high-level project structure.
       module_definitions:
         type: 'feature_first' # or 'layer_first'
         core: 'core'
@@ -67,83 +67,149 @@ custom_lint:
           data: 'data'
           presentation: 'presentation'
 
-      # [Section 2] Defines the directory names for each architectural component.
-      # Can be a single string or a list of strings.
-      # all layer components accept a single string or a list of strings.
+      # [2. Components] Define directory names for architectural components.
       layer_definitions:
         domain:
           entity: 'entities'
           ports: 'ports'
           usecase: 'usecases'
+
         data:
           model: 'models'
-          repository: 'repositories'
           source: 'sources'
-        presentation:
-          page: 'pages'
-          widget: 'widgets'
-          manager: [ 'managers', 'bloc', 'cubit' ]
+          repository: 'repositories'
 
-      # A list of custom, user-defined inheritance rules, enforced by `enforce_inheritance`.
-      # Core rules (Entity, Repository, UseCase) are handled by their own lints but can be overridden here.
+        presentation:
+          manager: ['managers', 'bloc', 'cubit']
+          widget: 'widgets'
+          page: 'pages'
+
+
+
+      # [3. Inheritance] Define base classes for components.
       inheritances:
-        # Overriding the default Entity port to user defined.
-        - on: 'entity'
+        # --- Domain Layer ---
+        # The default rule used for [enforce_entity_contract].
+        # Defining not required unless for overringing the values.
+        - on: entity
           required:
             name: 'Entity'
             import: 'package:example/core/entity/entity.dart'
 
-        # Example of overriding the default UseCase port.
-        - on: 'usecase'
+        # The default rule used for [enforce_port_contract].
+        # Defining not required unless for overringing the values.
+        - on: port
           required:
-            - name: 'NullUseCase'
-              import: 'package:example/core/usecase/usecase.dart'
-            - name: 'UnaryUsecase'
-              import: 'package:example/core/usecase/usecase.dart'
+            name: 'Port'
+            import: 'package:example/core/port/port.dart'
 
-        # Example of a suggested inheritance rule.
-        - on: 'manager'
+        # The default rule used for [enforce_usecase_contract].
+        # Defining not required unless for overringing the values.
+        - on: usecase
+          required:
+            name: ['NullaryUsecase', 'UnaryUsecase']
+            import: 'package:example/core/usecase/usecase.dart'
+
+        # --- Data Layer ---
+        # The default rule used for [enforce_abstracting_model].
+        # Defining is not required unless for overringing the values.
+        - on: model
+          required:
+            component: 'entity'
+
+        # The default rule used for [enforce_source_contract].
+        # Defining is not required unless for overringing the values.
+        - on: source.interface
+          required:
+            name: 'Source'
+            import: 'package:example/core/source/source.dart'
+
+        # The default rule used for [enforce_abstracting_source_implementation].
+        # Defining not required unless for overringing the values.
+        - on: source.implementation
+          required:
+            component: 'source.interface'
+
+        # The default rule used for [enforce_abstracting_repository].
+        # Defining is not required unless for overringing the values.
+        - on: repository
+          required:
+            component: 'port'
+
+        # --- Presentation Layer ---
+        # User default rule for [enforce_custom_inheritance].
+        # Defining is required in order the lint to work.
+        - on: manager
           allowed:
-            name: 'Bloc'
+            name: ['Bloc', 'Cubit']
             import: 'package:bloc/bloc.dart'
 
-        # We can use both `suggested` and `forbidden` in a single rule for widget.
-        - on: 'widget'
+        # User default rule for [enforce_custom_inheritance].
+        # Defining is required in order the lint to work.
+        - on: widget
           allowed:
             name: 'HookWidget'
             import: 'package:flutter_hooks/flutter_hooks.dart'
 
+        # User default rule for [enforce_custom_inheritance].
+        # Defining is required in order the lint to work.
+        - on: page
           forbidden:
             name: 'StatefulWidget'
             import: 'package:flutter/widgets.dart'
 
-      # in all configurations `on` can accept a single string or a list of strings.
-
-      # [Section 3] Defines syntactic (`pattern`/`antipattern`) and semantic (`grammar`)
-      # naming rules.
       naming_conventions:
+        # --- Domain Layer ---
+        # The default rule used for [domain_naming_conventions] and [domain_semantic_naming].
+        # Defining is not required unless for overringing the values.
         - on: entity
           pattern: '{{name}}'
           antipattern: '{{name}}Entity'
+          grammar: '{{noun.phrase}}'
+
+        # The default rule used for [enforce_naming_conventions] and [enforce_semantic_naming].
+        # Defining is not required unless for overringing the values.
+        - on: port
+          pattern: '{{name}}Port'
+          grammar: '{{noun.phrase}}Port'
+
+        # The default rule used for [enforce_naming_conventions] and [enforce_semantic_naming].
+        # Defining is not required unless for overringing the values.
         - on: usecase
           pattern: '{{name}}'
           antipattern: '{{name}}Use(C|c)ase'
           grammar: '{{verb.present}}{{noun.phrase}}'
+
+        # The default rule used for [enforce_naming_conventions] and [create_usecase_fix].
+        # Defining is not required unless for overringing the values.
         - on: usecase.parameter
           pattern: '_{{name}}Param'
 
+        # --- Data Layer ---
+        # The default rule used for [data_naming_conventions] and [data_semantic_naming].
+        # Defining is not required unless for overringing the values
         - on: model
           pattern: '{{name}}Model'
           grammar: '{{noun.phrase}}Model'
+
+        # The default two rules used for [data_naming_conventions] and [data_semantic_naming].
+        # Defining is not required unless for overringing the values
         - on: source.interface
-          pattern: '{{name}}DataSource'
+          pattern: '{{name}}Source'
+          grammar: '{{noun.phrase}}Source'
         - on: source.implementation
-          pattern: 'Default{{name}}DataSource'
-        - on: repository.interface
-          pattern: '{{name}}Repository'
-        - on: repository.implementation
+          pattern: 'Default{{name}}Source'
+          grammar: 'Default{{noun.phrase}}Source'
+
+        # The default rule used for [data_naming_conventions] and [data_semantic_naming].
+        # Defining is not required unless for overringing the values
+        - on: repository
           pattern: '{{kind}}{{name}}Repository'
 
+        # --- Presentation Layer ---
+        # The default five rules used for [manager_naming_conventions] and
+        # [manager_semantic_naming].
+        # Defining is not required unless for overringing the values
         - on: manager
           pattern: '{{name}}(Bloc|Cubit|Manager)'
           grammar: '{{noun.phrase}}(Bloc|Cubit|Manager)'
@@ -160,84 +226,240 @@ custom_lint:
           pattern: '{{name}}'
           grammar: '{{subject}}({{adjective}}|{{verb.gerund}}|{{verb.past}})'
 
+        # The default rule used for [widget_naming_conventions] and [widget_semantic_naming].
+        # Defining is not required unless for overringing the values
+        - on: widget
+          pattern: '{{name}}(Form|Panel|Section|Widget)'
+          grammar: '{{noun.phrase}}(Form|Panel|Section|Widget)'
+
+        # The default rule used for [page_naming_conventions] and [page_semantic_naming].
+        # Defining is not required unless for overringing the values
         - on: page
           pattern: '{{name}}Page'
           grammar: '{{noun.phrase}}Page'
 
-      # A unified list of rules to enforce strong types and migrate away from unsafe primitives.
-      type_safeties:
-        # Rule 1: Enforce FutureEither on return types.
-        - on: [ 'usecase', 'port' ]
-          returns:
-            unsafe_type: 'Future'
-            safe_type: 'FutureEither'
-            import: 'package:example/core/utils/types.dart'
-
-        # Rule 2: Enforce IntId for integer `id` parameters in ports.
-        - on: ['port', 'usecase', 'repository', 'source']
-          parameters:
-            - unsafe_type: 'int'
-              identifier: 'id'
-              safe_type: 'IntId'
-              import: 'package:example/core/utils/types.dart'
-
-            - unsafe_type: 'String'
-              identifier: 'id'
-              safe_type: 'StringId'
-              import: 'package:example/core/utils/types.dart'
-
       dependencies:
-        # Domain layer
+        # --- Domain Layer ---
+        # The default rule used for [no_flutter_in_domain_layer].
+        # Defining is not required unless for overringing the values.
         - on: 'domain'
-          allowed:
-            component: ['domain', 'manager']
           forbidden:
-            component: 'model'
-            package: 'package:flutter/material.dart'
-        - on: 'usecase'
-          allowed: 'manager'
-        - on: 'repository.interface'
-          allowed: ['repository.implementation', 'usecase']
+            package: ['package:flutter/**', 'dart:ui']
 
-        # Data layer
+        # The default rule used for [entity_in_domain_layer].
+        # Defining is not required unless for overringing the values.
+        - on: 'entity'
+          allowed: ['domain', 'manager']
+
+        # The default rule used for [port_in_repository].
+        # Defining is not required unless for overringing the values.
+        - on: 'port'
+          allowed: 'repository'
+
+        # The default rule used for [usecase_in_repository].
+        # Defining is not required unless for overringing the values.
+        - on: 'usecase'
+          allowed: 'repository'
+
+        # --- Data Layer ---
+        # The default rule used for [model_in_data_layer].
+        # Defining is not required unless for overringing the values.
         - on: 'model'
           allowed: 'data'
+
+        # The default two rules used for [source_in_repository].
+        # Defining is not required unless for overringing the values.
         - on: 'source.interface'
           allowed: 'source.implementation'
         - on: 'source.implementation'
-          allowed: 'repository.implementation'
-        - on: 'repository.implementation'
-          allowed: 'usecase'
+          allowed: 'repository'
 
-        # Presentation Layer
-        - on: ['manager', 'event', 'state', 'page']
-          allowed: 'page'
+        # The default rule used for [repository_in_data_layer].
+        # Defining is not required unless for overringing the values.
+        - on: 'repository'
+          allowed: 'data'
+
+        # --- Presentation Layer ---
+        # The default rule used for [manager_in_user_interface].
+        # Defining is not required unless for overringing the values.
+        - on: ['manager', 'event', 'state']
+          allowed: ['widget', 'page']
+
+        # The default rule used for [widget_in_user_interface].
+        # Defining is not required unless for overringing the values.
         - on: 'widget'
+          allowed: ['widget', 'page']
+
+        # The default rule used for [page_in_user_interface].
+        # Defining is not required unless for overringing the values.
+        - on: 'page'
           allowed: ['page', 'core']
 
-      # A list of rules to enforce the presence/absence of annotations on classes.
-      # Enforced by the `enforce_annotations` lint. Also used by code generators.
-      # annotations name do not have to have `@` prefix because annotations always start with @
-      # annotations name do not have to have `()` suffix because they may have parameters or named
-      # constructor.
+      # Default types used in [type_safeties] and [error_handlers] configurations.
+      # Defining is not required unless for overringing values.
+      type_definitions:
+        # --- Domain Failures ---
+        failure:
+          base:
+            name: 'Failure'
+            import: 'package:example/core/error/failures.dart'
+          server:
+            name: 'ServerFailure'
+            import: 'package:example/core/error/failures.dart'
+          cache:
+            name: 'CacheFailure'
+            import: 'package:example/core/error/failures.dart'
+
+        # --- Data Exceptions ---
+        exception:
+          raw:
+            name: 'Exception'
+          base:
+            name: 'CustomException'
+            import: 'package:example/core/error/exceptions.dart'
+          server:
+            name: 'ServerException'
+            import: 'package:example/core/error/exceptions.dart'
+          cache:
+            name: 'CacheException'
+            import: 'package:example/core/error/exceptions.dart'
+
+        # --- Functional Results (Wrappers) ---
+        result:
+          future:
+            name: 'Future'
+          # Define the "Safe Return" wrapper (Functional Programming).
+          wrapper:
+            name: 'FutureEither'
+            import: 'package:example/core/utils/types.dart'
+
+          success:
+            name: 'Right'
+            import: 'package:fpdart/fpdart.dart'
+
+          failure:
+            name: 'Left'
+            import: 'package:fpdart/fpdart.dart'
+
+        # --- Value Objects (Identity) ---
+        identity:
+          integer:
+            name: 'IntId'
+            import: 'package:example/core/utils/types.dart'
+
+          string:
+            name: 'StringId'
+            import: 'package:example/core/utils/types.dart'
+
+      type_safeties:
+        # The default rule used for [domain_layer_type_safety].
+        # Defining is not required unless for overringing the values.
+        # Port and Usecase must return wrapper FutureEither.
+        - on: [ 'port', 'usecase' ]
+          returns:
+            unsafe_type: 'result.future'
+            safe_type: 'result.wrapper'
+
+        # The default rule used for [data_layer_type_safety].
+        # Defining is not required unless for overringing the values.
+        # Source Interface and Implementation must return raw Futures.
+        - on: 'source'
+          returns:
+            unsafe_type: 'result.wrapper'
+            safe_type: 'result.future'
+
+        # User defined rule used for [enforce_custom_type_safety].
+        # Defining is required in order the lint to work.
+        # Strong ID parameter enforcement.
+        - on: [ 'port', 'usecase', 'source', 'repository' ]
+          parameters:
+            - unsafe_type: 'int'
+              identifier: 'id'
+              safe_type: 'identity.integer'
+
+            - unsafe_type: 'String'
+              identifier: 'id'
+              safe_type: 'identity.string'
+
+      # [3] ERROR HANDLING: Control Flow & Logic Enforcement
+      error_handlers:
+        # --- 1. The Producer (Data Source) ---
+        # Default rule used for [exception_on_source_implementation].
+        # Defining is not required unless for overringing the default values.
+        # Responsible for interacting with external worlds and throwing specific exceptions.
+        - on: 'source.implementation'
+          role: 'producer'
+          required:
+            # Must have a try block which returns any Object
+            - operation: 'try_return'
+              target_type: 'Object'
+            # Must have a catch block which throws a subtype of CustomException
+            - operation: 'catch_throw'
+              target_type: 'exception.base'
+          forbidden:
+            # Never throw a raw Dart Exception directly.
+            operation: 'throw'
+            target_type: 'exception.raw'
+
+        # --- 2. The Boundary (Repository) ---
+        # Default rule used for [no_throwing_from_repository], [try_catch_in_repository], and
+        # [convert_exceptions_to_failures].
+        # Defining is not required unless for overringing the default values.
+        # Responsible for catching Exceptions and converting them to Failures.
+        - on: 'repository'
+          role: 'boundary'
+          required:
+            # Must have a try block which returns a subtype of Either
+            - operation: 'try_return'
+              target_type: 'result.success'
+            # Must have a catch block which returns a subtype of Failure
+            - operation: 'catch_return'
+              target_type: 'result.failure'
+          forbidden:
+            # Never let an exception escape the repository.
+            operation: ['throw', 'rethrow']
+
+          # Enforce 1-to-1 mapping between Data Errors and Domain Failures
+          conversions:
+            # Convert ServerException to ServerFailure.
+            - from_type: 'exception.server'
+              to_type: 'failure.server'
+            # Convert CacheException to CacheFailure
+            - from_type: 'exception.cache'
+              to_type: 'failure.cache'
+            # A fallback to convert Exception or CustomException to Generic Failure.
+            - from_type: 'exception.base'
+              to_type: 'failure.base'
+
+        # --- 3. The Consumer (Presentation) ---
+        # Default rule used for [no_throwing_from_presentation].
+        # Defining is not required unless for overringing the default values.
+        # Responsible for mapping Failures to user messages/states.
+        - on: 'presentation'
+          role: 'consumer'
+          forbidden:
+            # Must not throw or rethrow any subtype of dart Exception.
+            operation: ['throw', 'rethrow']
+            target_type: 'exception.raw'
+
       annotations:
+        # --- Domain Layer ---
+        # User defined rule used for [enforce_annotation].
+        # Defining is required in order the lint to work.
         - on: 'entity'
           forbidden:
             name: [ 'Injectable', 'LazySingleton' ]
 
+        # User defined rule used for [enforce_annotation].
+        # Defining is required in order the lint to work.
         - on: 'usecase'
           required:
             name: 'Injectable'
             import: 'package:injectable/injectable.dart'
 
-        - on: 'repository'
-          required:
-            - name: 'LazySingleton'
-              import: 'package:injectable/injectable.dart'
-          allowed:
-            name: 'WithCache'
-            import: 'package:cached_annotation/cached_annotation.dart'
-
+        # --- Data Layer ---
+        # User defined rule used for [enforce_annotation].
+        # Defining is required in order the lint to work.
         - on: 'model'
           allowed:
             - name: 'freezed'
@@ -245,8 +467,21 @@ custom_lint:
             - name: 'MappableClass'
               import: 'package:dart_mappable/dart_mappable.dart'
 
+        # User defined rule used for [enforce_annotation].
+        # Defining is required in order the lint to work.
+        - on: 'repository'
+          required:
+            name: ['LazySingleton', 'Singleton']
+            import: 'package:injectable/injectable.dart'
+          allowed:
+            name: 'WithCache'
+            import: 'package:cached_annotation/cached_annotation.dart'
+
       # Configuration for service-related lints.
       services:
+        # --- Service Locator ---
+        # The default rule used for [disallow_service_locator].
+        # Defining is not required unless for overringing the values.
         service_locator:
-          # Configures the `disallow_service_locator` lint.
-          name: ['getIt', 'locator', 'sl']
+          name: ['getIt', 'Injector']
+          import: 'package:example/core/service_locator/injector.dart'

@@ -1,6 +1,4 @@
-// example/lib/core/repository/repository.dart
+// lib/core/repository/port.dart
 
-/// A base class for all domain repository contracts.
-abstract interface class Repository {
-  const Repository();
-}
+/// Base contract for all Domain Repository Interfaces (Ports).
+abstract interface class Repository {}

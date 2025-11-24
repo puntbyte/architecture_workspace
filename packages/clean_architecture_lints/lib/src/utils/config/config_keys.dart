@@ -18,6 +18,8 @@ class ConfigKey {
   static const service = _ServiceKeys();
   static const dependency = _DependencyKeys();
   static const proxy = _ProxyKeys();
+  static const error = _ErrorKeys();
+  static const type = _TypeKeys();
 
   /// General keys used across multiple configuration blocks.
   static const common = _CommonKeys();
@@ -47,6 +49,8 @@ class _RootKeys {
   String get dependencies => 'dependencies';
   String get annotations => 'annotations';
   String get services => 'services';
+  String get typeDefinitions => 'type_definitions';
+  String get errorHandlers => 'error_handlers';
 }
 
 /// Keys used within the `module_definitions` block.
@@ -98,6 +102,22 @@ class _LayerKeys {
   String get widgetDir => 'widgets';
 }
 
+class _TypeKeys {
+  const _TypeKeys();
+  String get name => 'name';
+  String get import => 'import';
+}
+
+class _ErrorKeys {
+  const _ErrorKeys();
+  String get role => 'role';
+  String get operation => 'operation';
+  String get targetType => 'target_type';
+  String get conversions => 'conversions';
+  String get fromType => 'from_type';
+  String get toType => 'to_type';
+}
+
 /// Keys used across various rule definition blocks (`annotations`, `inheritances`, etc.).
 class _RuleKeys {
   const _RuleKeys();
@@ -134,12 +154,9 @@ class _RuleKeys {
   String get message => 'message';
 }
 
-/// Keys used within the `services` block.
 class _ServiceKeys {
   const _ServiceKeys();
-
-  String get dependencyInjection => 'dependency_injection';
-  String get serviceLocator => 'service_locator';
+  String get dependencyInjection => 'service_locator'; // Fixed to match yaml
   String get locatorNames => 'name';
 }
 
