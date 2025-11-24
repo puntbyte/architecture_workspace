@@ -450,7 +450,8 @@ custom_lint:
         # Defining is required in order the lint to work.
         - on: 'entity'
           forbidden:
-            name: [ 'Injectable', 'LazySingleton' ]
+            name: [ 'injectable', 'LazySingleton' ]
+            import: 'package:injectable/injectable.dart'
 
         # User defined rule used for [enforce_annotation].
         # Defining is required in order the lint to work.
@@ -481,9 +482,8 @@ custom_lint:
 
       # Configuration for service-related lints.
       services:
-        # --- Service Locator ---
         # The default rule used for [disallow_service_locator].
         # Defining is not required unless for overringing the values.
         service_locator:
-          name: ['getIt', 'Injector']
-          import: 'package:example/core/service_locator/injector.dart'
+          name: ['getIt', 'locator']
+          import: 'package:example/core/utils/service_locator.dart'

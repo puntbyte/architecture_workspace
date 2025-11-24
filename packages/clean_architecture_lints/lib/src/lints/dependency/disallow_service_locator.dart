@@ -39,7 +39,7 @@ class DisallowServiceLocator extends ArchitectureLintRule {
     if (component == ArchComponent.unknown) return;
 
     // 2. Config: Get the list of banned names (e.g. 'getIt', 'sl').
-    final locatorNames = config.services.dependencyInjection.serviceLocatorNames.toSet();
+    final locatorNames = config.services.serviceLocator.names.toSet();
     if (locatorNames.isEmpty) return;
 
     // 3. Check: Listen for identifier usage.

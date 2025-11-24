@@ -23,6 +23,6 @@ class DefaultAuthRemoteDataSource implements AuthRemoteDataSource {
   @override
   Future<UserModel> getUser(int id) async {
     await Future.delayed.call(const Duration(seconds: 1));
-    return UserModel(id: '$id', name: 'Correct User (from API)');
+    return UserModel(id: '$id', names: 'Correct User (from API)');
   }
 }

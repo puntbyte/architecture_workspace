@@ -15,6 +15,6 @@ final class SaveUser implements UnaryUsecase<void, _SaveUserParams> {
 
   @override
   Future<Either<Failure, void>> call(_SaveUserParams params) {
-    return _repository.saveUser(name: params.name, password: params.password);
+    return _repository.saveUser(names: params.names, password: params.password);
   }
 }

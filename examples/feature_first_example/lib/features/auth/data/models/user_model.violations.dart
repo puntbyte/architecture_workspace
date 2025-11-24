@@ -26,7 +26,7 @@ class OrphanUserModel { // <-- LINT WARNING HERE
   const OrphanUserModel({required this.id, required this.name, required this.email});
 
   // It has the toEntity() method, so it passes that lint...
-  UserEntity toEntity() => UserEntity(id: id, name: name);
+  UserEntity toEntity() => UserEntity(id: id, names: name);
   // ...but it fails the inheritance check.
 }
 
@@ -42,5 +42,5 @@ class IncompleteUserModel extends UserEntity { // <-- LINT WARNING HERE (differe
 // This model has the correct method, but its name violates the `{{name}}Model` convention.
 class UserData extends UserEntity { // <-- LINT WARNING HERE (different lint)
   const UserData({required super.id, required super.name});
-  UserEntity toEntity() => UserEntity(id: id, name: name);
+  UserEntity toEntity() => UserEntity(id: id, names: names);
 }

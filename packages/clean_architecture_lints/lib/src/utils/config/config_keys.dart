@@ -157,7 +157,7 @@ class _RuleKeys {
 
 class _ServiceKeys {
   const _ServiceKeys();
-  String get dependencyInjection => 'service_locator'; // Fixed to match yaml
+  String get serviceLocator => 'service_locator'; // Fixed to match yaml
   String get locatorNames => 'name';
 }
 

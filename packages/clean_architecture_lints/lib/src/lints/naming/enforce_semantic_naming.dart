@@ -63,15 +63,20 @@ class _GrammarValidator {
     // --- Heuristic-based Grammar Parsing ---
 
     // Case 1: {{verb.present}}{{noun.phrase}} (e.g., Usecases)
+    // Example: "GetUser", "LoginUser"
     if (grammar == '{{verb.present}}{{noun.phrase}}') {
       if (words.length < 2) return false;
+      // First word must be a verb (e.g. Get, Save)
+      // Last word must be a noun (e.g. User, Data)
       return nlp.isVerb(words.first) && nlp.isNoun(words.last);
     }
 
-    // Case 2: {{noun.phrase}}SomeSuffix (e.g., Models, Managers)
+    // Case 2: {{noun.phrase}} (with optional suffix)
+    // Examples: "User" (Entity), "UserModel" (Model)
     if (grammar.startsWith('{{noun.phrase}}')) {
       final suffix = grammar.substring('{{noun.phrase}}'.length);
-      // It's possible for the suffix to be empty if the grammar is just {{noun.phrase}}
+
+      // Check strict suffix match if present
       if (suffix.isNotEmpty && !className.endsWith(suffix)) return false;
 
       final baseName = suffix.isNotEmpty
@@ -81,18 +86,24 @@ class _GrammarValidator {
       final baseWords = baseName.splitPascalCase();
       if (baseWords.isEmpty) return false;
 
-      // A noun phrase should end with a noun and should NOT act like a verb phrase.
-      // e.g. "FetchUserModel" -> Fetch (Verb) User (Noun) -> Invalid Noun Phrase.
+      // A noun phrase:
+      // 1. Should end with a noun (The subject).
       final endsWithNoun = nlp.isNoun(baseWords.last);
-      final containsNoVerbs = !baseWords.any(nlp.isVerb);
+
+      // 2. Should NOT contain verbs or gerunds (actions).
+      // "FetchingUser" -> "Fetching" is a gerund -> Invalid.
+      // "GetUser" -> "Get" is a verb -> Invalid.
+      final containsNoVerbs = !baseWords.any((w) => nlp.isVerb(w) || nlp.isVerbGerund(w));
 
       return endsWithNoun && containsNoVerbs;
     }
 
     // Case 3: {{subject}}({{adjective}}|{{verb.gerund}}|{{verb.past}}) (e.g., States)
+    // Examples: "AuthLoading", "AuthLoaded", "AuthInitial"
     if (grammar.contains('{{adjective}}|{{verb.gerund}}|{{verb.past}}')) {
       if (words.length < 2) return false;
       final lastWord = words.last;
+      // The last word describes the state of the subject
       return nlp.isAdjective(lastWord) || nlp.isVerbGerund(lastWord) || nlp.isVerbPast(lastWord);
     }
 

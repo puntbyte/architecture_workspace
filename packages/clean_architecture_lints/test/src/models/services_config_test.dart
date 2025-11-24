@@ -18,7 +18,7 @@ void main() {
         final config = ServicesConfig.fromMap(map);
 
         expect(config, isA<ServicesConfig>());
-        expect(config.dependencyInjection.serviceLocatorNames, ['di.get', 'sl']);
+        expect(config.serviceLocator.names, ['di.get', 'sl']);
       });
 
       test('should create a valid config with defaults when the "services" block is empty', () {
@@ -27,7 +27,7 @@ void main() {
 
         expect(config, isA<ServicesConfig>());
         // Verify that the defaults from the nested DependencyInjectionRule are present.
-        expect(config.dependencyInjection.serviceLocatorNames, ['getIt', 'locator', 'sl']);
+        expect(config.serviceLocator.names, ['getIt', 'locator', 'sl']);
       });
 
       test('should create a valid config with defaults when the "services" key is absent', () {
@@ -35,7 +35,7 @@ void main() {
         final config = ServicesConfig.fromMap(map);
 
         expect(config, isA<ServicesConfig>());
-        expect(config.dependencyInjection.serviceLocatorNames, contains('getIt'));
+        expect(config.serviceLocator.names, contains('getIt'));
       });
     });
   });

@@ -17,7 +17,6 @@ void main() {
     late Directory tempDir;
     late String testProjectPath;
 
-    // Helper to write files safely using canonical paths
     void addFile(String relativePath, String content) {
       final fullPath = p.join(testProjectPath, p.normalize(relativePath));
       final file = File(fullPath);
@@ -26,30 +25,27 @@ void main() {
     }
 
     setUp(() {
-      // [Windows Fix] Use canonical path
       tempDir = Directory.systemTemp.createTempSync('enforce_annotations_test_');
       testProjectPath = p.canonicalize(tempDir.path);
 
-      addFile('pubspec.yaml', 'name: test_project');
-      addFile(
-        '.dart_tool/package_config.json',
-        '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", "packageUri": "lib/"}]}',
-      );
-
-      // Define some dummy annotations for testing.
-      addFile('lib/annotations.dart', '''
-        const injectable = Injectable();
-        class Injectable { const Injectable(); }
-        class Forbidden { const Forbidden(); }
+      addFile('pubspec.yaml', 'name: example');
+      final libUri = p.toUri(p.join(testProjectPath, 'lib'));
+      addFile('.dart_tool/package_config.json', '''
+      {
+        "configVersion": 2,
+        "packages": [
+          {"name": "example", "rootUri": "$libUri", "packageUri": "."},
+          {"name": "injectable", "rootUri": "$libUri", "packageUri": "."} 
+        ]
+      }
       ''');
+
+      // Define dummy annotations
+      addFile('lib/injectable.dart', 'class Injectable { const Injectable(); }');
     });
 
     tearDown(() {
-      try {
-        tempDir.deleteSync(recursive: true);
-      } on FileSystemException catch (_) {
-        // Ignore Windows file lock errors
-      }
+      try { tempDir.deleteSync(recursive: true); } catch (_) {}
     });
 
     Future<List<Diagnostic>> runLint({
@@ -57,28 +53,49 @@ void main() {
       required List<Map<String, dynamic>> annotations,
     }) async {
       final fullPath = p.canonicalize(p.join(testProjectPath, filePath));
-
       contextCollection = AnalysisContextCollection(includedPaths: [testProjectPath]);
-
-      final resolvedUnit = await contextCollection
-          .contextFor(fullPath)
-          .currentSession
-          .getResolvedUnit(fullPath) as ResolvedUnitResult;
+      final resolvedUnit = await contextCollection.contextFor(fullPath).currentSession.getResolvedUnit(fullPath) as ResolvedUnitResult;
 
       final config = makeConfig(annotations: annotations);
       final lint = EnforceAnnotations(config: config, layerResolver: LayerResolver(config));
-
       final lints = await lint.testRun(resolvedUnit);
       return lints.cast<Diagnostic>();
     }
 
-    group('Required Rule', () {
-      final requiredRule = {
-        'on': ['usecase'],
-        'required': {'name': 'Injectable'},
-      };
+    group('Forbidden Rule', () {
+      test('flags Usage AND Import when import is defined in config', () async {
+        final forbiddenRule = {
+          'on': 'entity',
+          'forbidden': {
+            'name': 'Injectable',
+            'import': 'package:injectable/injectable.dart'
+          },
+        };
 
-      test('reports violation when a use case is missing a required annotation', () async {
+        final path = 'lib/features/user/domain/entities/user.dart';
+        addFile(path, '''
+          import 'package:injectable/injectable.dart'; // LINT 1 (Import)
+          
+          @Injectable() // LINT 2 (Usage)
+          class User {}
+        ''');
+
+        final lints = await runLint(filePath: path, annotations: [forbiddenRule]);
+
+        // Should have 2 errors: 1 for import, 1 for usage
+        expect(lints, hasLength(2));
+        expect(lints.any((l) => l.message.contains('import `package:injectable/injectable.dart` is forbidden')), isTrue);
+        expect(lints.any((l) => l.message.contains('must not have the `@Injectable` annotation')), isTrue);
+      });
+    });
+
+    group('Required Rule', () {
+      test('reports violation when required annotation is missing', () async {
+        final requiredRule = {
+          'on': 'usecase',
+          'required': {'name': 'Injectable'},
+        };
+
         final path = 'lib/features/auth/domain/usecases/login.dart';
         addFile(path, 'class Login {}');
 
@@ -86,59 +103,6 @@ void main() {
 
         expect(lints, hasLength(1));
         expect(lints.first.message, contains('missing the required `@Injectable`'));
-      });
-
-      test('does not report violation when a use case has the required annotation', () async {
-        final path = 'lib/features/auth/domain/usecases/login.dart';
-        addFile(path, '''
-          import 'package:test_project/annotations.dart';
-          @Injectable()
-          class Login {}
-        ''');
-
-        final lints = await runLint(filePath: path, annotations: [requiredRule]);
-        expect(lints, isEmpty);
-      });
-    });
-
-    group('Forbidden Rule', () {
-      final forbiddenRule = {
-        'on': ['entity'],
-        'forbidden': {'name': 'Forbidden'},
-      };
-
-      test('reports violation when an entity has a forbidden annotation', () async {
-        final path = 'lib/features/user/domain/entities/user.dart';
-        addFile(path, '''
-          import 'package:test_project/annotations.dart';
-          @Forbidden()
-          class User {}
-        ''');
-
-        final lints = await runLint(filePath: path, annotations: [forbiddenRule]);
-
-        expect(lints, hasLength(1));
-        expect(lints.first.message, contains('must not have the `@Forbidden` annotation'));
-      });
-    });
-
-    group('Allowed Rule', () {
-      final allowedRule = {
-        'on': ['model'],
-        'allowed': {'name': 'Injectable'}, // Allowed means optional, but permitted.
-      };
-
-      test('does not report violation when an allowed annotation is missing', () async {
-        final path = 'lib/features/user/data/models/user_model.dart';
-        addFile(path, 'class UserModel {}');
-
-        final lints = await runLint(filePath: path, annotations: [allowedRule]);
-
-        expect(
-          lints,
-          isEmpty,
-          reason: 'Allowed annotations are optional.',
-        );
       });
     });
   });

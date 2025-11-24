@@ -66,7 +66,7 @@ class BadMappingRepositoryImpl implements AuthRepository {
   // VIOLATION: disallow_model_return_from_repository (must return Entity, not Model)
   FutureEither<UserModel> getUser(int id) async { // <-- LINT ERROR HERE
     // This implementation "forgets" to map the model to an entity.
-    return const Right(UserModel(id: '1', name: 'Bad User'));
+    return const Right(UserModel(id: '1', names: 'Bad User'));
   }
 
   @override

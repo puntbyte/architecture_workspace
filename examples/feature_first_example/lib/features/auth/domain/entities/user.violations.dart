@@ -12,7 +12,7 @@ import 'package:example/features/auth/data/models/user_model.dart'; // <-- LINT 
 
 // 3. LINT: enforce_annotations (Forbidden)
 // Reason: Entities should be simple POJOs and not use Dependency Injection annotations.
-import 'package:injectable/injectable.dart';
+import 'package:injectable/injectable.dart'; // <-- LINT WARNING HERE
 
 // 4. LINT: enforce_naming_conventions
 // Reason: The class name matches the antipattern `{{name}}Entity`.

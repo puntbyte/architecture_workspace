@@ -250,7 +250,7 @@ void _verifyAnnotationsConfig(ArchitectureConfig config) {
 }
 
 void _verifyServicesConfig(ArchitectureConfig config) {
-  expect(config.services.dependencyInjection.serviceLocatorNames, ['getIt', 'locator', 'sl']);
+  expect(config.services.serviceLocator.names, ['getIt', 'locator', 'sl']);
 }
 
 void _verifyDefaultConfig(ArchitectureConfig config) {
@@ -275,7 +275,7 @@ void _verifyDefaultConfig(ArchitectureConfig config) {
 
   // Services defaults
   expect(
-    config.services.dependencyInjection.serviceLocatorNames,
+    config.services.serviceLocator.names,
     ['getIt', 'locator', 'sl'],
   );
 }
