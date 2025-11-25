@@ -5,7 +5,8 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:clean_architecture_lints/src/analysis/layer_resolver.dart';
-import 'package:clean_architecture_lints/src/lints/error_handling/disallow_throwing_from_repository.dart';
+import 'package:clean_architecture_lints/src/lints/error_handling'
+    '/disallow_throwing_from_repository.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -31,7 +32,8 @@ void main() {
       addFile('pubspec.yaml', 'name: test_project');
       addFile(
         '.dart_tool/package_config.json',
-        '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", "packageUri": "lib/"}]}',
+        '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", '
+            '"packageUri": "lib/"}]}',
       );
     });
 
@@ -51,10 +53,9 @@ void main() {
 
       contextCollection = AnalysisContextCollection(includedPaths: [testProjectPath]);
 
-      final resolvedUnit = await contextCollection
-          .contextFor(fullPath)
-          .currentSession
-          .getResolvedUnit(fullPath) as ResolvedUnitResult;
+      final resolvedUnit =
+          await contextCollection.contextFor(fullPath).currentSession.getResolvedUnit(fullPath)
+              as ResolvedUnitResult;
 
       final config = makeConfig(errorHandlers: errorHandlers);
       final lint = DisallowThrowingFromRepository(
@@ -67,7 +68,7 @@ void main() {
     }
 
     test('reports violation for `throw` when default strict mode is active', () async {
-      final path = 'lib/features/user/data/repositories/user_repository_impl.dart';
+      const path = 'lib/features/user/data/repositories/user_repository_impl.dart';
       addFile(path, '''
         class UserRepositoryImpl {
           void doSomething() {
@@ -84,7 +85,7 @@ void main() {
     });
 
     test('reports violation for `rethrow` when default strict mode is active', () async {
-      final path = 'lib/features/user/data/repositories/user_repository_impl.dart';
+      const path = 'lib/features/user/data/repositories/user_repository_impl.dart';
       addFile(path, '''
         class UserRepositoryImpl {
           void doSomething() {
@@ -101,7 +102,7 @@ void main() {
     });
 
     test('reports violation based on explicit configuration', () async {
-      final path = 'lib/features/user/data/repositories/user_repository_impl.dart';
+      const path = 'lib/features/user/data/repositories/user_repository_impl.dart';
       addFile(path, '''
         class UserRepositoryImpl {
           void doSomething() {
@@ -119,9 +120,11 @@ void main() {
             'on': 'repository',
             'role': 'boundary',
             'forbidden': [
-              {'operation': ['throw', 'rethrow']}
-            ]
-          }
+              {
+                'operation': ['throw', 'rethrow'],
+              },
+            ],
+          },
         ],
       );
 
@@ -129,7 +132,7 @@ void main() {
     });
 
     test('does NOT report violation if operation is not forbidden in config', () async {
-      final path = 'lib/features/user/data/repositories/user_repository_impl.dart';
+      const path = 'lib/features/user/data/repositories/user_repository_impl.dart';
       addFile(path, '''
         class UserRepositoryImpl {
           void doSomething() {
@@ -147,9 +150,9 @@ void main() {
             'on': 'repository',
             'role': 'boundary',
             'forbidden': [
-              {'operation': 'rethrow'}
-            ]
-          }
+              {'operation': 'rethrow'},
+            ],
+          },
         ],
       );
 
@@ -157,7 +160,7 @@ void main() {
     });
 
     test('ignores files that are not repositories', () async {
-      final path = 'lib/features/user/data/sources/user_remote_source.dart';
+      const path = 'lib/features/user/data/sources/user_remote_source.dart';
       addFile(path, '''
         class UserRemoteSource {
           void fetch() {

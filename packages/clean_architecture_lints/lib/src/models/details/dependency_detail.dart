@@ -1,6 +1,6 @@
 // lib/src/models/details/dependency_detail.dart
 
-part of '../dependencies_config.dart';
+part of '../configs/dependencies_config.dart';
 
 class DependencyDetail {
   final List<String> components;

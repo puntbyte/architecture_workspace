@@ -1,7 +1,7 @@
 // lib/src/lints/architecture_lint_rule.dart
 
 import 'package:clean_architecture_lints/src/analysis/layer_resolver.dart';
-import 'package:clean_architecture_lints/src/models/architecture_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/architecture_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// An abstract base class for all lints in the `clean_architecture_kit`.

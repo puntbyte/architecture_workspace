@@ -1,6 +1,6 @@
 // lib/src/models/rules/type_safety_rule.dart
 
-part of 'package:clean_architecture_lints/src/models/type_safeties_config.dart';
+part of '../configs/type_safeties_config.dart';
 
 /// Represents a complete type safety rule for architectural components.
 class TypeSafetyRule {

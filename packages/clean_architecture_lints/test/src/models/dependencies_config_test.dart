@@ -1,4 +1,4 @@
-import 'package:clean_architecture_lints/src/models/dependencies_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/dependencies_config.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -1,4 +1,4 @@
-import 'package:clean_architecture_lints/src/models/inheritances_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/inheritances_config.dart';
 // We import the main config file because InheritanceDetail/Rule are parts of it.
 import 'package:test/test.dart';
 

@@ -1,12 +1,12 @@
-// lib/src/models/inheritances_config.dart
+// lib/src/models/configs/inheritances_config.dart
 
 import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/iterable_extension.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
 
-part 'details/inheritance_detail.dart';
+part '../details/inheritance_detail.dart';
 
-part 'rules/inheritance_rule.dart';
+part '../rules/inheritance_rule.dart';
 
 class InheritancesConfig {
   final List<InheritanceRule> rules;

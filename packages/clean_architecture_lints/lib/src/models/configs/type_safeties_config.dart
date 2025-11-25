@@ -3,9 +3,9 @@
 import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
 
-part 'details/type_safety_detail.dart';
+part '../details/type_safety_detail.dart';
 
-part 'rules/type_safety_rule.dart';
+part '../rules/type_safety_rule.dart';
 
 /// The parent configuration class for all type safety rules.
 class TypeSafetiesConfig {

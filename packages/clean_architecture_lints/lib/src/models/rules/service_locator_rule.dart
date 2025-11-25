@@ -1,6 +1,6 @@
 // lib/src/models/rules/service_locator_rule.dart
 
-part of '../services_config.dart';
+part of '../configs/services_config.dart';
 
 class ServiceLocatorRule {
   final List<String> names;

@@ -1,6 +1,6 @@
 // lib/src/models/rules/inheritance_rule.dart
 
-part of 'package:clean_architecture_lints/src/models/layer_config.dart';
+part of '../configs/layer_config.dart';
 
 class DomainLayerRule {
   final List<String> entity;

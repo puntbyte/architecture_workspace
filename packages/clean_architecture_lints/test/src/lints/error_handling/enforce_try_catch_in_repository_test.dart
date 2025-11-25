@@ -5,7 +5,8 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:clean_architecture_lints/src/analysis/layer_resolver.dart';
-import 'package:clean_architecture_lints/src/lints/error_handling/enforce_try_catch_in_repository.dart';
+import 'package:clean_architecture_lints/src/lints/error_handling/'
+    'enforce_try_catch_in_repository.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -31,7 +32,8 @@ void main() {
       addFile('pubspec.yaml', 'name: test_project');
       addFile(
         '.dart_tool/package_config.json',
-        '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", "packageUri": "lib/"}]}',
+        '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", '
+            '"packageUri": "lib/"}]}',
       );
 
       // DataSource Interface
@@ -58,10 +60,9 @@ void main() {
       final fullPath = p.canonicalize(p.join(testProjectPath, filePath));
       contextCollection = AnalysisContextCollection(includedPaths: [testProjectPath]);
 
-      final resolvedUnit = await contextCollection
-          .contextFor(fullPath)
-          .currentSession
-          .getResolvedUnit(fullPath) as ResolvedUnitResult;
+      final resolvedUnit =
+          await contextCollection.contextFor(fullPath).currentSession.getResolvedUnit(fullPath)
+              as ResolvedUnitResult;
 
       final config = makeConfig(errorHandlers: errorHandlers);
       final lint = EnforceTryCatchInRepository(
@@ -74,7 +75,7 @@ void main() {
     }
 
     test('reports violation when DataSource call is not wrapped in try-catch (Default)', () async {
-      final path = 'lib/features/user/data/repositories/user_repository_impl.dart';
+      const path = 'lib/features/user/data/repositories/user_repository_impl.dart';
       addFile(path, '''
         import '../sources/user_remote_source.dart';
         class UserRepositoryImpl {
@@ -92,7 +93,7 @@ void main() {
     });
 
     test('reports violation when explicitly enabled via config', () async {
-      final path = 'lib/features/user/data/repositories/user_repository_impl.dart';
+      const path = 'lib/features/user/data/repositories/user_repository_impl.dart';
       addFile(path, '''
         import '../sources/user_remote_source.dart';
         class UserRepositoryImpl {
@@ -111,16 +112,16 @@ void main() {
             'on': 'repository',
             'role': 'boundary',
             'required': [
-              {'operation': 'try_return'}
-            ]
-          }
+              {'operation': 'try_return'},
+            ],
+          },
         ],
       );
       expect(lints, hasLength(1));
     });
 
     test('does NOT report violation if try_return is NOT required in config', () async {
-      final path = 'lib/features/user/data/repositories/user_repository_impl.dart';
+      const path = 'lib/features/user/data/repositories/user_repository_impl.dart';
       addFile(path, '''
         import '../sources/user_remote_source.dart';
         class UserRepositoryImpl {
@@ -139,15 +140,15 @@ void main() {
           {
             'on': 'repository',
             'role': 'boundary',
-            'required': [] // Empty required list means 'try_return' is not enforced
-          }
+            'required': [], // Empty required list means 'try_return' is not enforced
+          },
         ],
       );
       expect(lints, isEmpty);
     });
 
     test('reports violation in finally block', () async {
-      final path = 'lib/features/user/data/repositories/user_repository_impl.dart';
+      const path = 'lib/features/user/data/repositories/user_repository_impl.dart';
       addFile(path, '''
         import '../sources/user_remote_source.dart';
         class UserRepositoryImpl {
@@ -166,7 +167,7 @@ void main() {
     });
 
     test('does not report violation when safe', () async {
-      final path = 'lib/features/user/data/repositories/user_repository_impl.dart';
+      const path = 'lib/features/user/data/repositories/user_repository_impl.dart';
       addFile(path, '''
         import '../sources/user_remote_source.dart';
         class UserRepositoryImpl {

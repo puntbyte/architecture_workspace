@@ -1,6 +1,6 @@
 // lib/src/models/details/type_safety_detail.dart
 
-part of '../type_safeties_config.dart';
+part of '../configs/type_safeties_config.dart';
 
 /// Represents a single type safety check for either a return type or parameter.
 class TypeSafetyDetail {

@@ -35,7 +35,9 @@ void main() {
     });
 
     tearDown(() {
-      try { tempDir.deleteSync(recursive: true); } catch (_) {}
+      try {
+        tempDir.deleteSync(recursive: true);
+      } catch (_) {}
     });
 
     Future<List<Diagnostic>> runLint({
@@ -44,7 +46,9 @@ void main() {
     }) async {
       final fullPath = p.canonicalize(p.join(testProjectPath, filePath));
       contextCollection = AnalysisContextCollection(includedPaths: [testProjectPath]);
-      final resolvedUnit = await contextCollection.contextFor(fullPath).currentSession.getResolvedUnit(fullPath) as ResolvedUnitResult;
+      final resolvedUnit =
+          await contextCollection.contextFor(fullPath).currentSession.getResolvedUnit(fullPath)
+              as ResolvedUnitResult;
 
       // Debugging: Verify analyzer resolved the supertype
       final classNode = resolvedUnit.unit.declarations.whereType<ClassDeclaration>().firstOrNull;
@@ -52,7 +56,8 @@ void main() {
         final element = classNode.declaredFragment?.element;
         if (element != null) {
           // print('[DEBUG] Class: ${element.name}');
-          // for(var s in element.allSupertypes) print('  - Super: ${s.element.name} (${s.element.library.source.uri})');
+          // for(var s in element.allSupertypes) print('  - Super: ${s.element.name}
+          // (${s.element.library.source.uri})');
         }
       }
 
@@ -63,7 +68,7 @@ void main() {
     }
 
     test('reports violation when entity does not extend anything', () async {
-      final path = 'lib/features/user/domain/entities/user.dart';
+      const path = 'lib/features/user/domain/entities/user.dart';
       addFile(path, 'class User {}');
 
       final lints = await runLint(filePath: path);
@@ -73,7 +78,7 @@ void main() {
     });
 
     test('Default Rule: Valid when entity extends local Entity (Relative Import)', () async {
-      final path = 'lib/features/user/domain/entities/user.dart';
+      const path = 'lib/features/user/domain/entities/user.dart';
 
       // FIX: Use relative import to guarantee resolution
       addFile(path, '''
@@ -88,16 +93,18 @@ void main() {
       expect(lints, isEmpty);
     });
 
-    test('Custom Rule: Valid when entity extends Configured Base (Exact Match via Relative)', () async {
-      final customConfig = [
-        {
-          'on': 'entity',
-          'required': {'name': 'Entity', 'import': 'package:example/core/entity/entity.dart'}
-        }
-      ];
+    test(
+      'Custom Rule: Valid when entity extends Configured Base (Exact Match via Relative)',
+      () async {
+        final customConfig = [
+          {
+            'on': 'entity',
+            'required': {'name': 'Entity', 'import': 'package:example/core/entity/entity.dart'},
+          },
+        ];
 
-      final path = 'lib/features/user/domain/entities/user.dart';
-      addFile(path, '''
+        const path = 'lib/features/user/domain/entities/user.dart';
+        addFile(path, '''
         import '../../../../core/entity/entity.dart';
         class User extends Entity {
           final String id;
@@ -105,22 +112,28 @@ void main() {
         }
       ''');
 
-      final lints = await runLint(filePath: path, inheritances: customConfig);
-      expect(lints, isEmpty);
-    });
+        final lints = await runLint(filePath: path, inheritances: customConfig);
+        expect(lints, isEmpty);
+      },
+    );
 
-    test('Custom Rule: Valid when entity extends Configured Base (Template/Suffix Match)', () async {
-      // Config expects 'template_project', code resolves to local file.
-      // Suffix matching logic in linter should make this pass.
-      final customConfig = [
-        {
-          'on': 'entity',
-          'required': {'name': 'Entity', 'import': 'package:template_project/core/entity/entity.dart'}
-        }
-      ];
+    test(
+      'Custom Rule: Valid when entity extends Configured Base (Template/Suffix Match)',
+      () async {
+        // Config expects 'template_project', code resolves to local file.
+        // Suffix matching logic in linter should make this pass.
+        final customConfig = [
+          {
+            'on': 'entity',
+            'required': {
+              'name': 'Entity',
+              'import': 'package:template_project/core/entity/entity.dart',
+            },
+          },
+        ];
 
-      final path = 'lib/features/user/domain/entities/user.dart';
-      addFile(path, '''
+        const path = 'lib/features/user/domain/entities/user.dart';
+        addFile(path, '''
         import '../../../../core/entity/entity.dart';
         class User extends Entity {
           final String id;
@@ -128,8 +141,9 @@ void main() {
         }
       ''');
 
-      final lints = await runLint(filePath: path, inheritances: customConfig);
-      expect(lints, isEmpty);
-    });
+        final lints = await runLint(filePath: path, inheritances: customConfig);
+        expect(lints, isEmpty);
+      },
+    );
   });
 }

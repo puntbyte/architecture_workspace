@@ -1,6 +1,6 @@
 // lib/src/models/rules/inheritance_rule.dart
 
-part of '../inheritances_config.dart';
+part of '../configs/inheritances_config.dart';
 
 class InheritanceRule {
   final String on;

@@ -1,6 +1,6 @@
 // test/src/models/annotations_config_test.dart
 
-import 'package:clean_architecture_lints/src/models/annotations_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/annotations_config.dart';
 import 'package:test/test.dart';
 
 void main() {

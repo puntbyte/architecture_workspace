@@ -1,6 +1,6 @@
 // test/src/models/locations_config_test.dart
 
-import 'package:clean_architecture_lints/src/models/dependencies_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/dependencies_config.dart';
 import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:test/test.dart';
 

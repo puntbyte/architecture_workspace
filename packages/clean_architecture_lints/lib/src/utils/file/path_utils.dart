@@ -1,8 +1,8 @@
 // lib/src/utils/file/path_utils.dart
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:clean_architecture_lints/src/models/architecture_config.dart';
-import 'package:clean_architecture_lints/src/models/module_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/architecture_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/module_config.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/string_extension.dart';
 import 'package:clean_architecture_lints/src/utils/nlp/naming_utils.dart';
 import 'package:path/path.dart' as p;

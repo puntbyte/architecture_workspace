@@ -6,8 +6,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:clean_architecture_lints/src/lints/architecture_lint_rule.dart';
-import 'package:clean_architecture_lints/src/models/error_handlers_config.dart';
-import 'package:clean_architecture_lints/src/models/type_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/error_handlers_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/type_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that enforces 1-to-1 mapping between Exceptions and Failures in catch blocks.
@@ -89,7 +89,7 @@ class ConvertExceptionsToFailures extends ArchitectureLintRule {
   }
 
   /// Finds the matching conversion rule for the caught exception type.
-  ConversionRule? _findConversion(DartType? caughtType, List<ConversionRule> conversions) {
+  ConversionDetail? _findConversion(DartType? caughtType, List<ConversionDetail> conversions) {
     for (final conversion in conversions) {
       final fromTypeDef = config.typeDefinitions.get(conversion.fromType);
 

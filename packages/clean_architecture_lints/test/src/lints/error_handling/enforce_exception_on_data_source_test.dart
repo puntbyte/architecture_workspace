@@ -5,7 +5,8 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:clean_architecture_lints/src/analysis/layer_resolver.dart';
-import 'package:clean_architecture_lints/src/lints/error_handling/enforce_exception_on_data_source.dart';
+import 'package:clean_architecture_lints/src/lints/error_handling/'
+    'enforce_exception_on_data_source.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -32,7 +33,8 @@ void main() {
       addFile('pubspec.yaml', 'name: test_project');
       addFile(
         '.dart_tool/package_config.json',
-        '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", "packageUri": "lib/"}]}',
+        '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", '
+            '"packageUri": "lib/"}]}',
       );
 
       // Define the types referenced in the config
@@ -57,10 +59,9 @@ void main() {
 
       contextCollection = AnalysisContextCollection(includedPaths: [testProjectPath]);
 
-      final resolvedUnit = await contextCollection
-          .contextFor(fullPath)
-          .currentSession
-          .getResolvedUnit(fullPath) as ResolvedUnitResult;
+      final resolvedUnit =
+          await contextCollection.contextFor(fullPath).currentSession.getResolvedUnit(fullPath)
+              as ResolvedUnitResult;
 
       final config = makeConfig(
         typeDefinitions: typeDefinitions,
@@ -82,32 +83,29 @@ void main() {
     final semanticTypeDefinitions = {
       'result': {
         'wrapper': {'name': 'FutureEither', 'import': 'package:test_project/core/types.dart'},
-        'future': {'name': 'Future'}
-      }
+        'future': {'name': 'Future'},
+      },
     };
     final semanticTypeSafeties = [
       {
         'on': ['source'], // source interface & implementation
         'returns': {
           'unsafe_type': 'result.wrapper', // Should resolve to 'FutureEither'
-          'safe_type': 'result.future'
-        }
-      }
+          'safe_type': 'result.future',
+        },
+      },
     ];
 
     // Scenario 2: Config using Raw Names (Legacy/Simple support)
     final rawTypeSafeties = [
       {
         'on': ['source'],
-        'returns': {
-          'unsafe_type': 'Either',
-          'safe_type': 'Future'
-        }
-      }
+        'returns': {'unsafe_type': 'Either', 'safe_type': 'Future'},
+      },
     ];
 
     test('reports violation when return type matches unsafe type via Semantic Key', () async {
-      final path = 'lib/features/user/data/sources/user_source.dart';
+      const path = 'lib/features/user/data/sources/user_source.dart';
       addFile(path, '''
         import 'package:test_project/core/types.dart';
         abstract class UserSource {
@@ -127,7 +125,7 @@ void main() {
     });
 
     test('reports violation when return type matches unsafe type via Raw Name', () async {
-      final path = 'lib/features/user/data/sources/user_source_impl.dart';
+      const path = 'lib/features/user/data/sources/user_source_impl.dart';
       addFile(path, '''
         import 'package:test_project/core/types.dart';
         class UserSourceImpl {
@@ -146,7 +144,7 @@ void main() {
     });
 
     test('does not report violation when return type is safe', () async {
-      final path = 'lib/features/user/data/sources/user_source.dart';
+      const path = 'lib/features/user/data/sources/user_source.dart';
       addFile(path, '''
         abstract class UserSource {
           Future<String> getToken(); // OK
@@ -162,7 +160,7 @@ void main() {
     });
 
     test('does not report violation when type safety config is empty', () async {
-      final path = 'lib/features/user/data/sources/user_source.dart';
+      const path = 'lib/features/user/data/sources/user_source.dart';
       addFile(path, '''
         import 'package:test_project/core/types.dart';
         abstract class UserSource {
@@ -175,7 +173,7 @@ void main() {
     });
 
     test('ignores files that are not DataSources (e.g. Repositories)', () async {
-      final path = 'lib/features/user/data/repositories/user_repository.dart';
+      const path = 'lib/features/user/data/repositories/user_repository.dart';
       addFile(path, '''
         import 'package:test_project/core/types.dart';
         class UserRepository {

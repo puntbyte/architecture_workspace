@@ -1,6 +1,6 @@
 // lib/src/models/rules/naming_rule.dart
 
-part of '../naming_conventions_config.dart';
+part of '../configs/naming_conventions_config.dart';
 
 class NamingRule {
   final List<String> on;

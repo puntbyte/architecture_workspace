@@ -1,6 +1,6 @@
 // test/src/models/type_safeties_config_test.dart
 
-import 'package:clean_architecture_lints/src/models/type_safeties_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/type_safeties_config.dart';
 import 'package:test/test.dart';
 
 void main() {

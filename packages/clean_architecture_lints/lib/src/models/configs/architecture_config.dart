@@ -1,15 +1,15 @@
-// lib/src/models/architecture_config.dart
+// lib/src/models/configs/architecture_config.dart
 
-import 'package:clean_architecture_lints/src/models/annotations_config.dart';
-import 'package:clean_architecture_lints/src/models/dependencies_config.dart';
-import 'package:clean_architecture_lints/src/models/error_handlers_config.dart';
-import 'package:clean_architecture_lints/src/models/inheritances_config.dart';
-import 'package:clean_architecture_lints/src/models/layer_config.dart';
-import 'package:clean_architecture_lints/src/models/module_config.dart';
-import 'package:clean_architecture_lints/src/models/naming_conventions_config.dart';
-import 'package:clean_architecture_lints/src/models/services_config.dart';
-import 'package:clean_architecture_lints/src/models/type_config.dart';
-import 'package:clean_architecture_lints/src/models/type_safeties_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/annotations_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/dependencies_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/error_handlers_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/inheritances_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/layer_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/module_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/naming_conventions_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/services_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/type_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/type_safeties_config.dart';
 import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
 

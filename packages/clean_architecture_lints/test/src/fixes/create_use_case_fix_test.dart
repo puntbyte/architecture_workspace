@@ -3,7 +3,7 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:clean_architecture_lints/src/fixes/create_use_case_fix.dart';
-import 'package:clean_architecture_lints/src/models/architecture_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/architecture_config.dart';
 import 'package:code_builder/code_builder.dart' as cb;
 import 'package:test/test.dart';
 

@@ -1,6 +1,6 @@
 // test/helpers/test_data.dart
 
-import 'package:clean_architecture_lints/src/models/architecture_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/architecture_config.dart';
 
 ArchitectureConfig makeConfig({
   String type = 'feature_first',

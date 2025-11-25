@@ -1,12 +1,12 @@
-// lib/src/models/annotations_config.dart
+// lib/src/models/configs/annotations_config.dart
 
 import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/iterable_extension.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
 
-part 'details/annotation_detail.dart';
+part '../details/annotation_detail.dart';
 
-part 'rules/annotation_rule.dart';
+part '../rules/annotation_rule.dart';
 
 /// The parent configuration class for all annotation rules.
 class AnnotationsConfig {

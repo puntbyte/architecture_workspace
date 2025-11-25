@@ -29,7 +29,7 @@ import 'package:clean_architecture_lints/src/lints/purity/require_to_entity_meth
 import 'package:clean_architecture_lints/src/lints/structure/enforce_annotations.dart';
 import 'package:clean_architecture_lints/src/lints/structure/enforce_type_safety.dart';
 import 'package:clean_architecture_lints/src/lints/structure/missing_use_case.dart';
-import 'package:clean_architecture_lints/src/models/architecture_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/architecture_config.dart';
 import 'package:clean_architecture_lints/src/utils/nlp/language_analyzer.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:dictionaryx/dictionary_msa.dart';

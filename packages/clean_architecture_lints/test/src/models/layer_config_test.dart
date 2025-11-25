@@ -1,6 +1,6 @@
 // test/src/models/layer_config_test.dart
 
-import 'package:clean_architecture_lints/src/models/layer_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/layer_config.dart';
 import 'package:test/test.dart';
 
 void main() {

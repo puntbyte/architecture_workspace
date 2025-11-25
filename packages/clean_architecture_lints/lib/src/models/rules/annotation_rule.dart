@@ -1,6 +1,6 @@
 // lib/src/models/rules/annotation_rule.dart
 
-part of '../annotations_config.dart';
+part of '../configs/annotations_config.dart';
 
 /// Represents a complete annotation rule for architectural components.
 class AnnotationRule {

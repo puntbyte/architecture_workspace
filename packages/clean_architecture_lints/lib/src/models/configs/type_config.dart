@@ -1,7 +1,9 @@
+// lib/src/models/configs/type_config.dart
+
 import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
 
-part 'package:clean_architecture_lints/src/models/rules/type_rule.dart';
+part '../rules/type_rule.dart';
 
 /// Configuration for shared type definitions.
 ///

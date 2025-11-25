@@ -1,8 +1,8 @@
 // test/src/models/architecture_config_test.dart
 
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
-import 'package:clean_architecture_lints/src/models/architecture_config.dart';
-import 'package:clean_architecture_lints/src/models/module_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/architecture_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/module_config.dart';
 import 'package:test/test.dart';
 
 void main() {

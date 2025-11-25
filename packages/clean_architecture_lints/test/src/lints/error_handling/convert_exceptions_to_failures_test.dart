@@ -27,8 +27,11 @@ void main() {
       testProjectPath = p.canonicalize(tempDir.path);
 
       addFile('pubspec.yaml', 'name: test_project');
-      addFile('.dart_tool/package_config.json',
-          '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", "packageUri": "lib/"}]}');
+      addFile(
+        '.dart_tool/package_config.json',
+        '{"configVersion": 2, "packages": [{"name": "test_project", "rootUri": "../", '
+            '"packageUri": "lib/"}]}',
+      );
 
       // Setup types
       addFile('lib/core/error/exceptions.dart', '''
@@ -52,22 +55,33 @@ void main() {
     Future<List<Diagnostic>> runLint({required String filePath}) async {
       final fullPath = p.canonicalize(p.join(testProjectPath, filePath));
       contextCollection = AnalysisContextCollection(includedPaths: [testProjectPath]);
-      final resolvedUnit = await contextCollection
-          .contextFor(fullPath)
-          .currentSession
-          .getResolvedUnit(fullPath) as ResolvedUnitResult;
+      final resolvedUnit =
+          await contextCollection.contextFor(fullPath).currentSession.getResolvedUnit(fullPath)
+              as ResolvedUnitResult;
 
       // Configure with Types and Conversions
       final config = makeConfig(
         typeDefinitions: {
           'exception': {
-            'server': {'name': 'ServerException', 'import': 'package:test_project/core/error/exceptions.dart'},
-            'cache': {'name': 'CacheException', 'import': 'package:test_project/core/error/exceptions.dart'},
+            'server': {
+              'name': 'ServerException',
+              'import': 'package:test_project/core/error/exceptions.dart',
+            },
+            'cache': {
+              'name': 'CacheException',
+              'import': 'package:test_project/core/error/exceptions.dart',
+            },
           },
           'failure': {
-            'server': {'name': 'ServerFailure', 'import': 'package:test_project/core/error/failures.dart'},
-            'cache': {'name': 'CacheFailure', 'import': 'package:test_project/core/error/failures.dart'},
-          }
+            'server': {
+              'name': 'ServerFailure',
+              'import': 'package:test_project/core/error/failures.dart',
+            },
+            'cache': {
+              'name': 'CacheFailure',
+              'import': 'package:test_project/core/error/failures.dart',
+            },
+          },
         },
         errorHandlers: [
           {
@@ -78,8 +92,8 @@ void main() {
               {'from_type': 'exception.server', 'to_type': 'failure.server'},
               // Rule: CacheException -> CacheFailure
               {'from_type': 'exception.cache', 'to_type': 'failure.cache'},
-            ]
-          }
+            ],
+          },
         ],
       );
 
@@ -93,7 +107,7 @@ void main() {
     }
 
     test('reports violation when catching ServerException but returning CacheFailure', () async {
-      final path = 'lib/features/user/data/repositories/user_repository_impl.dart';
+      const path = 'lib/features/user/data/repositories/user_repository_impl.dart';
       addFile(path, '''
         import 'package:test_project/core/error/exceptions.dart';
         import 'package:test_project/core/error/failures.dart';
@@ -114,11 +128,14 @@ void main() {
       final lints = await runLint(filePath: path);
 
       expect(lints, hasLength(1));
-      expect(lints.first.message, contains('Expected to return `ServerFailure` when catching `ServerException`'));
+      expect(
+        lints.first.message,
+        contains('Expected to return `ServerFailure` when catching `ServerException`'),
+      );
     });
 
     test('does NOT report violation when mapping is correct', () async {
-      final path = 'lib/features/user/data/repositories/user_repository_impl.dart';
+      const path = 'lib/features/user/data/repositories/user_repository_impl.dart';
       addFile(path, '''
         import 'package:test_project/core/error/exceptions.dart';
         import 'package:test_project/core/error/failures.dart';
@@ -141,7 +158,7 @@ void main() {
     });
 
     test('reports violation when multiple returns exist and one is wrong', () async {
-      final path = 'lib/features/user/data/repositories/user_repository_impl.dart';
+      const path = 'lib/features/user/data/repositories/user_repository_impl.dart';
       addFile(path, '''
         import 'package:test_project/core/error/exceptions.dart';
         import 'package:test_project/core/error/failures.dart';
@@ -166,7 +183,7 @@ void main() {
     });
 
     test('ignores exceptions not defined in the conversion rules', () async {
-      final path = 'lib/features/user/data/repositories/user_repository_impl.dart';
+      const path = 'lib/features/user/data/repositories/user_repository_impl.dart';
       addFile(path, '''
         class UserRepositoryImpl {
           void getUser() {

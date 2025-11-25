@@ -1,6 +1,6 @@
 // lib/src/models/rules/dependency_rule.dart
 
-part of '../dependencies_config.dart';
+part of '../configs/dependencies_config.dart';
 
 class DependencyRule {
   final List<String> on;

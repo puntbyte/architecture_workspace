@@ -4,7 +4,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/lints/architecture_lint_rule.dart';
-import 'package:clean_architecture_lints/src/models/inheritances_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/inheritances_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class EnforceCustomInheritance extends ArchitectureLintRule {

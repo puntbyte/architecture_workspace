@@ -1,6 +1,6 @@
 // lib/src/models/details/inheritance_detail.dart
 
-part of '../inheritances_config.dart';
+part of '../configs/inheritances_config.dart';
 
 class InheritanceDetail {
   final String? name;

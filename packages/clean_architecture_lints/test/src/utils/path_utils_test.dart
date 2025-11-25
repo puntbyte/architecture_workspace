@@ -1,5 +1,5 @@
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:clean_architecture_lints/src/models/architecture_config.dart';
+import 'package:clean_architecture_lints/src/models/configs/architecture_config.dart';
 import 'package:clean_architecture_lints/src/utils/file/path_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
