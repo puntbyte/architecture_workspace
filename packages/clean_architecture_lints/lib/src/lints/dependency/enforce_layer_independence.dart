@@ -10,28 +10,17 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:path/path.dart' as p;
 
 class EnforceLayerIndependence extends ArchitectureLintRule {
-  static const _forbiddenComponentCode = LintCode(
-    name: 'enforce_layer_independence_forbidden_component',
-    problemMessage: 'Invalid import: A {0} must not import from a {1}.',
-    errorSeverity: DiagnosticSeverity.WARNING,
-  );
-
-  static const _forbiddenPackageCode = LintCode(
-    name: 'enforce_layer_independence_forbidden_package',
-    problemMessage: 'Invalid import: A {0} must not import the package `{1}`.',
-    errorSeverity: DiagnosticSeverity.WARNING,
-  );
-
-  static const _unallowedComponentCode = LintCode(
-    name: 'enforce_layer_independence_unallowed_component',
-    problemMessage: 'Invalid import: A {0} is not allowed to import from a {1}.',
+  // Single LintCode for all layer independence violations.
+  static const _code = LintCode(
+    name: 'enforce_layer_independence',
+    problemMessage: '{0}',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
 
   const EnforceLayerIndependence({
     required super.config,
     required super.layerResolver,
-  }) : super(code: _forbiddenComponentCode);
+  }) : super(code: _code);
 
   @override
   void run(
@@ -45,7 +34,7 @@ class EnforceLayerIndependence extends ArchitectureLintRule {
     final componentRule = config.dependencies.ruleFor(sourceComponent.id);
     final layerRule = config.dependencies.ruleFor(sourceComponent.layer.id);
 
-    final rules = [?componentRule, ?layerRule];
+    final rules = [if (componentRule != null) componentRule, if (layerRule != null) layerRule];
     if (rules.isEmpty) return;
 
     context.registry.addImportDirective((node) {
@@ -63,8 +52,10 @@ class EnforceLayerIndependence extends ArchitectureLintRule {
             if (uriString.startsWith(checkString)) {
               reporter.atNode(
                 node.uri,
-                _forbiddenPackageCode,
-                arguments: [sourceComponent.label, forbiddenPackage],
+                _code,
+                arguments: [
+                  'Invalid import: A ${sourceComponent.label} must not import the package `$forbiddenPackage`.',
+                ],
               );
               return;
             }
@@ -81,8 +72,10 @@ class EnforceLayerIndependence extends ArchitectureLintRule {
         if (_isForbidden(importedComponent, rule)) {
           reporter.atNode(
             node.uri,
-            _forbiddenComponentCode,
-            arguments: [sourceComponent.label, importedComponent.label],
+            _code,
+            arguments: [
+              'Invalid import: A ${sourceComponent.label} must not import from a ${importedComponent.label}.',
+            ],
           );
           return;
         }
@@ -91,8 +84,10 @@ class EnforceLayerIndependence extends ArchitectureLintRule {
         if (rule.allowed.isNotEmpty && !_isAllowed(importedComponent, rule)) {
           reporter.atNode(
             node.uri,
-            _unallowedComponentCode,
-            arguments: [sourceComponent.label, importedComponent.label],
+            _code,
+            arguments: [
+              'Invalid import: A ${sourceComponent.label} is not allowed to import from a ${importedComponent.label}.',
+            ],
           );
           return;
         }
@@ -112,15 +107,8 @@ class EnforceLayerIndependence extends ArchitectureLintRule {
     // Strategy B: String-based Fallback
     final uriString = node.uri.stringValue;
     if (uriString != null && uriString.startsWith('package:${context.pubspec.name}/')) {
-      // features/auth/data/models/user_model.dart
       final relativePath = uriString.replaceFirst('package:${context.pubspec.name}/', '');
-
-      // We construct a fake path that LayerResolver can understand.
-      // LayerResolver typically looks for 'lib/' in the path to anchor itself.
-      // Using p.posix ensures forward slashes which are easier for logic handling,
-      // though LayerResolver likely normalizes internally.
       final fakePath = p.posix.join('/root/lib', relativePath);
-
       return layerResolver.getComponent(fakePath);
     }
 

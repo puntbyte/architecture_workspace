@@ -14,6 +14,7 @@ void main() {
     late AnalysisContextCollection contextCollection;
     late Directory tempDir;
     late String testProjectPath;
+    late String injectablePackagePath;
 
     void addFile(String relativePath, String content) {
       final fullPath = p.join(testProjectPath, p.normalize(relativePath));
@@ -24,31 +25,39 @@ void main() {
 
     setUp(() {
       tempDir = Directory.systemTemp.createTempSync('enforce_annotations_test_');
-      testProjectPath = p.canonicalize(tempDir.path);
+      testProjectPath = p.canonicalize(p.join(tempDir.path, 'test_project'));
+      injectablePackagePath = p.canonicalize(p.join(tempDir.path, 'injectable'));
+
+      Directory(testProjectPath).createSync(recursive: true);
+      Directory(injectablePackagePath).createSync(recursive: true);
 
       addFile('pubspec.yaml', 'name: example');
-      final libUri = p.toUri(p.join(testProjectPath, 'lib'));
+
+      // Setup Dependency
+      final injectableLib = p.join(injectablePackagePath, 'lib');
+      Directory(injectableLib).createSync(recursive: true);
+      File(p.join(injectableLib, 'injectable.dart')).writeAsStringSync('''
+        library injectable;
+        class Injectable { const Injectable(); }
+        class LazySingleton { const LazySingleton(); }
+      ''');
+
+      final testLibUri = p.toUri(p.join(testProjectPath, 'lib'));
+      final injectableLibUri = p.toUri(injectableLib);
+
       addFile('.dart_tool/package_config.json', '''
       {
         "configVersion": 2,
         "packages": [
-          {"name": "example", "rootUri": "$libUri", "packageUri": "."},
-          {"name": "injectable", "rootUri": "$libUri", "packageUri": "."} 
+          {"name": "example", "rootUri": "$testLibUri", "packageUri": "."},
+          {"name": "injectable", "rootUri": "$injectableLibUri", "packageUri": "."} 
         ]
       }
-      ''');
-
-      // Define dummy annotations
-      addFile('lib/injectable.dart', '''
-        class Injectable { const Injectable(); }
-        class LazySingleton { const LazySingleton(); }
       ''');
     });
 
     tearDown(() {
-      try {
-        tempDir.deleteSync(recursive: true);
-      } catch (_) {}
+      try { tempDir.deleteSync(recursive: true); } catch (_) {}
     });
 
     Future<List<Diagnostic>> runLint({
@@ -57,9 +66,7 @@ void main() {
     }) async {
       final fullPath = p.canonicalize(p.join(testProjectPath, filePath));
       contextCollection = AnalysisContextCollection(includedPaths: [testProjectPath]);
-      final resolvedUnit =
-          await contextCollection.contextFor(fullPath).currentSession.getResolvedUnit(fullPath)
-              as ResolvedUnitResult;
+      final resolvedUnit = await contextCollection.contextFor(fullPath).currentSession.getResolvedUnit(fullPath) as ResolvedUnitResult;
 
       final config = makeConfig(annotations: annotations);
       final lint = EnforceAnnotations(config: config, layerResolver: LayerResolver(config));
@@ -68,16 +75,16 @@ void main() {
     }
 
     group('Forbidden Rule', () {
-      test('flags Usage AND Import when import is defined in config', () async {
+      test('flags Usage AND Import', () async {
         final forbiddenRule = {
           'on': 'entity',
           'forbidden': {
             'name': ['Injectable', 'LazySingleton'],
-            'import': 'package:injectable/injectable.dart',
+            'import': 'package:injectable/injectable.dart'
           },
         };
 
-        const path = 'lib/features/user/domain/entities/user.dart';
+        final path = 'lib/features/user/domain/entities/user.dart';
         addFile(path, '''
           import 'package:injectable/injectable.dart'; 
           
@@ -89,40 +96,9 @@ void main() {
         final lints = await runLint(filePath: path, annotations: [forbiddenRule]);
 
         expect(lints, hasLength(3));
-
-        expect(
-          lints.any(
-            (l) => l.message.contains('import `package:injectable/injectable.dart` is forbidden'),
-          ),
-          isTrue,
-        );
-        expect(
-          lints.any((l) => l.message.contains('must not have the `@Injectable` annotation')),
-          isTrue,
-        );
-        expect(
-          lints.any((l) => l.message.contains('must not have the `@LazySingleton` annotation')),
-          isTrue,
-        );
-      });
-
-      test('flags Usage ONLY when import is NOT defined in config', () async {
-        final forbiddenRule = {
-          'on': 'entity',
-          'forbidden': {'name': 'Injectable'},
-        };
-
-        const path = 'lib/features/user/domain/entities/user.dart';
-        addFile(path, '''
-          import 'package:injectable/injectable.dart';
-          @Injectable()
-          class User {}
-        ''');
-
-        final lints = await runLint(filePath: path, annotations: [forbiddenRule]);
-
-        expect(lints, hasLength(1));
-        expect(lints.first.message, contains('must not have the `@Injectable` annotation'));
+        expect(lints.any((l) => l.message.contains('import `package:injectable/injectable.dart` is forbidden')), isTrue);
+        expect(lints.any((l) => l.message.contains('must not have the `@Injectable` annotation')), isTrue);
+        expect(lints.any((l) => l.message.contains('must not have the `@LazySingleton` annotation')), isTrue);
       });
     });
 
@@ -133,7 +109,7 @@ void main() {
           'required': {'name': 'Injectable'},
         };
 
-        const path = 'lib/features/auth/domain/usecases/login.dart';
+        final path = 'lib/features/auth/domain/usecases/login.dart';
         addFile(path, 'class Login {}');
 
         final lints = await runLint(filePath: path, annotations: [requiredRule]);

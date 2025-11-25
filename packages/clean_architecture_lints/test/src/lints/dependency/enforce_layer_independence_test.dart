@@ -1,3 +1,5 @@
+// test/src/lints/dependency/enforce_layer_independence_test.dart
+
 import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -59,7 +61,7 @@ void main() {
     }
 
     test('Violates Layer Rule: Domain entity imports Flutter', () async {
-      final path = 'lib/features/user/domain/entities/user.dart';
+      const path = 'lib/features/user/domain/entities/user.dart';
       addFile(path, "import 'package:flutter/material.dart';");
 
       final lints = await runLint(
@@ -70,28 +72,28 @@ void main() {
       );
 
       expect(lints, hasLength(1));
+      expect(lints.first.errorCode.name, 'enforce_layer_independence');
       expect(lints.first.message, contains('must not import the package `package:flutter/`'));
     });
 
     test('Violates Component Rule: Entity imports Model', () async {
-      final path = 'lib/features/user/domain/entities/user.dart';
+      const path = 'lib/features/user/domain/entities/user.dart';
       addFile(path, "import 'package:example/features/user/data/models/user_model.dart';");
 
       final lints = await runLint(
         filePath: path,
         dependencies: [
-          // FIX: Allowed list must not be empty to trigger the whitelist check.
-          // We allow 'entity', so 'model' should be rejected.
           {'on': 'entity', 'allowed': {'component': ['entity']}},
         ],
       );
 
       expect(lints, hasLength(1));
+      expect(lints.first.errorCode.name, 'enforce_layer_independence');
       expect(lints.first.message, contains('not allowed to import from a Model'));
     });
 
     test('Violates Layer Rule: Domain imports Data (Model)', () async {
-      final path = 'lib/features/user/domain/entities/user.dart';
+      const path = 'lib/features/user/domain/entities/user.dart';
       addFile(path, "import 'package:example/features/user/data/models/user_model.dart';");
 
       final lints = await runLint(
@@ -102,6 +104,7 @@ void main() {
       );
 
       expect(lints, hasLength(1));
+      expect(lints.first.errorCode.name, 'enforce_layer_independence');
       expect(lints.first.message, contains('must not import from a Model'));
     });
   });

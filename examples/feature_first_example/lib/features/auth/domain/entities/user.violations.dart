@@ -4,6 +4,7 @@ import 'package:example/core/entity/entity.dart';
 
 // LINT: [1] disallow_flutter_in_domain
 // REASON: The domain layer must remain platform-agnostic (no Flutter dependencies).
+// ignore: enforce_layer_independence
 import 'package:flutter/material.dart'; // <-- LINT WARNING HERE
 
 // LINT: [2] enforce_layer_independence
@@ -31,7 +32,6 @@ class UserEntity extends Entity { // <-- LINT WARNING HERE
   const UserEntity({required this.id, required this.profileColor, required this.linkedAccount});
 }
 
-@injectable // <-- LINT WARNING HERE (not working)
 // LINT: [7] enforce_entity_contract
 // REASON: Entities must extend the base `Entity` class defined in Core.
 class UncontractedUser { // <-- LINT WARNING HERE
@@ -42,7 +42,6 @@ class UncontractedUser { // <-- LINT WARNING HERE
 
 // LINT: [8] enforce_semantic_naming
 // REASON: Grammar violation: Entities must be Noun phrases, not actions (Verbs).
-class FetchingUser extends Entity {
-  // <-- LINT WARNING HERE
+class FetchingUser extends Entity { // <-- LINT WARNING HERE
   const FetchingUser();
 }
