@@ -144,6 +144,8 @@ class _LayerKeys {
 class _TypeKeys {
   const _TypeKeys();
 
+  String get key => 'key';
+
   String get name => 'name';
 
   String get import => 'import';

@@ -13,7 +13,7 @@ import 'package:example/features/auth/data/models/user_model.dart'; // <-- LINT 
 
 // LINT: [3] enforce_abstract_repository_dependency
 // REASON: Domain must depend on Interfaces (Ports), not Concrete Implementations.
-import 'package:example/features/auth/data/repositories/auth_repository_imp.dart'; // <-- LINT WARNING HERE
+import 'package:example/features/auth/data/repositories/auth_repository.dart'; // <-- LINT WARNING HERE
 
 // LINT: [4] disallow_service_locator
 // REASON: Service Locators hide dependencies; use Constructor Injection.
@@ -22,13 +22,13 @@ import 'package:get_it/get_it.dart'; // <-- LINT WARNING HERE
 // LINT: [5] enforce_semantic_naming
 // REASON: Grammar violation. UseCases must be `VerbNoun` (e.g., `LoginUser`), not `NounVerb` (`UserLogin`).
 class UserLogin { // <-- LINT WARNING HERE
-  // ...
+  const UserLogin();
 }
 
 // LINT: [6] enforce_naming_antipattern
 // REASON: Name uses forbidden suffix `UseCase`. Pattern should be `{{name}}` (e.g. `GetProfile`).
 class GetProfileUseCase { // <-- LINT WARNING HERE
-  // ...
+  const GetProfileUseCase();
 }
 
 // LINT: [7] enforce_annotations (Required)

@@ -30,8 +30,8 @@ Future<List<LintCode>> runContractLint({
 
   final capturedCodes = <LintCode>[];
   when(() => reporter.atToken(any(), any(), arguments: any(named: 'arguments'))).thenAnswer((
-      invocation,
-      ) {
+    invocation,
+  ) {
     capturedCodes.add(invocation.positionalArguments[1] as LintCode);
   });
 
@@ -50,8 +50,8 @@ Future<List<LintCode>> runContractLint({
 
   // Resolve the actual AST from the file system
   final unitResult =
-  await contextCollection.contextFor(path).currentSession.getResolvedUnit(path)
-  as ResolvedUnitResult;
+      await contextCollection.contextFor(path).currentSession.getResolvedUnit(path)
+          as ResolvedUnitResult;
   final classNodes = unitResult.unit.declarations.whereType<ClassDeclaration>();
   if (classNodes.isEmpty) throw StateError('No class found in test source: $path');
 

@@ -21,7 +21,7 @@ class DefaultAuthSource implements AuthSource {
     // Simulate API call
     await Future.delayed.call(const Duration(milliseconds: 100));
 
-    return UserModel(id: id, username: 'User');
+    return UserModel(id: id, name: 'User');
   }
 
   @override

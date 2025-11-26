@@ -14,55 +14,67 @@ analyzer:
 custom_lint:
   rules:
     # --- ENABLE ALL LINT RULES ---
-    # 1. Purity & Responsibility Rules
+
+    # --- Contract Rules ---
+    - enforce_entity_contract: true
+    - enforce_usecase_contract: true
+    - enforce_port_contract: true
+    - enforce_repository_contract: true
+    - enforce_custom_contract: true
+
+    # --- Dependency Rules ---
     - disallow_model_in_domain: true
-    - disallow_entity_in_data_source: true
-    - disallow_repository_in_presentation: true
-    - disallow_model_return_from_repository: true
-    - disallow_use_case_in_widget: true
     - disallow_flutter_in_domain: true
+
+    - disallow_entity_in_source: true
     - disallow_public_members_in_implementation: true
+
+    - disallow_repository_in_presentation: true
+    - disallow_usecase_in_widget: true
+
     - disallow_dependency_instantiation: true
     - disallow_service_locator: true
 
-    # 2. Contract & Inheritance Rules
-    - enforce_model_to_entity_mapping: true
-    - enforce_model_inherits_entity: true
-    - enforce_port_contract: true # Replaces enforce_repository_contract
-    - enforce_usecase_contract: true # Replaces enforce_use_case_contract (naming fix)
-    - enforce_entity_contract: true
-    - enforce_repository_contract: true # Replaces enforce_repository_implementation_contract
-    - enforce_custom_inheritance: true
 
-    # 3. Dependency & Structure Rules
-    - enforce_layer_independence: true
-    - enforce_abstract_data_source_dependency: true
-    - enforce_abstract_repository_dependency: true
+    # --- Inheritance Rules ---
+    - enforce_model_abstraction: true
+    - enforce_source_implementation_abstraction: true
+    - enforce_repository_abstraction: true
+
+    - require_model_to_entity_method: true
+
+    # --- Location Rules ---
     - enforce_file_and_folder_location: true
+    - enforce_layer_independence: true
 
-    # 4. Type Safety & Error Handling Rules
-    - enforce_type_safety: true
-    - disallow_throwing_from_repository: true
+    # --- Type Safety Rules ---
+    - disallow_model_return_from_repository: true
+    - enforce_custom_type_safety: true
+
+    # --- Error Handling Rules ---
     - enforce_try_catch_in_repository: true
-    - enforce_exception_on_data_source: true
-    - convert_exceptions_to_failures: true # Enable the new rule
-    - disallow_throwing_from_presentation: true # Enable the new rule
+    - enforce_trowing_exception_on_source_implementation: true
+    - convert_exceptions_to_failures: true
+    - disallow_throwing_from_repository: true
+    - disallow_throwing_from_presentation: true
 
-    # 5. Naming Convention Rules
-    - enforce_naming_antipattern: true
-    - enforce_naming_pattern: true
+    # --- Naming Convention Rules ---
+    - enforce_antipattern_matching: true
+    - enforce_pattern_matching: true
     - enforce_semantic_naming: true
 
-    # 6. Code Generation Rule
+    # --- Structure Rules ---
+    - enforce_annotations: true
     - missing_use_case: true
 
     # --- CONFIGURATION BLOCK ---
     - clean_architecture:
-      # [1. Structure] Define the high-level project structure.
+      # [module_definitions] Define the high-level project structure.
       module_definitions:
         type: 'feature_first' # or 'layer_first'
         core: 'core'
         features: 'features'
+
         # layers can be used for both feature_first and layer_first naming.
         # all layer components accept a single string or a list of strings.
         layers:
@@ -70,7 +82,7 @@ custom_lint:
           data: 'data'
           presentation: 'presentation'
 
-      # [2. Components] Define directory names for architectural components.
+      # [layer_definitions] Define directory names for architectural components.
       layer_definitions:
         domain:
           entity: 'entities'
@@ -87,7 +99,16 @@ custom_lint:
           widget: 'widgets'
           page: 'pages'
 
-      # [3. Inheritance] Define base classes for components.
+      # [inheritances] is a configuration used for contract and abstraction lints.
+      # Inheritance can be required, forbidden, or allowed.
+      # [on] parameter is used for targeting the architectural component.
+      # [required] parameter is used for must have inheritances and can be a list.
+      # [forbidden] parameter is used for must not have inheritances and can be a list.
+      # [allowed] parameter is used for may have inheritances and can be a list.
+      # [name] parameter is used for the name of the inherited class name.
+      # [import] parameter is used for the import of the inherited class.
+      # [component] parameter is used for the in inherited architectural component.
+      # It can not be used in combination with [name] and [import].
       inheritances:
         # --- Domain Layer ---
         # The default rule used for [enforce_entity_contract].
@@ -159,57 +180,66 @@ custom_lint:
             name: 'StatefulWidget'
             import: 'package:flutter/widgets.dart'
 
+      # [naming_conventions] configuration is primarily used in [enforce_pattern_matching],
+      # [enforce_antipattern_matching], and [enforce_semantic_naming] lints.
+      # [on] parameter is used for targeting the architectural component.
+      # [pattern] parameter is used to define pattern to match.
+      # [antipattern] parameter is used to define antipattern to match.
+      # [grammar] is a parameter used for semantic naming.
+      # [name] is a builtin placeholder used in all the 3 parameters for the name of the component.
+      # [affix] is a builtin placeholder used in all the 3 parameters for the affix of the component.
+      # [noun], [noun.phrase], [noun.singular], [noun.plural], [verb], [verb.present], [verb.past],
+      # [preposition], etc. are builtin grammar placeholder is used for the phrase of the component.
       naming_conventions:
         # --- Domain Layer ---
-        # The default rule used for [domain_naming_conventions] and [domain_semantic_naming].
+        # This is the default rule used for Entity.
         # Defining is not required unless for overringing the values.
         - on: entity
           pattern: '{{name}}'
-          antipattern: '{{name}}Entity'
+          antipattern: '{{name}}'
           grammar: '{{noun.phrase}}'
 
-        # The default rule used for [enforce_naming_conventions] and [enforce_semantic_naming].
+        # This is the default rule used for Port aka Repository Interface.
         # Defining is not required unless for overringing the values.
         - on: port
           pattern: '{{name}}Port'
           grammar: '{{noun.phrase}}Port'
 
-        # The default rule used for [enforce_naming_conventions] and [enforce_semantic_naming].
+        # This is the default rule used for Usecase.
         # Defining is not required unless for overringing the values.
         - on: usecase
           pattern: '{{name}}'
           antipattern: '{{name}}Use(C|c)ase'
-          grammar: '{{verb.present}}{{noun.phrase}}'
+          grammar: '{{verb.present}}{{noun.phrase}}Use(C|c)ase'
 
-        # The default rule used for [enforce_naming_conventions] and [create_usecase_fix].
+        # This is the default rule used for Usecase parameter.
         # Defining is not required unless for overringing the values.
         - on: usecase.parameter
           pattern: '_{{name}}Param'
 
         # --- Data Layer ---
-        # The default rule used for [data_naming_conventions] and [data_semantic_naming].
-        # Defining is not required unless for overringing the values
+        # This is the default rule used for Model.
+        # Defining is not required unless for overringing the values.
         - on: model
           pattern: '{{name}}Model'
           grammar: '{{noun.phrase}}Model'
 
-        # The default two rules used for [data_naming_conventions] and [data_semantic_naming].
-        # Defining is not required unless for overringing the values
+        # These are the default two rules used for Source Interface & Implementation.
+        # Defining is not required unless for overringing the values.
         - on: source.interface
           pattern: '{{name}}Source'
           grammar: '{{noun.phrase}}Source'
         - on: source.implementation
-          pattern: 'Default{{name}}Source'
-          grammar: 'Default{{noun.phrase}}Source'
+          pattern: '{{affix}}{{name}}Source'
+          grammar: '{{affix}}{{noun.phrase}}Source'
 
-        # The default rule used for [data_naming_conventions] and [data_semantic_naming].
-        # Defining is not required unless for overringing the values
+        # This is the default rule used for Repository aka Repository Implementation.
+        # Defining is not required unless for overringing the values.
         - on: repository
-          pattern: '{{kind}}{{name}}Repository'
+          pattern: '{{affix}}{{name}}Repository'
 
         # --- Presentation Layer ---
-        # The default five rules used for [manager_naming_conventions] and
-        # [manager_semantic_naming].
+        # These are the default five rules used for Manager.
         # Defining is not required unless for overringing the values
         - on: manager
           pattern: '{{name}}(Bloc|Cubit|Manager)'
@@ -227,13 +257,13 @@ custom_lint:
           pattern: '{{name}}'
           grammar: '{{subject}}({{adjective}}|{{verb.gerund}}|{{verb.past}})'
 
-        # The default rule used for [widget_naming_conventions] and [widget_semantic_naming].
+        # This is the default rule used for Widget.
         # Defining is not required unless for overringing the values
         - on: widget
           pattern: '{{name}}(Form|Panel|Section|Widget)'
           grammar: '{{noun.phrase}}(Form|Panel|Section|Widget)'
 
-        # The default rule used for [page_naming_conventions] and [page_semantic_naming].
+        # This is the default rule used for Page.
         # Defining is not required unless for overringing the values
         - on: page
           pattern: '{{name}}Page'
@@ -300,58 +330,62 @@ custom_lint:
       # Defining is not required unless for overringing values.
       type_definitions:
         # --- Domain Failures ---
+        usecase:
+          - key: 'base'
+            name: 'Usecase'
+            import: 'package:example/core/usecase/usecase.dart'
+          - key: 'nullary'
+            name: 'NullaryUsecase'
+          - key: 'unary'
+            name: 'UnaryUsecase'
+
         failure:
-          base:
+          - key: 'base'
             name: 'Failure'
             import: 'package:example/core/error/failures.dart'
-          server:
+          - key: 'server'
             name: 'ServerFailure'
-            import: 'package:example/core/error/failures.dart'
-          cache:
+          - key: 'cache'
             name: 'CacheFailure'
-            import: 'package:example/core/error/failures.dart'
 
         # --- Data Exceptions ---
         exception:
-          raw:
+          - key: 'raw'
             name: 'Exception'
-          base:
+          - key: 'base'
             name: 'CustomException'
             import: 'package:example/core/error/exceptions.dart'
-          server:
+          - key: 'server'
             name: 'ServerException'
-            import: 'package:example/core/error/exceptions.dart'
-          cache:
+          - key: 'cache'
             name: 'CacheException'
-            import: 'package:example/core/error/exceptions.dart'
 
         # --- Functional Results (Wrappers) ---
         result:
-          future:
-            name: 'Future'
-          # Define the "Safe Return" wrapper (Functional Programming).
-          wrapper:
+          - key: 'future'
             name: 'FutureEither'
             import: 'package:example/core/utils/types.dart'
-
-          success:
+          - key: 'wrapper'
+            name: 'FutureEither'
+            import: 'package:example/core/utils/types.dart'
+          - key: 'success'
             name: 'Right'
             import: 'package:fpdart/fpdart.dart'
-
-          failure:
+          - key: 'failure'
             name: 'Left'
             import: 'package:fpdart/fpdart.dart'
 
         # --- Value Objects (Identity) ---
-        identity:
-          integer:
+        custom:
+          - key: 'identity.integer'
             name: 'IntId'
             import: 'package:example/core/utils/types.dart'
-
-          string:
+          - key: 'identity.string'
             name: 'StringId'
             import: 'package:example/core/utils/types.dart'
 
+      # [type_safeties] configuration is primarily used in [enforce_custom_type_safety] lint.
+      # [on] parameter is used for targeting the architectural component/s.
       type_safeties:
         # The default rule used for [domain_layer_type_safety].
         # Defining is not required unless for overringing the values.
@@ -409,6 +443,7 @@ custom_lint:
         # Responsible for catching Exceptions and converting them to Failures.
         - on: repository
           role: 'boundary'
+          # If one of try_** or catch_** is defined, must have try_catch bloc automatically applied.
           required:
             # Must have a try block which returns a subtype of Either
             - operation: 'try_return'
@@ -449,7 +484,7 @@ custom_lint:
         # Defining is required in order the lint to work.
         - on: entity
           forbidden:
-            name: [ 'injectable', 'LazySingleton' ]
+            name: [ 'Injectable', 'LazySingleton' ]
             import: 'package:injectable/injectable.dart'
 
         # User defined rule used for [enforce_annotation].

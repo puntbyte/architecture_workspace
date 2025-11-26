@@ -28,14 +28,18 @@ class NamingUtils {
   /// Builds a regular expression from a template string with placeholders.
   /// This implementation assumes the user-provided parts of the template are valid regex.
   static RegExp _buildRegexForTemplate(String template) {
+    // Captures the core name (Greedy)
     const pascalToken = '([A-Z][a-zA-Z0-9]*)';
+
+    // Captures the affix/kind (Non-Greedy)
+    // Used for prefixes like 'Default' or suffixes like 'Impl'
     const nonGreedyPascalToken = '([A-Z][a-zA-Z0-9]*?)';
 
     // FIX: Do not escape the template. Replace placeholders directly.
     // This allows users to include regex operators like `|` and `()` in their patterns.
     final pattern = template
         .replaceAll('{{name}}', pascalToken)
-        .replaceAll('{{kind}}', nonGreedyPascalToken);
+        .replaceAll('{{affix}}', nonGreedyPascalToken);
 
     return RegExp('^$pattern\$');
   }

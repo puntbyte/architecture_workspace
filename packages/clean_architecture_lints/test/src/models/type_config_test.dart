@@ -1,3 +1,5 @@
+// test/src/models/rules/type_rule_test.dart
+
 import 'package:clean_architecture_lints/src/models/configs/type_config.dart';
 import 'package:test/test.dart';
 
@@ -6,6 +8,7 @@ void main() {
     group('fromMap', () {
       test('should create instance with valid name and import', () {
         final map = {
+          'key': 'test',
           'name': 'FutureEither',
           'import': 'package:core/utils.dart',
         };
@@ -17,6 +20,7 @@ void main() {
 
       test('should create instance with name only', () {
         final map = {
+          'key': 'test',
           'name': 'Future',
         };
         final rule = TypeRule.fromMap(map);
@@ -24,135 +28,101 @@ void main() {
         expect(rule.name, 'Future');
         expect(rule.import, isNull);
       });
-
-      test('should fallback to empty string if name is missing (or handle gracefully)', () {
-        // Assuming standard json extension behavior where missing string defaults to ''
-        final map = <String, dynamic>{};
-        final rule = TypeRule.fromMap(map);
-        expect(rule.name, isEmpty);
-      });
     });
   });
 
-  group('TypeConfig', () {
-    group('fromMap & get', () {
-      test('should flatten nested categories into dot-notation keys', () {
+  group('TypesConfig', () {
+    group('Inheritance Logic', () {
+      test('should inherit import from "base" key within the group', () {
         final map = {
           'type_definitions': {
-            // Category 1
-            'exception': {
-              // Nested Rule
-              'base': {
-                'name': 'CustomException',
-                'import': 'pkg:exc.dart',
+            'failure': [
+              {
+                'key': 'base',
+                'name': 'Failure',
+                'import': 'package:core/failures.dart'
               },
-              // Nested Rule
-              'server': {
-                'name': 'ServerException',
+              {
+                'key': 'server',
+                'name': 'ServerFailure'
+                // Missing import -> Should inherit from base
+              },
+              {
+                'key': 'cache',
+                'name': 'CacheFailure',
+                'import': 'package:core/specific_cache.dart'
+                // Explicit import -> Should override base
               }
-            },
-            // Category 2
-            'result': {
-              'wrapper': {
-                'name': 'FutureEither',
-              }
-            }
+            ]
           }
         };
 
-        final config = TypeConfig.fromMap(map);
+        final config = TypesConfig.fromMap(map);
 
-        // Test exception.base
-        final baseEx = config.get('exception.base');
-        expect(baseEx, isNotNull);
-        expect(baseEx!.name, 'CustomException');
-        expect(baseEx.import, 'pkg:exc.dart');
+        // Check inherited
+        final server = config.get('failure.server');
+        expect(server, isNotNull);
+        expect(server!.name, 'ServerFailure');
+        expect(server.import, 'package:core/failures.dart');
 
-        // Test exception.server
-        final serverEx = config.get('exception.server');
-        expect(serverEx, isNotNull);
-        expect(serverEx!.name, 'ServerException');
-
-        // Test result.wrapper
-        final resultWrapper = config.get('result.wrapper');
-        expect(resultWrapper, isNotNull);
-        expect(resultWrapper!.name, 'FutureEither');
+        // Check override
+        final cache = config.get('failure.cache');
+        expect(cache, isNotNull);
+        expect(cache!.import, 'package:core/specific_cache.dart');
       });
 
-      test('should handle deep nesting', () {
+      test('should NOT inherit import if key is "raw"', () {
         final map = {
           'type_definitions': {
-            'level1': {
-              'level2': {
-                'level3': {
-                  'name': 'DeepClass',
-                }
-              }
-            }
+            'exception': [
+              {'key': 'base', 'name': 'BaseEx', 'import': 'pkg:base.dart'},
+              {'key': 'raw', 'name': 'Exception'}, // Should NOT inherit
+              {'key': 'other', 'name': 'OtherEx'}, // Should inherit
+            ]
           }
         };
 
-        final config = TypeConfig.fromMap(map);
+        final config = TypesConfig.fromMap(map);
 
-        final rule = config.get('level1.level2.level3');
-        expect(rule, isNotNull);
-        expect(rule!.name, 'DeepClass');
+        final raw = config.get('exception.raw');
+        expect(raw, isNotNull);
+        expect(raw!.import, isNull, reason: 'Raw key should skip inheritance');
+
+        final other = config.get('exception.other');
+        expect(other!.import, 'pkg:base.dart');
       });
+    });
 
-      test('should handle mixed nesting levels', () {
+    group('Complex Parsing', () {
+      test('should parse the standard configuration structure', () {
         final map = {
           'type_definitions': {
-            // Direct rule at root of types (uncommon but possible)
-            'raw': {
-              'name': 'RawType',
-            },
-            // Nested rule
-            'nested': {
-              'inner': {
-                'name': 'InnerType',
-              }
-            }
+            'usecase': [
+              {'key': 'base', 'name': 'Usecase', 'import': 'pkg:core/usecase.dart'},
+              {'key': 'unary', 'name': 'UnaryUsecase'},
+            ],
+            'exception': [
+              {'key': 'raw', 'name': 'Exception'}, // No import
+              {'key': 'base', 'name': 'CustomException', 'import': 'pkg:core/error.dart'},
+              {'key': 'server', 'name': 'ServerException'}, // Inherits pkg:core/error.dart
+            ]
           }
         };
 
-        final config = TypeConfig.fromMap(map);
+        final config = TypesConfig.fromMap(map);
 
-        expect(config.get('raw'), isNotNull);
-        expect(config.get('raw')!.name, 'RawType');
+        // Usecase
+        expect(config.get('usecase.unary')!.import, 'pkg:core/usecase.dart');
 
-        expect(config.get('nested.inner'), isNotNull);
-        expect(config.get('nested.inner')!.name, 'InnerType');
-      });
+        // Exception
+        // Verify 'raw' did not inherit from 'base' even if they are in the same list
+        expect(
+            config.get('exception.raw')!.import,
+            isNull,
+            reason: 'Raw key should not have import from base'
+        );
 
-      test('should return null for unknown keys', () {
-        final map = {
-          'type_definitions': {
-            'group': {'name': 'A'}
-          }
-        };
-        final config = TypeConfig.fromMap(map);
-
-        expect(config.get('unknown'), isNull);
-        expect(config.get('group.unknown'), isNull);
-      });
-
-      test('should return empty config if type_definitions key is missing', () {
-        final config = TypeConfig.fromMap({});
-        expect(config.get('any'), isNull);
-      });
-
-      test('should ignore malformed entries (not maps)', () {
-        final map = {
-          'type_definitions': {
-            'valid': {'name': 'A'},
-            'invalid': 'not_a_map',
-            'list_invalid': ['a', 'b']
-          }
-        };
-
-        final config = TypeConfig.fromMap(map);
-        expect(config.get('valid'), isNotNull);
-        expect(config.get('invalid'), isNull);
+        expect(config.get('exception.server')!.import, 'pkg:core/error.dart');
       });
     });
   });

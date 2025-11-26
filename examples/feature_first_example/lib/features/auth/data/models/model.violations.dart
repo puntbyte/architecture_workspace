@@ -1,46 +1,68 @@
 // example/lib/features/auth/data/models/model.violations.dart
+
 import 'package:example/features/auth/domain/entities/user.dart';
+import 'package:example/features/auth/data/models/user_model.dart';
 
-// LINT: enforce_model_inherits_entity
-// Reason: Models must inherit from their corresponding entity.
-class OrphanUserModel {
-  final String id;
-  OrphanUserModel(this.id);
+// LINT: [1] enforce_layer_independence
+// REASON: Data Models should not import from the Presentation layer.
+import 'package:example/features/auth/presentation/pages/home_page.dart'; // <-- LINT WARNING HERE
 
-  User toEntity() => User(id: id, username: 'Guest');
+// LINT: [2] disallow_service_locator
+// REASON: Service Locators hide dependencies. Models should be data-only.
+import 'package:get_it/get_it.dart'; // <-- LINT WARNING HERE
+
+// LINT: [3] enforce_naming_pattern
+// REASON: Name must match `{{name}}Model` (e.g., UserDTOModel or UserModel).
+class UserDTO extends User { // <-- LINT WARNING HERE
+  const UserDTO({required super.id, required super.name});
+
+  User toEntity() => this;
 }
 
-// LINT: enforce_model_to_entity_mapping
-// Reason: Missing `toEntity()` method.
-class LazyUserModel extends User {
-  LazyUserModel({required super.id, required super.username});
-}
-
-// VIOLATION: enforce_model_inherits_entity
-// The model `OrphanUserModel` does not extend or implement `UserEntity`.
+// LINT: [4] enforce_model_inherits_entity
+// REASON: Models must extend a Domain Entity to ensure architectural alignment.
 class OrphanUserModel { // <-- LINT WARNING HERE
   final String id;
-  final String name;
-  final String email; // An extra field that the entity doesn't have.
+  const OrphanUserModel(this.id);
 
-  const OrphanUserModel({required this.id, required this.name, required this.email});
-
-  // It has the toEntity() method, so it passes that lint...
-  UserEntity toEntity() => UserEntity(id: id, names: name);
-  // ...but it fails the inheritance check.
+  // Even if it has the method, it fails if it doesn't extend the Entity class.
+  User toEntity() => User(id: id, name: 'Unknown');
 }
 
-
-// VIOLATION: enforce_model_to_entity_mapping
-// This model is correctly named but is missing the required `toEntity()` method.
-class IncompleteUserModel extends UserEntity { // <-- LINT WARNING HERE (different lint)
-  const IncompleteUserModel({required super.id, required super.name});
-  // Missing the `toEntity()` method.
+// LINT: [5] enforce_model_to_entity_mapping
+// REASON: Class extends Entity but is missing the `toEntity()` mapping method.
+class LazyUserModel extends User { // <-- LINT WARNING HERE
+  const LazyUserModel({required super.id, required super.name});
+// Missing toEntity()
 }
 
-// VIOLATION: enforce_naming_conventions
-// This model has the correct method, but its name violates the `{{name}}Model` convention.
-class UserData extends UserEntity { // <-- LINT WARNING HERE (different lint)
-  const UserData({required super.id, required super.name});
-  UserEntity toEntity() => UserEntity(id: id, names: names);
+// LINT: [6] enforce_semantic_naming
+// REASON: Grammar violation. Models must be Noun Phrases.
+// 'Parsing' is a Verb (Gerund), implying this class performs an action.
+class ParsingUserModel extends User { // <-- LINT WARNING HERE
+  const ParsingUserModel({required super.id, required super.name});
+  User toEntity() => this;
+}
+
+class LogicHeavyModel extends User {
+  const LogicHeavyModel({required super.id, required super.name});
+
+  User toEntity() {
+    // LINT: [7] disallow_service_locator
+    // REASON: Models should not access global services.
+    final loc = GetIt.I.get<String>(); // <-- LINT WARNING HERE
+
+    return this;
+  }
+
+  void saveSelf() {
+    // LINT: [8] disallow_dependency_instantiation
+    // REASON: Models should not instantiate other architectural components.
+    // They are data holders, not logic executors.
+    final otherModel = UserModel(id: '1', name: 'a'); // OK (Data creation)
+
+    // Violations usually target Service components (Repos, Sources),
+    // but creating ViewModels/Widgets here would also be flagged by layer independence.
+    final page = HomePage(); // <-- LINT WARNING HERE (Layer Independence Violation)
+  }
 }

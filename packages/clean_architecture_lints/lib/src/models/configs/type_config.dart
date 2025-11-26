@@ -5,39 +5,57 @@ import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension
 
 part '../rules/type_rule.dart';
 
-/// Configuration for shared type definitions.
-///
-/// This class flattens the nested YAML structure into a map where keys are
-/// dot-notated strings (e.g., "result.wrapper") and values are [TypeRule]s.
-class TypeConfig {
-  final Map<String, TypeRule> _types;
+/// Configuration for shared type definitions with support for group-based inheritance.
+class TypesConfig {
+  /// A flattened map of type rules for O(1) lookup.
+  /// Key: `group.key` (e.g., "failure.server", "usecase.unary").
+  final Map<String, TypeRule> _registry;
 
-  const TypeConfig(this._types);
+  const TypesConfig(this._registry);
 
-  /// Retrieves a type definition by its dot-notated key (e.g., 'exception.base').
-  TypeRule? get(String key) => _types[key];
+  /// Retrieves a type rule by its dot-notated query key.
+  TypeRule? get(String query) => _registry[query];
 
-  factory TypeConfig.fromMap(Map<String, dynamic> map) {
-    final rawMap = map.asMap(ConfigKey.root.typeDefinitions);
+  factory TypesConfig.fromMap(Map<String, dynamic> map) {
+    final root = map.asMap(ConfigKey.root.typeDefinitions);
     final flattened = <String, TypeRule>{};
 
-    void recurse(String parentKey, Map<String, dynamic> data) {
-      for (final entry in data.entries) {
-        final key = parentKey.isEmpty ? entry.key : '$parentKey.${entry.key}';
-        final value = entry.value;
+    // Iterate over each group (e.g., "failure", "usecase", "exception")
+    for (final groupEntry in root.entries) {
+      final groupName = groupEntry.key;
+      final rawRules = groupEntry.value;
 
-        if (value is Map<String, dynamic>) {
-          // If it has a 'name' key, it's a definition. Otherwise, it's a category.
-          if (value.containsKey(ConfigKey.type.name)) {
-            flattened[key] = TypeRule.fromMap(value);
-          } else {
-            recurse(key, value);
-          }
+      if (rawRules is! List) continue;
+
+      final ruleMaps = rawRules.whereType<Map<String, dynamic>>().toList();
+
+      // 1. Find Base Import (Inheritance Source)
+      String? baseImport;
+      final baseRuleMap = ruleMaps.firstWhere(
+            (r) => r[ConfigKey.type.key] == 'base',
+        orElse: () => {},
+      );
+      if (baseRuleMap.isNotEmpty) {
+        baseImport = baseRuleMap[ConfigKey.type.import] as String?;
+      }
+
+      // 2. Build Rules with Inheritance
+      for (final ruleMap in ruleMaps) {
+        final key = ruleMap[ConfigKey.type.key] as String?;
+
+        // Special logic: 'raw' keys usually refer to SDK types (e.g. Exception)
+        // and should NOT inherit the package import from 'base'.
+        final shouldInherit = key != 'raw';
+        final defaultImport = shouldInherit ? baseImport : null;
+
+        final rule = TypeRule.fromMap(ruleMap, defaultImport: defaultImport);
+
+        if (rule.key.isNotEmpty && rule.name.isNotEmpty) {
+          flattened['$groupName.${rule.key}'] = rule;
         }
       }
     }
 
-    recurse('', rawMap);
-    return TypeConfig(flattened);
+    return TypesConfig(flattened);
   }
 }

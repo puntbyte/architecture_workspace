@@ -20,7 +20,7 @@ class AuthSourceImpl implements AuthSource { // <-- LINT WARNING HERE
   // LINT: [3] enforce_exception_on_data_source
   // REASON: Implementation returns Either/Right. Sources must throw exceptions.
   FutureEither<UserModel> wrongReturnType() async { // <-- LINT WARNING HERE
-    return Right(UserModel(id: '1', username: 'Test'));
+    return Right(UserModel(id: '1', name: 'Test'));
   }
 
   @override

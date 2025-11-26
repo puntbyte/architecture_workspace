@@ -24,7 +24,7 @@ class ArchitectureConfig {
   final DependenciesConfig dependencies;
   final AnnotationsConfig annotations;
   final ServicesConfig services;
-  final TypeConfig typeDefinitions;
+  final TypesConfig typeDefinitions;
   final ErrorHandlersConfig errorHandlers;
 
   const ArchitectureConfig({
@@ -52,7 +52,7 @@ class ArchitectureConfig {
       dependencies: DependenciesConfig.fromMap(map),
       annotations: AnnotationsConfig.fromMap(map),
       services: ServicesConfig.fromMap(map),
-      typeDefinitions: TypeConfig.fromMap(map),
+      typeDefinitions: TypesConfig.fromMap(map),
       errorHandlers: ErrorHandlersConfig.fromMap(map),
     );
   }
