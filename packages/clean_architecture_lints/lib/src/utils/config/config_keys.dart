@@ -211,6 +211,8 @@ class _RuleKeys {
   String get message => 'message';
 
   String get component => 'component';
+
+  String get type => 'type';
 }
 
 class _ServiceKeys {

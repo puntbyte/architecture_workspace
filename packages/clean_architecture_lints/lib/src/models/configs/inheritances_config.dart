@@ -1,5 +1,6 @@
 // lib/src/models/configs/inheritances_config.dart
 
+import 'package:clean_architecture_lints/src/models/configs/type_config.dart';
 import 'package:clean_architecture_lints/src/utils/config/config_keys.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/iterable_extension.dart';
 import 'package:clean_architecture_lints/src/utils/extensions/json_map_extension.dart';
@@ -17,10 +18,15 @@ class InheritancesConfig {
     return rules.firstWhereOrNull((rule) => rule.on == componentId);
   }
 
-  factory InheritancesConfig.fromMap(Map<String, dynamic> map) {
+  // Accept TypesConfig here
+  factory InheritancesConfig.fromMap(Map<String, dynamic> map, TypesConfig typeDefinitions) {
     final ruleList = map.asMapList(ConfigKey.root.inheritances);
+
     return InheritancesConfig(
-      rules: ruleList.map(InheritanceRule.tryFromMap).whereType<InheritanceRule>().toList(),
+      rules: ruleList
+          .map((m) => InheritanceRule.tryFromMap(m, typeDefinitions)) // Pass it down
+          .whereType<InheritanceRule>()
+          .toList(),
     );
   }
 }

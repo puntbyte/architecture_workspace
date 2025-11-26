@@ -15,29 +15,33 @@ class InheritanceRule {
     this.forbidden = const [],
   });
 
-  static InheritanceRule? tryFromMap(Map<String, dynamic> map) {
+  static InheritanceRule? tryFromMap(Map<String, dynamic> map, TypesConfig typeDefinitions) {
     final on = map.asString(ConfigKey.rule.on);
     if (on.isEmpty) return null;
 
     return InheritanceRule(
       on: on,
-      required: _parseDetails(map, ConfigKey.rule.required),
-      allowed: _parseDetails(map, ConfigKey.rule.allowed),
-      forbidden: _parseDetails(map, ConfigKey.rule.forbidden),
+      required: _parseDetails(map, ConfigKey.rule.required, typeDefinitions),
+      allowed: _parseDetails(map, ConfigKey.rule.allowed, typeDefinitions),
+      forbidden: _parseDetails(map, ConfigKey.rule.forbidden, typeDefinitions),
     );
   }
 
-  static List<InheritanceDetail> _parseDetails(Map<String, dynamic> map, String key) {
+  static List<InheritanceDetail> _parseDetails(
+    Map<String, dynamic> map,
+    String key,
+    TypesConfig typeDefinitions,
+  ) {
     final data = map[key];
 
     if (data is Map<String, dynamic>) {
-      return InheritanceDetail.fromMapWithExpansion(data);
+      return InheritanceDetail.fromMapWithExpansion(data, typeDefinitions);
     }
 
     if (data is List) {
       return data
           .whereType<Map<String, dynamic>>()
-          .expand(InheritanceDetail.fromMapWithExpansion)
+          .expand((m) => InheritanceDetail.fromMapWithExpansion(m, typeDefinitions))
           .toList();
     }
 

@@ -1,15 +1,14 @@
 // lib/features/auth/domain/entities/user.violations.dart
 
-import 'package:example/core/entity/entity.dart';
+import 'package:feature_first_example/core/entity/entity.dart';
 
 // LINT: [1] disallow_flutter_in_domain
 // REASON: The domain layer must remain platform-agnostic (no Flutter dependencies).
-// ignore: enforce_layer_independence
 import 'package:flutter/material.dart'; // <-- LINT WARNING HERE
 
 // LINT: [2] enforce_layer_independence
 // REASON: Domain layer must not import components from the Data layer.
-import 'package:example/features/auth/data/models/user_model.dart'; // <-- LINT WARNING HERE
+import 'package:feature_first_example/features/auth/data/models/user_model.dart'; // <-- LINT WARNING HERE
 
 // LINT: [3] enforce_annotations (Forbidden Import)
 // REASON: Entities should be POJOs; Dependency Injection imports are forbidden.

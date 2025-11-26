@@ -37,24 +37,20 @@ void main() {
         final map = {
           'type_definitions': {
             'failure': [
-              {
-                'key': 'base',
-                'name': 'Failure',
-                'import': 'package:core/failures.dart'
-              },
+              {'key': 'base', 'name': 'Failure', 'import': 'package:core/failures.dart'},
               {
                 'key': 'server',
-                'name': 'ServerFailure'
+                'name': 'ServerFailure',
                 // Missing import -> Should inherit from base
               },
               {
                 'key': 'cache',
                 'name': 'CacheFailure',
-                'import': 'package:core/specific_cache.dart'
+                'import': 'package:core/specific_cache.dart',
                 // Explicit import -> Should override base
-              }
-            ]
-          }
+              },
+            ],
+          },
         };
 
         final config = TypesConfig.fromMap(map);
@@ -78,8 +74,8 @@ void main() {
               {'key': 'base', 'name': 'BaseEx', 'import': 'pkg:base.dart'},
               {'key': 'raw', 'name': 'Exception'}, // Should NOT inherit
               {'key': 'other', 'name': 'OtherEx'}, // Should inherit
-            ]
-          }
+            ],
+          },
         };
 
         final config = TypesConfig.fromMap(map);
@@ -105,8 +101,8 @@ void main() {
               {'key': 'raw', 'name': 'Exception'}, // No import
               {'key': 'base', 'name': 'CustomException', 'import': 'pkg:core/error.dart'},
               {'key': 'server', 'name': 'ServerException'}, // Inherits pkg:core/error.dart
-            ]
-          }
+            ],
+          },
         };
 
         final config = TypesConfig.fromMap(map);
@@ -117,9 +113,9 @@ void main() {
         // Exception
         // Verify 'raw' did not inherit from 'base' even if they are in the same list
         expect(
-            config.get('exception.raw')!.import,
-            isNull,
-            reason: 'Raw key should not have import from base'
+          config.get('exception.raw')!.import,
+          isNull,
+          reason: 'Raw key should not have import from base',
         );
 
         expect(config.get('exception.server')!.import, 'pkg:core/error.dart');

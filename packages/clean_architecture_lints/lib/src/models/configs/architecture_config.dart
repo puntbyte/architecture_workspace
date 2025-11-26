@@ -43,16 +43,20 @@ class ArchitectureConfig {
   /// Creates an instance from a configuration map.
   /// Missing sections will result in default configurations.
   factory ArchitectureConfig.fromMap(Map<String, dynamic> map) {
+    // 1. Parse Types FIRST so they can be used by other configs
+    final typeDefinitions = TypesConfig.fromMap(map);
+
     return ArchitectureConfig(
       modules: ModuleConfig.fromMap(map.asMap(ConfigKey.root.modules)),
       layers: LayerConfig.fromMap(map.asMap(ConfigKey.root.layers)),
-      inheritances: InheritancesConfig.fromMap(map),
+      // 2. Pass typeDefinitions to InheritancesConfig
+      inheritances: InheritancesConfig.fromMap(map, typeDefinitions),
       namingConventions: NamingConventionsConfig.fromMap(map),
       typeSafeties: TypeSafetiesConfig.fromMap(map),
       dependencies: DependenciesConfig.fromMap(map),
       annotations: AnnotationsConfig.fromMap(map),
       services: ServicesConfig.fromMap(map),
-      typeDefinitions: TypesConfig.fromMap(map),
+      typeDefinitions: typeDefinitions,
       errorHandlers: ErrorHandlersConfig.fromMap(map),
     );
   }
