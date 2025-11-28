@@ -1,7 +1,7 @@
 // lib/features/auth/domain/usecases/logout.dart
 
+import 'package:feature_first_example/core/error/failures.dart';
 import 'package:feature_first_example/core/usecase/usecase.dart';
-import 'package:feature_first_example/core/utils/types.dart';
 import 'package:feature_first_example/features/auth/domain/ports/auth_port.dart';
 import 'package:fpdart/fpdart.dart';
 

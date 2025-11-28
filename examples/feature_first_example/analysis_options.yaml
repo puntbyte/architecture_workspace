@@ -279,51 +279,61 @@ custom_lint:
         # The default rule used for [entity_in_domain_layer].
         # Defining is not required unless for overringing the values.
         - on: entity
-          allowed: ['domain', 'manager']
+          allowed:
+            component: ['domain', 'manager']
 
         # The default rule used for [port_in_repository].
         # Defining is not required unless for overringing the values.
         - on: port
-          allowed: 'repository'
+          allowed:
+            component: 'repository'
 
         # The default rule used for [usecase_in_repository].
         # Defining is not required unless for overringing the values.
         - on: usecase
-          allowed: 'repository'
+          allowed:
+            component: 'repository'
 
         # --- Data Layer ---
         # The default rule used for [model_in_data_layer].
         # Defining is not required unless for overringing the values.
         - on: model
-          allowed: 'data'
+          allowed:
+            component: 'data'
 
         # The default two rules used for [source_in_repository].
         # Defining is not required unless for overringing the values.
         - on: source.interface
-          allowed: 'source.implementation'
+          allowed:
+            component: 'source.implementation'
         - on: source.implementation
-          allowed: 'repository'
+          allowed:
+            component: 'repository'
 
         # The default rule used for [repository_in_data_layer].
         # Defining is not required unless for overringing the values.
         - on: repository
-          allowed: 'data'
+          allowed:
+            component: 'data'
 
         # --- Presentation Layer ---
         # The default rule used for [manager_in_user_interface].
         # Defining is not required unless for overringing the values.
         - on: ['manager', 'event', 'state']
-          allowed: ['widget', 'page']
+          allowed:
+            component: ['widget', 'page']
 
         # The default rule used for [widget_in_user_interface].
         # Defining is not required unless for overringing the values.
         - on: 'widget'
-          allowed: ['widget', 'page']
+          allowed:
+            component: ['widget', 'page']
 
         # The default rule used for [page_in_user_interface].
         # Defining is not required unless for overringing the values.
         - on: 'page'
-          allowed: ['page', 'core']
+          allowed:
+            component: ['page', 'core']
 
       # Default types used in [type_safeties] and [error_handlers] configurations.
       # Defining is not required unless for overringing values.

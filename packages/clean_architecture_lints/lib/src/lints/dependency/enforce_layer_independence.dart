@@ -9,7 +9,6 @@ import 'package:clean_architecture_lints/src/models/configs/dependencies_config.
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:path/path.dart' as p;
 
-/// A generic lint that enforces the dependency graph defined in the configuration.
 class EnforceLayerIndependence extends ArchitectureLintRule {
   static const _code = LintCode(
     name: 'enforce_layer_independence',
@@ -60,8 +59,7 @@ class EnforceLayerIndependence extends ArchitectureLintRule {
 
     // --- CHECK 1: External Packages ---
     if (uriString.startsWith('package:') || uriString.startsWith('dart:')) {
-      // FIX: If we are in Domain, ignore Flutter/UI imports here.
-      // They are handled by the dedicated `disallow_flutter_in_domain` lint.
+      // Skip Flutter check in Domain if handled by dedicated lint
       if (sourceComponent.layer == ArchComponent.domain) {
         if (uriString.startsWith('package:flutter/') || uriString == 'dart:ui') {
           return;
@@ -75,6 +73,8 @@ class EnforceLayerIndependence extends ArchitectureLintRule {
         rules: rules,
         reporter: reporter,
       );
+
+      // If it is explicitly forbidden as an external package, report and stop.
       if (hasExternalViolation) return;
     }
 
@@ -124,6 +124,9 @@ class EnforceLayerIndependence extends ArchitectureLintRule {
     required CustomLintContext context,
   }) {
     final importedComponent = _resolveImportedComponent(node, context);
+
+    // If unknown, it might be a 3rd party package we didn't forbid, or a system library.
+    // In those cases, we assume it's allowed unless we want strict whitelist mode for ALL imports.
     if (importedComponent == ArchComponent.unknown) return;
 
     for (final rule in rules) {
@@ -154,16 +157,35 @@ class EnforceLayerIndependence extends ArchitectureLintRule {
   }
 
   ArchComponent _resolveImportedComponent(ImportDirective node, CustomLintContext context) {
+    // Strategy A: Semantic Resolution (Analyzer)
     final importedLibrary = node.libraryImport?.importedLibrary;
     final source = importedLibrary?.firstFragment.source;
     if (source != null) {
+      // If the source is in the same package, it's internal.
+      // We can check source.uri vs resolver.source.uri scheme/package if needed,
+      // but LayerResolver handles file paths.
       return layerResolver.getComponent(source.fullName);
     }
 
-    // Fallback string logic for local files
+    // Strategy B: String-based Fallback
     final uriString = node.uri.stringValue;
-    if (uriString != null && uriString.startsWith('package:${context.pubspec.name}/')) {
-      final relativePath = uriString.replaceFirst('package:${context.pubspec.name}/', '');
+    if (uriString == null) return ArchComponent.unknown;
+
+    // 1. Relative Import (../../)
+    if (!uriString.startsWith('package:') && !uriString.startsWith('dart:')) {
+      // It's a relative path. We need to resolve it relative to the current file.
+      // This is hard without context. But LayerResolver might handle "fake" absolute paths if we construct them.
+      // However, if Semantic Resolution failed, we are guessing.
+      // A relative import is DEFINITELY internal.
+      // If we can't resolve the full path, we might miss it.
+      return ArchComponent.unknown;
+    }
+
+    // 2. Package Import (package:...)
+    // Check if it starts with the current project's package name.
+    final packageName = context.pubspec.name;
+    if (uriString.startsWith('package:$packageName/')) {
+      final relativePath = uriString.replaceFirst('package:$packageName/', '');
       final fakeRoot = p.style == p.Style.windows ? r'C:\root\lib' : '/root/lib';
       final fakePath = p.join(fakeRoot, relativePath);
       return layerResolver.getComponent(fakePath);

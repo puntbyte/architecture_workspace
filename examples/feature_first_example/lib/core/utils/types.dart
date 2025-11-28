@@ -1,10 +1,6 @@
 // lib/core/utils/types.dart
+import 'package:feature_first_example/core/error/failures.dart';
 import 'package:fpdart/fpdart.dart';
-
-class Failure {
-  final String message;
-  const Failure(this.message);
-}
 
 /// Standard wrapper for async operations.
 typedef FutureEither<T> = Future<Either<Failure, T>>;

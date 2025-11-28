@@ -1,11 +1,11 @@
 // example/lib/features/auth/data/models/model.violations.dart
 
-import 'package:example/features/auth/domain/entities/user.dart';
-import 'package:example/features/auth/data/models/user_model.dart';
+import 'package:feature_first_example/features/auth/domain/entities/user.dart';
+import 'package:feature_first_example/features/auth/data/models/user_model.dart';
 
 // LINT: [1] enforce_layer_independence
 // REASON: Data Models should not import from the Presentation layer.
-import 'package:example/features/auth/presentation/pages/home_page.dart'; // <-- LINT WARNING HERE
+import 'package:feature_first_example/features/auth/presentation/pages/home_page.dart'; // <-- LINT WARNING HERE
 
 // LINT: [2] disallow_service_locator
 // REASON: Service Locators hide dependencies. Models should be data-only.

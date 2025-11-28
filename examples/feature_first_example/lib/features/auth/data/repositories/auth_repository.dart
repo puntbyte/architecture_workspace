@@ -1,11 +1,12 @@
 // example/lib/features/auth/data/repositories/auth_repository.dart
 
-import 'package:example/core/error/exceptions.dart';
-import 'package:example/core/error/failures.dart';
-import 'package:example/core/utils/types.dart' hide Failure;
-import 'package:example/features/auth/data/sources/auth_source.dart';
-import 'package:example/features/auth/domain/entities/user.dart';
-import 'package:example/features/auth/domain/ports/auth_port.dart';
+import 'package:feature_first_example/core/error/exceptions.dart';
+import 'package:feature_first_example/core/error/failures.dart';
+import 'package:feature_first_example/core/utils/types.dart';
+import 'package:feature_first_example/features/auth/data/sources/auth_source.dart';
+import 'package:feature_first_example/features/auth/data/sources/default_auth_source.dart';
+import 'package:feature_first_example/features/auth/domain/entities/user.dart';
+import 'package:feature_first_example/features/auth/domain/ports/auth_port.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:injectable/injectable.dart';
 
@@ -28,7 +29,7 @@ class DefaultAuthRepository implements AuthPort {
     // CORRECT:
     // 6. Error Handling: Wrapped in `try/catch` (enforce_try_catch_in_repository).
     try {
-      final model = await _source.login(username, password);
+      final model = await _source.getUser(username);
 
       // CORRECT:
       // 7. Mapping: Converts Model to Entity before returning (disallow_model_return...).
@@ -39,7 +40,10 @@ class DefaultAuthRepository implements AuthPort {
       return const Left(ServerFailure());
     } catch (e) {
       // Fallback for unhandled exceptions
-      return Left(Failure(e.toString()));
+      return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  FutureEither<void> logout() => throw UnimplementedError();
 }

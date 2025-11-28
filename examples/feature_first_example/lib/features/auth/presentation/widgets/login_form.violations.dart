@@ -1,15 +1,16 @@
 // lib/features/auth/presentation/widgets/login_form.violations.dart
 
+import 'package:feature_first_example/features/auth/domain/usecases/usecase.violations.dart';
 import 'package:flutter/material.dart';
-import 'package:feature_first_example/features/auth/domain/usecases/get_user.dart';
 
 import 'package:flutter/material.dart';
+
 // LINT: disallow_use_case_in_widget
 // Reason: Widgets shouldn't call UseCases. Logic belongs in Managers.
-import 'package:feature_first_example/features/auth/domain/usecases/login_user.dart';
+import 'package:feature_first_example/features/auth/domain/usecases/login.dart';
 
 class LoginForm extends StatelessWidget {
-  final LoginUser loginUser; // <-- Violation
+  final Login loginUser; // <-- Violation
 
   const LoginForm({super.key, required this.loginUser});
 
@@ -18,7 +19,7 @@ class LoginForm extends StatelessWidget {
     return ElevatedButton(
       onPressed: () {
         // LINT: disallow_use_case_in_widget
-        loginUser(user: 'a', pass: 'b');
+        loginUser((username: 'a', password: 'b'));
       },
       child: const Text('Login'),
     );

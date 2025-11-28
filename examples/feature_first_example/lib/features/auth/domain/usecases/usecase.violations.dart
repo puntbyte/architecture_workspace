@@ -1,7 +1,10 @@
-// lib/features/auth/domain/usecases/usecases.violations.dart
+// lib/features/auth/domain/usecases/usecase.violations.dart
+
+import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
 
 import 'package:feature_first_example/core/usecase/usecase.dart';
 import 'package:feature_first_example/core/utils/types.dart';
+import 'package:feature_first_example/features/auth/data/sources/default_auth_source.dart';
 
 // LINT: [1] disallow_flutter_in_domain
 // REASON: Domain layer must be platform-agnostic (no UI types).
@@ -51,7 +54,7 @@ class GetUser implements UnaryUsecase<dynamic, int> {
   void antiPatterns() {
     // LINT: [10] disallow_dependency_instantiation
     // REASON: Dependencies must be injected, not created inside the class.
-    final localRepo = DefaultAuthRepository(); // <-- LINT WARNING HERE
+    final localRepo = DefaultAuthRepository(DefaultAuthSource()); // <-- LINT WARNING HERE
 
     // LINT: [11] disallow_service_locator
     // REASON: Do not use `getIt` inside business logic.
@@ -71,7 +74,7 @@ class BadTypes implements NullaryUsecase<void> {
   // LINT: [13] enforce_type_safety
   // REASON: Return type must be `FutureEither`, not raw `Future`.
   @override
-  Future<void> call() async {} // <-- LINT WARNING HERE
+  FutureEither<void> call() async {throw UnimplementedError();} // <-- LINT WARNING HERE
 
   // LINT: [14] disallow_model_in_domain
   // REASON: UseCases cannot return Data Models. Use Entities.
@@ -80,7 +83,17 @@ class BadTypes implements NullaryUsecase<void> {
   }
 }
 
-// LINT: [15] enforce_file_and_folder_location
+// LINT: [15] disallow_flutter_in_domain
+// REASON: Domain layer must be platform-agnostic (no UI types).
+// ignore: enforce_annotations
+class FetchColor implements NullaryUsecase<Color> {
+  @override
+  FutureEither<Color> call() { // <-- LINT WARNING HERE
+    return Future.value.call();
+  }
+}
+
+// LINT: [16] enforce_file_and_folder_location
 // REASON: This is a Repository Implementation (Data Layer), incorrectly placed in the UseCases folder.
 class AuthRepositoryImpl { // <-- LINT WARNING HERE
   const AuthRepositoryImpl();

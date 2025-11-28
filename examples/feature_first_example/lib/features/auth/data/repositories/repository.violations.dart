@@ -1,18 +1,22 @@
 // example/lib/features/auth/data/repositories/repository.violations.dart
 
-import 'package:example/core/error/exceptions.dart';
-import 'package:example/core/error/failures.dart';
-import 'package:example/core/utils/types.dart';
-import 'package:example/features/auth/data/models/user_model.dart';
-import 'package:example/features/auth/data/sources/auth_source.dart';
-import 'package:example/features/auth/domain/ports/auth_port.dart';
+import 'package:feature_first_example/core/error/exceptions.dart';
+import 'package:feature_first_example/core/error/failures.dart';
+import 'package:feature_first_example/core/utils/types.dart';
+import 'package:feature_first_example/features/auth/data/models/user_model.dart';
+import 'package:feature_first_example/features/auth/data/sources/auth_source.dart';
+import 'package:feature_first_example/features/auth/data/sources/default_auth_source.dart';
+import 'package:feature_first_example/features/auth/domain/entities/user.dart';
+import 'package:feature_first_example/features/auth/domain/ports/auth_port.dart';
 import 'package:fpdart/fpdart.dart';
+
 // LINT: [1] enforce_layer_independence
 // REASON: Data layer should not import Presentation layer.
-import 'package:example/features/auth/presentation/pages/home_page.dart'; // <-- LINT WARNING HERE
+import 'package:feature_first_example/features/auth/presentation/pages/home_page.dart'; // <-- LINT WARNING HERE
 
 // LINT: [2] enforce_annotations (Required)
 // REASON: Repositories must be annotated with `@LazySingleton` or `@Singleton`.
+
 // LINT: [3] enforce_naming_pattern
 // REASON: Name `AuthService` does not match pattern `{{kind}}{{name}}Repository`.
 class AuthService implements AuthPort { // <-- LINT WARNING HERE (Missing Annotation & Bad Name)
@@ -31,12 +35,15 @@ class AuthService implements AuthPort { // <-- LINT WARNING HERE (Missing Annota
   FutureEither<UserModel> login(String u, String p) async {
     // LINT: [6] enforce_try_catch_in_repository
     // REASON: Calls to DataSources must be wrapped in a `try` block.
-    final model = await concreteSource.login(u, p); // <-- LINT WARNING HERE
+    final model = await concreteSource.getUser(u); // <-- LINT WARNING HERE
 
     // LINT: [7] disallow_model_return_from_repository
     // REASON: Repositories must return Entities (Domain), not Models (Data).
     return Right(model); // <-- LINT WARNING HERE
   }
+
+  @override
+  FutureEither<void> logout() => throw UnimplementedError();
 }
 
 // LINT: [8] enforce_repository_contract
@@ -52,10 +59,10 @@ class BadErrorHandlingRepository implements AuthPort {
   const BadErrorHandlingRepository(this._source);
 
   @override
-  FutureEither<dynamic> login(String u, String p) async {
+  FutureEither<User> login(String username, String password) async {
     try {
-      await _source.login(u, p);
-      return const Right(null);
+      final user = await _source.getUser(username);
+      return Right(user.toEntity());
     } on ServerException {
       // LINT: [9] convert_exceptions_to_failures
       // REASON: Config requires `ServerException` to map to `ServerFailure`.
@@ -71,4 +78,11 @@ class BadErrorHandlingRepository implements AuthPort {
       rethrow; // <-- LINT WARNING HERE
     }
   }
+
+
+
+  @override
+  FutureEither<void> logout() => throw UnimplementedError();
+
+
 }

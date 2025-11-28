@@ -1,9 +1,9 @@
 // example/lib/features/auth/data/sources/default_auth_source.dart
 
-import 'package:example/core/error/exceptions.dart';
-import 'package:example/core/utils/types.dart';
-import 'package:example/features/auth/data/models/user_model.dart';
-import 'package:example/features/auth/data/sources/auth_source.dart';
+import 'package:feature_first_example/core/error/exceptions.dart';
+import 'package:feature_first_example/core/utils/types.dart';
+import 'package:feature_first_example/features/auth/data/models/user_model.dart';
+import 'package:feature_first_example/features/auth/data/sources/auth_source.dart';
 
 // CORRECT:
 // 1. Name matches `Default{{name}}Source`.
