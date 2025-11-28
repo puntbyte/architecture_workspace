@@ -6,10 +6,12 @@ import 'package:feature_first_example/core/usecase/usecase.dart';
 import 'package:feature_first_example/features/auth/domain/entities/user.dart';
 import 'package:feature_first_example/features/auth/domain/ports/auth_port.dart';
 import 'package:fpdart/src/either.dart';
+import 'package:injectable/injectable.dart';
 
 typedef _LoginParams = ({String username, String password});
 
-final class Login implements UnaryUsecase<User, _LoginParams> {
+@Injectable()
+class Login implements UnaryUsecase<User, _LoginParams> {
   const Login(this._repository);
 
   final AuthPort _repository;

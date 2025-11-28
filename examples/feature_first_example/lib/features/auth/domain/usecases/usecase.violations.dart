@@ -1,7 +1,5 @@
 // lib/features/auth/domain/usecases/usecase.violations.dart
 
-import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
-
 import 'package:feature_first_example/core/usecase/usecase.dart';
 import 'package:feature_first_example/core/utils/types.dart';
 import 'package:feature_first_example/features/auth/data/sources/default_auth_source.dart';

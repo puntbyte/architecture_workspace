@@ -40,7 +40,7 @@ void main() {
       }
       ''');
 
-      // Define dummy annotations
+      // Define dummy annotations in the fake 'injectable' package.
       addFile('lib/injectable.dart', '''
         class Injectable { const Injectable(); }
         class LazySingleton { const LazySingleton(); }
@@ -69,7 +69,7 @@ void main() {
       return lints.cast<Diagnostic>();
     }
 
-    group('Forbidden Rule', () {
+    group('Forbidden rules', () {
       final forbiddenInjectableRule = {
         'on': 'entity',
         'forbidden': {'name': 'Injectable', 'import': 'package:injectable/injectable.dart'},
@@ -87,85 +87,118 @@ void main() {
           annotations: [forbiddenInjectableRule],
         );
 
-        expect(lints, isNotEmpty);
+        expect(lints, isNotEmpty, reason: 'Import of forbidden package must produce a lint');
         expect(
           lints.any(
             (l) => l.message.contains('import `package:injectable/injectable.dart` is forbidden'),
           ),
           isTrue,
-          reason: 'Should flag the import statement',
+          reason: 'Should flag the import directive message',
         );
       });
 
-      test('should report violation when a class uses a forbidden annotation', () async {
-        const path = 'lib/features/user/domain/entities/user_usage.dart';
-        addFile(path, '''
+      test(
+        'should report violation when a class uses a forbidden annotation (simple form)',
+        () async {
+          const path = 'lib/features/user/domain/entities/user_usage.dart';
+          addFile(path, '''
           import 'package:injectable/injectable.dart';
           
           @Injectable() // VIOLATION
           class User {}
         ''');
 
-        final lints = await runLint(
-          filePath: path,
-          annotations: [forbiddenInjectableRule],
-        );
+          final lints = await runLint(
+            filePath: path,
+            annotations: [forbiddenInjectableRule],
+          );
 
-        expect(
-          lints.any((l) => l.message.contains('must not have the `@Injectable` annotation')),
-          isTrue,
-          reason: 'Should flag the annotation usage',
-        );
-      });
+          expect(
+            lints.any((l) => l.message.contains('must not have the `@Injectable` annotation')),
+            isTrue,
+            reason: 'Annotation usage should be flagged',
+          );
+        },
+      );
 
-      test('should match forbidden annotation case-insensitively (e.g. @lazySingleton)', () async {
-        final forbiddenLazyRule = {
-          'on': 'entity',
-          'forbidden': {'name': 'LazySingleton', 'import': 'package:injectable/injectable.dart'},
-        };
+      test(
+        'should report violation when a class uses a forbidden annotation (lowercase token)',
+        () async {
+          final forbiddenLazyRule = {
+            'on': 'entity',
+            'forbidden': {'name': 'LazySingleton', 'import': 'package:injectable/injectable.dart'},
+          };
 
-        const path = 'lib/features/user/domain/entities/user_alias.dart';
-        addFile(path, '''
+          const path = 'lib/features/user/domain/entities/user_alias.dart';
+          addFile(path, '''
           import 'package:injectable/injectable.dart';
           
           @lazySingleton // Lowercase alias usage
           class User {}
         ''');
 
-        final lints = await runLint(
-          filePath: path,
-          annotations: [forbiddenLazyRule],
-        );
+          final lints = await runLint(
+            filePath: path,
+            annotations: [forbiddenLazyRule],
+          );
 
-        expect(
-          lints.any((l) => l.message.contains('must not have the `@LazySingleton` annotation')),
-          isTrue,
-        );
-      });
+          expect(
+            lints.any((l) => l.message.contains('must not have the `@LazySingleton` annotation')),
+            isTrue,
+            reason: 'Lowercase annotation token should match case-insensitively',
+          );
+        },
+      );
 
       test(
-        'should report violation based on name-only config if import is not specified',
+        'should report violation when a class uses a forbidden annotation with prefix',
         () async {
-          final nameOnlyRule = {
+          final prefixedRule = {
             'on': 'entity',
-            'forbidden': {'name': 'Injectable'}, // No import URI
+            'forbidden': {'name': 'Injectable', 'import': 'package:injectable/injectable.dart'},
           };
 
-          const path = 'lib/features/user/domain/entities/user_simple.dart';
+          const path = 'lib/features/user/domain/entities/user_prefixed.dart';
           addFile(path, '''
-          @Injectable() 
+          import 'package:injectable/injectable.dart' as i;
+          
+          @i.Injectable()
           class User {}
         ''');
 
           final lints = await runLint(
             filePath: path,
-            annotations: [nameOnlyRule],
+            annotations: [prefixedRule],
           );
 
-          expect(lints, hasLength(1));
-          expect(lints.first.message, contains('must not have the `@Injectable` annotation'));
+          expect(
+            lints.any((l) => l.message.contains('must not have the `@Injectable` annotation')),
+            isTrue,
+            reason: 'Prefixed annotation (@i.Injectable) should be detected and flagged',
+          );
         },
       );
+
+      test('should report violation with name-only config when import is not specified', () async {
+        final nameOnlyRule = {
+          'on': 'entity',
+          'forbidden': {'name': 'Injectable'}, // No import URI
+        };
+
+        const path = 'lib/features/user/domain/entities/user_simple.dart';
+        addFile(path, '''
+          @Injectable() 
+          class User {}
+        ''');
+
+        final lints = await runLint(
+          filePath: path,
+          annotations: [nameOnlyRule],
+        );
+
+        expect(lints, hasLength(1), reason: 'Name-only rule should flag the annotation once');
+        expect(lints.first.message, contains('must not have the `@Injectable` annotation'));
+      });
 
       test(
         'should NOT report violation if name matches but import URI does not match config',
@@ -190,18 +223,22 @@ void main() {
             annotations: [strictImportRule],
           );
 
-          expect(lints, isEmpty, reason: 'Annotation name matches but source URI differs');
+          expect(
+            lints,
+            isEmpty,
+            reason: 'Should not flag when import URI does not match configured forbidden import',
+          );
         },
       );
     });
 
-    group('Required Rule', () {
-      final requiredRule = {
-        'on': 'usecase',
-        'required': {'name': 'Injectable'},
-      };
+    group('Required rules', () {
+      test('should report violation when required annotation is missing (simple)', () async {
+        final requiredRule = {
+          'on': 'usecase',
+          'required': {'name': 'Injectable'},
+        };
 
-      test('should report violation when required annotation is missing', () async {
         const path = 'lib/features/auth/domain/usecases/login.dart';
         addFile(path, 'class Login {}');
 
@@ -214,46 +251,117 @@ void main() {
         expect(lints.first.message, contains('missing the required `@Injectable` annotation'));
       });
 
-      test('should not report violation when required annotation is present', () async {
-        const path = 'lib/features/auth/domain/usecases/login_valid.dart';
-        addFile(path, '''
+      test(
+        'should not report violation when required annotation is present (annotation only)',
+        () async {
+          final requiredRule = {
+            'on': 'usecase',
+            'required': {'name': 'Injectable'},
+          };
+
+          const path = 'lib/features/auth/domain/usecases/login_valid.dart';
+          addFile(path, '''
           @Injectable()
           class Login {}
         ''');
 
-        final lints = await runLint(
-          filePath: path,
-          annotations: [requiredRule],
-        );
+          final lints = await runLint(
+            filePath: path,
+            annotations: [requiredRule],
+          );
 
-        expect(lints, isEmpty);
-      });
+          expect(lints, isEmpty, reason: 'Presence of @Injectable should satisfy required rule');
+        },
+      );
+
+      test(
+        'should not report violation when required annotation is present with import (package match)',
+        () async {
+          final requiredRuleWithImport = {
+            'on': 'usecase',
+            'required': {'name': 'injectable', 'import': 'package:injectable/injectable.dart'},
+          };
+
+          const path = 'lib/features/auth/domain/usecases/logout.dart';
+          addFile(path, '''
+          import 'package:injectable/injectable.dart';
+
+          @Injectable()
+          class Logout {}
+        ''');
+
+          final lints = await runLint(
+            filePath: path,
+            annotations: [requiredRuleWithImport],
+          );
+
+          expect(
+            lints,
+            isEmpty,
+            reason:
+                'Required rule with import should be satisfied by @Injectable and matching import',
+          );
+        },
+      );
+
+      test(
+        'should not report violation when required annotation is present with prefixed import',
+        () async {
+          final requiredRuleWithImport = {
+            'on': 'usecase',
+            'required': {'name': 'Injectable', 'import': 'package:injectable/injectable.dart'},
+          };
+
+          const path = 'lib/features/auth/domain/usecases/logout_prefixed.dart';
+          addFile(path, '''
+          import 'package:injectable/injectable.dart' as i;
+
+          @i.Injectable()
+          class Logout {}
+        ''');
+
+          final lints = await runLint(
+            filePath: path,
+            annotations: [requiredRuleWithImport],
+          );
+
+          expect(
+            lints,
+            isEmpty,
+            reason: 'Prefixed import with @i.Injectable should satisfy required rule',
+          );
+        },
+      );
     });
 
-    group('Mixed Rules', () {
-      test('should support simultaneous forbidden and required checks', () async {
-        final mixedRule = {
-          'on': 'entity',
-          'required': {'name': 'Entity'},
-          'forbidden': {'name': 'Injectable'},
-        };
+    group('Mixed rules', () {
+      test(
+        'should report both missing required and forbidden annotation violations when applicable',
+        () async {
+          final mixedRule = {
+            'on': 'entity',
+            'required': {'name': 'Entity'},
+            'forbidden': {'name': 'Injectable'},
+          };
 
-        const path = 'lib/features/user/domain/entities/user_mixed.dart';
-        // Missing @Entity (Required error) AND has @Injectable (Forbidden error)
-        addFile(path, '''
+          const path = 'lib/features/user/domain/entities/user_mixed.dart';
+          // Missing @Entity (Required error) AND has @Injectable (Forbidden error)
+          addFile(path, '''
           @Injectable()
           class User {}
         ''');
 
-        final lints = await runLint(
-          filePath: path,
-          annotations: [mixedRule],
-        );
+          final lints = await runLint(
+            filePath: path,
+            annotations: [mixedRule],
+          );
 
-        expect(lints, hasLength(2));
-        expect(lints.any((l) => l.message.contains('missing the required `@Entity`')), isTrue);
-        expect(lints.any((l) => l.message.contains('must not have the `@Injectable`')), isTrue);
-      });
+          // Expect 2 diagnostics: one for missing required, one for forbidden annotation
+          expect(lints, hasLength(2));
+          expect(lints.any((l) => l.message.contains('missing the required `@Entity`')), isTrue);
+          expect(lints.any((l) => l.message.contains('must not have the `@Injectable`')), isTrue);
+        },
+      );
     });
   });
 }

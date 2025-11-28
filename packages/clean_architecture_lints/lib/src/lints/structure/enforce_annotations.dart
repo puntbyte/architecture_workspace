@@ -32,7 +32,7 @@ class EnforceAnnotations extends ArchitectureLintRule {
     final rule = config.annotations.ruleFor(component.id);
     if (rule == null) return;
 
-    // 1. Check Imports (Flag forbidden packages)
+    // 1) Flag forbidden imports (simple, based on import uri)
     context.registry.addImportDirective((node) {
       final uriString = node.uri.stringValue;
       if (uriString == null) return;
@@ -46,19 +46,18 @@ class EnforceAnnotations extends ArchitectureLintRule {
               'The import `$uriString` is forbidden because it contains the `@${forbidden.name}` annotation.',
             ],
           );
-          return; // Report once per import
+          return;
         }
       }
     });
 
-    // 2. Check Declarations (Classes, Mixins, Enums)
+    // 2) Check declarations for forbidden/required annotations
     context.registry.addAnnotatedNode((node) {
-      // We only care about container declarations that can hold architectural logic.
       if (node is! ClassDeclaration && node is! MixinDeclaration && node is! EnumDeclaration) {
         return;
       }
 
-      // A. Check Forbidden Annotations (Iterate metadata on the node)
+      // A) Forbidden annotations: iterate metadata and report directly on the annotation node
       for (final annotation in node.metadata) {
         final identifier = annotation.name;
         final simpleName = identifier is PrefixedIdentifier
@@ -66,38 +65,32 @@ class EnforceAnnotations extends ArchitectureLintRule {
             : identifier.name;
         final prefixName = identifier is PrefixedIdentifier ? identifier.prefix.name : null;
 
-        final normalizedAnnotationName = _normalizeAnnotationName(simpleName);
+        final normalizedName = _normalizeAnnotationName(simpleName);
 
-        // Resolve element to try to get library/source URI
         final element = annotation.element ?? annotation.elementAnnotation?.element;
-        final sourceUri = _extractSourceUriFromElement(element);
+        final resolvedUri = _extractSourceUriFromElement(element);
 
         for (final forbidden in rule.forbidden) {
-          final forbiddenNameNormalized = _normalizeAnnotationName(forbidden.name);
+          final forbiddenNormalized = _normalizeAnnotationName(forbidden.name);
 
-          // 1. Name Check (Case-insensitive)
-          if (forbiddenNameNormalized != normalizedAnnotationName) continue;
+          if (forbiddenNormalized != normalizedName) continue;
 
-          // 2. Import Check (if configured)
+          // If forbidden.import configured, verify it matches either resolvedUri or imports in file
           if (forbidden.import != null) {
             var matched = false;
 
-            // Path A: Resolved Element URI (Most accurate)
-            if (sourceUri != null && _matchesImport(sourceUri, forbidden.import!)) {
+            if (resolvedUri != null && _matchesImport(resolvedUri, forbidden.import!)) {
               matched = true;
-            }
-            // Path B: Fallback to scanning imports (If resolution failed or element is null)
-            else {
+            } else {
+              // Fallback to scanning imports in the compilation unit (and match prefix if present)
               final compilationUnit = annotation.thisOrAncestorOfType<CompilationUnit>();
               if (compilationUnit != null) {
                 final found = compilationUnit.directives.whereType<ImportDirective>().any((imp) {
                   final uriString = imp.uri.stringValue;
                   if (uriString == null) return false;
                   if (!_matchesImport(uriString, forbidden.import!)) return false;
+                  if (prefixName != null) return imp.prefix?.name == prefixName;
 
-                  if (prefixName != null) {
-                    return imp.prefix?.name == prefixName;
-                  }
                   return true;
                 });
                 matched = found;
@@ -107,7 +100,7 @@ class EnforceAnnotations extends ArchitectureLintRule {
             if (!matched) continue;
           }
 
-          // Report ON THE ANNOTATION node
+          // Report forbidden annotation
           reporter.atNode(
             annotation,
             _code,
@@ -116,26 +109,28 @@ class EnforceAnnotations extends ArchitectureLintRule {
             ],
           );
         }
-      }
+      } // end metadata loop
 
-      // B. Check Missing (Required) Annotations on the container
-      final nodeName = _getNameToken(node);
-      if (nodeName != null) {
-        final declaredAnnotations = _getDeclaredAnnotations(node);
-        for (final required in rule.required) {
-          if (!_hasAnnotation(declaredAnnotations, required)) {
-            reporter.atToken(
-              nodeName,
-              _code,
-              arguments: [
-                'This ${component.label} is missing the required `@${required.name}` annotation.',
-              ],
-            );
-          }
+      // B) Required annotations: check the container (class/mixin/enum) for requireds
+      final nameToken = _getNameToken(node);
+      if (nameToken == null) return;
+
+      final declared = _getDeclaredAnnotations(node);
+      for (final required in rule.required) {
+        if (!_annotationSatisfiesRequired(declared, required, node)) {
+          reporter.atToken(
+            nameToken,
+            _code,
+            arguments: [
+              'This ${component.label} is missing the required `@${required.name}` annotation.',
+            ],
+          );
         }
       }
     });
   }
+
+  // --- Helpers -------------------------------------------------------------
 
   Token? _getNameToken(AnnotatedNode node) {
     if (node is ClassDeclaration) return node.name;
@@ -144,17 +139,43 @@ class EnforceAnnotations extends ArchitectureLintRule {
     return null;
   }
 
-  bool _hasAnnotation(List<_ResolvedAnnotation> declared, AnnotationDetail target) {
-    return declared.any((declaredAnnotation) {
-      if (_normalizeAnnotationName(declaredAnnotation.name) !=
-          _normalizeAnnotationName(target.name)) {
-        return false;
+  /// Checks whether any declared annotation satisfies the `required` detail.
+  /// This verifies name (normalized) and — if an import is provided — it verifies via:
+  ///  1) resolved sourceUri (if available)
+  ///  2) imports in the compilation unit (fallback)
+  bool _annotationSatisfiesRequired(
+    List<_ResolvedAnnotation> declared,
+    AnnotationDetail required,
+    AnnotatedNode node,
+  ) {
+    final requiredNameNorm = _normalizeAnnotationName(required.name);
+
+    for (final d in declared) {
+      if (_normalizeAnnotationName(d.name) != requiredNameNorm) continue;
+
+      // If no import restriction, name match is sufficient
+      if (required.import == null) return true;
+
+      // If the declared annotation resolved to a sourceUri, match it
+      if (d.sourceUri != null && _matchesImport(d.sourceUri!, required.import!)) {
+        return true;
       }
-      if (target.import != null && declaredAnnotation.sourceUri != null) {
-        return _matchesImport(declaredAnnotation.sourceUri!, target.import!);
+
+      // Fallback: scan imports of the compilation unit and match by uri (and prefix unknown here)
+      final compilationUnit = node.thisOrAncestorOfType<CompilationUnit>();
+      if (compilationUnit != null) {
+        final found = compilationUnit.directives.whereType<ImportDirective>().any((imp) {
+          final uriString = imp.uri.stringValue;
+          if (uriString == null) return false;
+          return _matchesImport(uriString, required.import!);
+        });
+        if (found) return true;
       }
-      return true;
-    });
+
+      // Not matched by import -> continue searching other declared annotations
+    }
+
+    return false;
   }
 
   bool _matchesImport(String actual, String expected) {
@@ -164,19 +185,38 @@ class EnforceAnnotations extends ArchitectureLintRule {
     return false;
   }
 
+  /// Extract a source/library URI for an element using the documented API paths
+  /// (no casts/dynamic). Probe the common places used by analyzer 8.x.
   String? _extractSourceUriFromElement(Element? element) {
     if (element == null) return null;
 
-    // 1. Direct Library Access
+    // 1) element.library?.firstFragment?.source?.uri
     final lib = element.library;
     if (lib != null) {
-      // [Analyzer 8.0.0] Use firstFragment.source.uri
-      return lib.firstFragment.source.uri.toString();
+      final libFirst = lib.firstFragment;
+      final libSource = libFirst.source;
+      final libUri = libSource.uri;
+      return libUri.toString();
     }
 
-    // 2. Fragment Access (if Library is null on element directly)
-    // Note: In Analyzer 8.0.0, element.firstFragment might be available even if element.library is not fully wired?
-    // Safest path is usually element.library.
+    // 2) element.firstFragment.libraryFragment?.source?.uri
+    final firstFrag = element.firstFragment;
+    final libFrag = firstFrag.libraryFragment;
+    if (libFrag != null) {
+      final source = libFrag.source;
+      final uri = source.uri;
+      return uri.toString();
+    }
+
+    // 3) enclosingElement?.library?.firstFragment?.source?.uri
+    final enclosing = element.enclosingElement;
+    final enclosingLib = enclosing?.library;
+    if (enclosingLib != null) {
+      final encFirst = enclosingLib.firstFragment;
+      final encSource = encFirst.source;
+      final encUri = encSource.uri;
+      return encUri.toString();
+    }
 
     return null;
   }
