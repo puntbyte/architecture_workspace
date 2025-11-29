@@ -2,7 +2,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart'; // Import Analyzer FileSystem
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/fixes/create_use_case_fix.dart';
 import 'package:clean_architecture_lints/src/lints/architecture_lint_rule.dart';

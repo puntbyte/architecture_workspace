@@ -1,3 +1,5 @@
+// test/src/analysis/naming_strategy_test.dart
+
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/models/configs/naming_conventions_config.dart';
 import 'package:clean_architecture_lints/src/utils/nlp/naming_strategy.dart';
@@ -5,154 +7,130 @@ import 'package:test/test.dart';
 
 void main() {
   group('NamingStrategy', () {
-    // Setup common rules for testing using REAL ArchComponent IDs
-    final rules = [
-      const NamingRule(
-        on: ['model'],
-        pattern: '{{name}}Model',
-      ),
-      const NamingRule(
-        on: ['port'],
-        pattern: '{{name}}Port',
-      ),
-      const NamingRule(
-        on: ['entity'],
-        pattern: '{{name}}', // Generic pattern
-      ),
-    ];
-
     late NamingStrategy strategy;
 
     setUp(() {
+      // specific rules vs generic rules
+      final rules = [
+        // Specific: Length 13 ({{name}}Model)
+        const NamingRule(
+          on: ['model'],
+          pattern: '{{name}}Model',
+        ),
+        // Specific: Length 12 ({{name}}Port)
+        const NamingRule(
+          on: ['port'],
+          pattern: '{{name}}Port',
+        ),
+        // Generic: Length 8 ({{name}})
+        const NamingRule(
+          on: ['entity'],
+          pattern: '{{name}}',
+        ),
+        // Another Generic: Length 8 ({{name}})
+        const NamingRule(
+          on: ['usecase'],
+          pattern: '{{name}}',
+        ),
+      ];
+
       strategy = NamingStrategy(rules);
     });
 
     test('should NOT yield if class name matches the current component pattern', () {
-      // Case: UserModel inside Model component.
-      // Best guess: Model. Current: Model.
-      // Should validate: Yes.
+      // Scenario: 'UserModel' inside 'models' directory.
+      // It matches the Model pattern perfectly.
       expect(
-        strategy.shouldYieldToLocationLint('UserModel', ArchComponent.model),
+        strategy.shouldYieldToLocationLint(
+          'UserModel',
+          ArchComponent.model,
+          null,
+        ),
         isFalse,
-        reason: 'Name is correct for location.',
+        reason: 'Name is syntactically correct for the location.',
       );
     });
 
     test('should NOT yield if class name matches NO known patterns', () {
-      // Case: "user_model" (snake case) inside Model component.
-      // NamingUtils logic usually requires PascalCase for {{name}}.
-      // So this shouldn't match anything.
+      // Scenario: 'user_model' (snake_case) inside 'models' directory.
+      // It doesn't match Model, Entity, or Port patterns (PascalCase required).
+      // The Naming Lint should handle this (by reporting an error), not the Location Lint.
       expect(
-        strategy.shouldYieldToLocationLint('user_model', ArchComponent.model),
+        strategy.shouldYieldToLocationLint(
+          'user_model',
+          ArchComponent.model,
+          null,
+        ),
         isFalse,
-        reason: 'Name is just garbage/wrong format. Should fail naming lint, not yield.',
+        reason: 'Garbage name should be flagged by naming lint, not yielded.',
       );
     });
 
-    test('should YIELD if name matches another component AND NOT current component', () {
-      // Case: UserPort inside Model component.
-      // Current (Model): {{name}}Model. 'UserPort' does NOT match.
-      // Best Match: Port ({{name}}Port). 'UserPort' matches.
-      // Result: It's a valid Port in the wrong folder. Yield.
+    test('should YIELD if name matches a DIFFERENT component pattern specifically', () {
+      // Scenario: 'UserPort' inside 'models' directory.
+      // - Current (Model): Expects {{name}}Model. 'UserPort' does NOT match.
+      // - Other (Port): Expects {{name}}Port. 'UserPort' MATCHES.
+      // Result: This file likely belongs in the Port directory. Yield to Location Lint.
       expect(
-        strategy.shouldYieldToLocationLint('UserPort', ArchComponent.model),
+        strategy.shouldYieldToLocationLint(
+          'UserPort',
+          ArchComponent.model,
+          null,
+        ),
         isTrue,
-        reason: 'Class is clearly a Port but found in Model layer.',
+        reason: 'Class name strongly indicates it belongs to another component.',
       );
     });
 
-    test('should NOT yield if name matches BOTH current and another (Ambiguous)', () {
-      // Case: 'User' inside Entity component.
-      // Entity Pattern: {{name}} -> Matches.
-      // Model Pattern: {{name}}Model -> No.
-      // However, let's simulate ambiguity. Suppose UseCase also used {{name}}.
-
-      final ambiguousRules = [
-        const NamingRule(on: ['entity'], pattern: '{{name}}'),
-        const NamingRule(on: ['usecase'], pattern: '{{name}}'),
-      ];
-      final ambiguousStrategy = NamingStrategy(ambiguousRules);
-
-      // 'Login' in UseCase folder.
-      // Matches UseCase pattern? Yes.
-      // Matches Entity pattern? Yes.
-      // Should we yield? No. It fits where it is.
+    test('should YIELD if name matches a GENERIC pattern in a SPECIFIC folder', () {
+      // Scenario: 'User' (Entity style) inside 'models' directory.
+      // - Current (Model): Expects {{name}}Model. 'User' does NOT match.
+      // - Other (Entity): Expects {{name}}. 'User' MATCHES.
+      // Result: Likely an Entity placed in the Model folder.
       expect(
-        ambiguousStrategy.shouldYieldToLocationLint('Login', ArchComponent.usecase),
+        strategy.shouldYieldToLocationLint(
+          'User',
+          ArchComponent.model,
+          null,
+        ),
+        isTrue,
+      );
+    });
+
+    test('should NOT yield if name is AMBIGUOUS (matches current and others)', () {
+      // Scenario: 'Login' inside 'usecases' directory.
+      // - Current (UseCase): Expects {{name}}. 'Login' MATCHES.
+      // - Other (Entity): Expects {{name}}. 'Login' MATCHES.
+      // Since it fits the current location, we assume it's correct.
+      expect(
+        strategy.shouldYieldToLocationLint(
+          'Login',
+          ArchComponent.usecase,
+          null,
+        ),
         isFalse,
-        reason: 'Name is valid for current location, even if it matches others.',
+        reason: 'If valid for current location, do not yield even if it matches others.',
       );
     });
 
-    test('should prioritize Specific patterns over Generic ones', () {
-      // UserEntity inside Model folder.
-      // Patterns: Model={{name}}Model, Entity={{name}}
-      // Class: UserEntity.
-      // Matches Model? No.
-      // Matches Entity? Yes ({{name}} matches 'UserEntity').
-      // Result: Yield.
+    test('should NOT yield if STRUCTURAL IDENTITY confirms the component', () {
+      // Scenario: 'AuthContract' inside 'ports' directory.
+      // - Name: 'AuthContract'.
+      // - Current (Port): Expects {{name}}Port. 'AuthContract' does NOT match.
+      // - Best Guess: Entity ({{name}}).
+      // - Structural: It implements `Port` interface (passed as arg).
+
+      // Because we know via inheritance that it IS a Port, we stay here.
+      // This allows the Naming Lint to report "Name should end in Port",
+      // instead of the Location Lint reporting "Entity found in Port directory".
       expect(
-        strategy.shouldYieldToLocationLint('UserEntity', ArchComponent.model),
-        isTrue,
-        reason: 'Matches generic Entity pattern, does not match Model pattern. Likely misplaced.',
-      );
-    });
-
-    test('should sort patterns by length correctly', () {
-      // We use REAL components to ensure they aren't filtered out.
-      // 'model' -> {{name}}Model (Specific, Length 13)
-      // 'entity' -> {{name}}      (Generic, Length 8)
-
-      // Input: 'UserModel'
-      // Matches 'model'? Yes.
-      // Matches 'entity'? Yes ('User' matches name).
-
-      // We simulate being in an unknown location (or a component with no rule like 'widget').
-      // Since 'widget' has no rule here, _matchesComponentPattern returns false.
-      // Therefore, yield decision depends entirely on Best Match.
-
-      // If sorted correctly: Best Match = Model.
-      // If sorted incorrectly (generic first): Best Match = Entity.
-
-      // Since 'UserModel' is clearly a Model, we assume the intention is Model.
-      // However, yield simply returns true if *any* valid match is found that isn't current.
-      // This test checks if the sorting logic works by inspecting the internal list via behavior?
-      // Actually, for `shouldYield`, both result in `true` because `widget` != `model` and `widget` != `entity`.
-
-      // Let's try a case where sorting matters for ambiguity check.
-      // Suppose we are in 'entity'.
-      // Input: 'UserModel'.
-      // If Entity check runs first and matches 'UserModel' (as {{name}}), it might NOT yield if logic was flawed?
-      // Wait, `_matchesComponentPattern` checks if it matches CURRENT component.
-      // 'UserModel' matches 'entity' pattern {{name}}. So if we are in 'entity', we do NOT yield.
-
-      // Let's reverse it. We are in 'model'. Input: 'UserModel'.
-      // Matches 'model'? Yes. Don't yield.
-
-      // To verify sorting, we need to ensure `_getBestGuessComponent` returns the LONGER match.
-      // We can infer this if we have a setup where the shorter match IS the current component,
-      // but the longer match is NOT.
-
-      // Setup:
-      // Entity (Current): {{name}}
-      // Model (Other): {{name}}Model
-
-      // Input: 'UserModel' inside 'entity'.
-      // 1. Best Guess: Should be Model (if sorted correctly).
-      // 2. Current Match: Yes (matches {{name}}).
-      // 3. Logic: "If matchesCurrent, return false".
-
-      // This implies that even if Model is a better guess, if it fits Entity, we allow it.
-      // This is a "safe" strategy to avoid false positives.
-
-      // To strictly test sorting, we rely on the fact that `shouldYieldToLocationLint` uses
-      // `_getBestGuessComponent` internally. If we want to test `_getBestGuessComponent` behavior,
-      // we'd need it public or inspect internal state.
-      // However, for this unit test, we can accept that `shouldYield` behaves correctly for valid inputs.
-
-      expect(
-        strategy.shouldYieldToLocationLint('UserModel', ArchComponent.widget),
-        isTrue,
+        strategy.shouldYieldToLocationLint(
+          'AuthContract',
+          ArchComponent.port,
+          ArchComponent.port, // structuralComponent
+        ),
+        isFalse,
+        reason: 'Inheritance overrides naming guess.',
       );
     });
   });

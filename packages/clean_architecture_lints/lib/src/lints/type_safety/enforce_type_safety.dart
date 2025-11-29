@@ -1,4 +1,4 @@
-// lib/src/lints/structure/enforce_type_safety.dart
+// lib/src/lints/type_safety/enforce_type_safety.dart
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
@@ -12,20 +12,15 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 /// A lint that enforces strong types in method signatures, migrating
 /// away from unsafe primitives based on the `type_safeties` configuration.
 class EnforceTypeSafety extends ArchitectureLintRule {
-  static const _returnCode = LintCode(
-    name: 'enforce_type_safety_return',
-    problemMessage: 'The return type should be `{0}`, not `{1}`.',
-    correctionMessage: 'Consider refactoring to use the safer `{0}` type.',
-    errorSeverity: DiagnosticSeverity.WARNING,
-  );
-  static const _parameterCode = LintCode(
-    name: 'enforce_type_safety_parameter',
-    problemMessage: 'The parameter `{0}` should be of type `{1}`, not `{2}`.',
+  static const _code = LintCode(
+    name: 'enforce_type_safety',
+    problemMessage: '{0}',
+    correctionMessage: 'Consider refactoring to use the safer type.',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
 
   const EnforceTypeSafety({required super.config, required super.layerResolver})
-    : super(code: _returnCode);
+      : super(code: _code);
 
   @override
   void run(CustomLintResolver resolver, DiagnosticReporter reporter, CustomLintContext context) {
@@ -50,10 +45,10 @@ class EnforceTypeSafety extends ArchitectureLintRule {
   }
 
   void _validateReturnType(
-    MethodDeclaration node,
-    List<TypeSafetyRule> rules,
-    DiagnosticReporter reporter,
-  ) {
+      MethodDeclaration node,
+      List<TypeSafetyRule> rules,
+      DiagnosticReporter reporter,
+      ) {
     final returnTypeNode = node.returnType;
     if (returnTypeNode == null) return;
 
@@ -66,14 +61,13 @@ class EnforceTypeSafety extends ArchitectureLintRule {
     // Check against all applicable return rules.
     for (final rule in rules) {
       for (final detail in rule.returns) {
-        // Use 'startsWith' or explicit check to handle generics if needed
-        // e.g. unsafe: 'Future', safe: 'FutureEither'.
-        // 'Future<void>' starts with 'Future'.
         if (returnTypeName == detail.unsafeType) {
           reporter.atNode(
             returnTypeNode,
-            _returnCode,
-            arguments: [detail.safeType, detail.unsafeType],
+            _code,
+            arguments: [
+              'The return type should be `${detail.safeType}`, not `${detail.unsafeType}`.',
+            ],
           );
           return; // Report once per return type.
         }
@@ -82,10 +76,10 @@ class EnforceTypeSafety extends ArchitectureLintRule {
   }
 
   void _validateParameters(
-    MethodDeclaration node,
-    List<TypeSafetyRule> rules,
-    DiagnosticReporter reporter,
-  ) {
+      MethodDeclaration node,
+      List<TypeSafetyRule> rules,
+      DiagnosticReporter reporter,
+      ) {
     if (node.parameters == null) return;
 
     for (final parameter in node.parameters!.parameters) {
@@ -102,15 +96,16 @@ class EnforceTypeSafety extends ArchitectureLintRule {
         for (final detail in rule.parameters) {
           // Check if both the type and (if specified) the identifier match.
           if (paramTypeName == detail.unsafeType) {
-            final identifierMatches =
-                detail.identifier == null ||
+            final identifierMatches = detail.identifier == null ||
                 paramName.toLowerCase().contains(detail.identifier!.toLowerCase());
 
             if (identifierMatches) {
               reporter.atNode(
                 typeNode,
-                _parameterCode,
-                arguments: [paramName, detail.safeType, detail.unsafeType],
+                _code,
+                arguments: [
+                  'The parameter `$paramName` should be of type `${detail.safeType}`, not `${detail.unsafeType}`.',
+                ],
               );
               // Break inner loops to report only once per parameter.
               break;

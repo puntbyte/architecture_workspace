@@ -23,11 +23,11 @@ import 'package:clean_architecture_lints/src/lints/naming/enforce_semantic_namin
 import 'package:clean_architecture_lints/src/lints/purity/disallow_entity_in_data_source.dart';
 import 'package:clean_architecture_lints/src/lints/purity/disallow_flutter_in_domain.dart';
 import 'package:clean_architecture_lints/src/lints/purity/disallow_model_in_domain.dart';
-import 'package:clean_architecture_lints/src/lints/purity/disallow_model_return_from_repository.dart';
+import 'package:clean_architecture_lints/src/lints/type_safety/disallow_model_return_from_repository.dart';
 import 'package:clean_architecture_lints/src/lints/purity/enforce_contract_api.dart';
 import 'package:clean_architecture_lints/src/lints/purity/require_to_entity_method.dart';
 import 'package:clean_architecture_lints/src/lints/structure/enforce_annotations.dart';
-import 'package:clean_architecture_lints/src/lints/structure/enforce_type_safety.dart';
+import 'package:clean_architecture_lints/src/lints/type_safety/enforce_type_safety.dart';
 import 'package:clean_architecture_lints/src/lints/structure/missing_use_case.dart';
 import 'package:clean_architecture_lints/src/models/configs/architecture_config.dart';
 import 'package:clean_architecture_lints/src/utils/nlp/language_analyzer.dart';

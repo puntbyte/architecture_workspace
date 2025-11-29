@@ -8,12 +8,10 @@ import 'package:clean_architecture_lints/src/utils/nlp/naming_strategy.dart';
 import 'package:clean_architecture_lints/src/utils/nlp/naming_utils.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-/// Enforces that classes follow the required syntactic naming pattern.
 class EnforceNamingPattern extends ArchitectureLintRule {
   static const _code = LintCode(
     name: 'enforce_naming_pattern',
-    problemMessage: 'The {2} name "{0}" does not match the required pattern "{1}".',
-    correctionMessage: 'Rename the class to follow the structure "{1}".',
+    problemMessage: 'The name `{0}` does not match the required `{1}` convention for a {2}.',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
 
@@ -37,7 +35,18 @@ class EnforceNamingPattern extends ArchitectureLintRule {
       final rule = config.namingConventions.getRuleFor(actualComponent);
       if (rule == null) return;
 
-      if (_namingStrategy.shouldYieldToLocationLint(className, actualComponent)) {
+      // Determine Structural Identity (Inheritance)
+      final element = node.declaredFragment?.element;
+      final structuralComponent = element != null
+          ? layerResolver.getComponentFromSupertype(element)
+          : null;
+
+      // Pass structural info to strategy
+      if (_namingStrategy.shouldYieldToLocationLint(
+        className,
+        actualComponent,
+        structuralComponent,
+      )) {
         return;
       }
 
@@ -45,11 +54,7 @@ class EnforceNamingPattern extends ArchitectureLintRule {
         reporter.atToken(
           node.name,
           _code,
-          arguments: [
-            className, // {0} User
-            rule.pattern, // {1} {{name}}Model
-            actualComponent.label, // {2} Model
-          ],
+          arguments: [className, rule.pattern, actualComponent.label],
         );
       }
     });

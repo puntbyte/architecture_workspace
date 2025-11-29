@@ -49,7 +49,7 @@ custom_lint:
 
     # --- Type Safety Rules ---
     - disallow_model_return_from_repository: true
-    - enforce_custom_type_safety: true
+    - enforce_type_safety: true
 
     # --- Error Handling Rules ---
     - enforce_try_catch_in_repository: true
@@ -286,7 +286,7 @@ custom_lint:
         # Defining is not required unless for overringing the values.
         - on: port
           allowed:
-            component: 'repository'
+            component: ['entity', 'repository']
 
         # The default rule used for [usecase_in_repository].
         # Defining is not required unless for overringing the values.

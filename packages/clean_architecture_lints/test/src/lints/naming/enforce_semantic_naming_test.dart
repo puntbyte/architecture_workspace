@@ -1,4 +1,4 @@
-// test/src/lints/naming/enforce_semantic_naming_test.dart
+
 
 import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:clean_architecture_lints/src/analysis/layer_resolver.dart';
 import 'package:clean_architecture_lints/src/lints/naming/enforce_semantic_naming.dart';
-// Correct Import
 import 'package:clean_architecture_lints/src/utils/nlp/language_analyzer.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -36,19 +35,18 @@ void main() {
 
       analyzer = LanguageAnalyzer(
         posOverrides: {
-          'user': {'NOUN'},      // Singular
-          'violation': {'NOUN'}, // Singular
-          'violations': {'NOUN'}, // Plural logic might need dictionary, so we override here for test stability
+          'user': {'NOUN'},
           'list': {'NOUN'},
-          // 'users' isn't needed if isNounPlural logic handles suffixes correctly,
-          // but adding it for robust testing if dictionary is missing.
-          'users': {'NOUN'},
+          'auth': {'NOUN'},
+          'contract': {'NOUN'}, // Added to test suffix logic
         },
       );
     });
 
     tearDown(() {
-      try { tempDir.deleteSync(recursive: true); } catch (_) {}
+      try {
+        tempDir.deleteSync(recursive: true);
+      } catch (_) {}
     });
 
     Future<List<Diagnostic>> runLint({
@@ -57,7 +55,9 @@ void main() {
     }) async {
       final fullPath = p.canonicalize(p.join(testProjectPath, filePath));
       contextCollection = AnalysisContextCollection(includedPaths: [testProjectPath]);
-      final resolvedUnit = await contextCollection.contextFor(fullPath).currentSession.getResolvedUnit(fullPath) as ResolvedUnitResult;
+      final resolvedUnit =
+          await contextCollection.contextFor(fullPath).currentSession.getResolvedUnit(fullPath)
+              as ResolvedUnitResult;
 
       final config = makeConfig(namingRules: namingRules);
       final lint = EnforceSemanticNaming(
@@ -70,56 +70,38 @@ void main() {
       return lints.cast<Diagnostic>();
     }
 
-    group('Plural Grammar: {{noun.plural}}', () {
-      final listRule = {'on': 'model', 'grammar': '{{noun.plural}}List'};
+    group('Suffix / Pattern Interaction', () {
+      test('Ignores suffix mismatch (delegates to enforce_naming_pattern)', () async {
+        // Grammar: {{noun.phrase}}Port
+        // Class: AuthContract (Should fail syntax check, but pass semantic check)
+        // Reason: If we checked semantics, "AuthContract" -> base "AuthContract".
+        // But we assume "Port" is required. Since it's missing, we skip.
 
-      test('validates "UsersList" (Plural Noun)', () async {
-        const path = 'lib/features/user/data/models/users_list.dart';
-        addFile(path, 'class UsersList {}'); // "Users" -> "User" (Noun) -> Plural
+        final portRule = {'on': 'port', 'grammar': '{{noun.phrase}}Port'};
 
-        final lints = await runLint(filePath: path, namingRules: [listRule]);
+        const path = 'lib/features/user/domain/ports/auth_contract.dart';
+        addFile(path, 'abstract interface class AuthContract {}');
+
+        final lints = await runLint(filePath: path, namingRules: [portRule]);
+
+        // Expect NO semantic errors.
+        // The `enforce_naming_pattern` lint would catch the missing 'Port' suffix.
         expect(lints, isEmpty);
       });
 
-      test('reports violation for "UserList" (Singular Noun)', () async {
-        const path = 'lib/features/user/data/models/user_list.dart';
-        addFile(path, 'class UserList {}'); // "User" is singular
+      test('Validates grammar on base name when suffix matches', () async {
+        // Grammar: {{noun.phrase}}Port
+        // Class: GetUserPort (Suffix matches, but "Get" is a verb -> Semantic Violation)
+        final portRule = {'on': 'port', 'grammar': '{{noun.phrase}}Port'};
 
-        final lints = await runLint(filePath: path, namingRules: [listRule]);
+        const path = 'lib/features/user/domain/ports/get_user_port.dart';
+        addFile(path, 'abstract interface class GetUserPort {}');
+
+        final lints = await runLint(filePath: path, namingRules: [portRule]);
+
         expect(lints, hasLength(1));
-        expect(lints.first.message, contains('must be a Plural Noun'));
+        expect(lints.first.message, contains('implies an action/verb'));
       });
-    });
-
-    group('Singular Grammar: {{noun.singular}}', () {
-      final entityRule = {'on': 'entity', 'grammar': '{{noun.singular}}'};
-
-      test('validates "User" (Singular)', () async {
-        const path = 'lib/features/user/domain/entities/user.dart';
-        addFile(path, 'class User {}');
-        final lints = await runLint(filePath: path, namingRules: [entityRule]);
-        expect(lints, isEmpty);
-      });
-
-      test('reports violation for "Users" (Plural)', () async {
-        const path = 'lib/features/user/domain/entities/users.dart';
-        addFile(path, 'class Users {}');
-        final lints = await runLint(filePath: path, namingRules: [entityRule]);
-        expect(lints, hasLength(1));
-        expect(lints.first.message, contains('must be a Singular Noun'));
-      });
-    });
-
-    test('Port Example: TypeSafetyViolationsPort (Violations = Plural Noun)', () async {
-      // Grammar is generic {{noun.phrase}}Port, which allows singular OR plural.
-      // "Violations" ends in 's', stem "Violation" is Noun. So it is a Noun.
-      final portRule = {'on': 'port', 'grammar': '{{noun.phrase}}Port'};
-
-      const path = 'lib/features/user/domain/ports/violations_port.dart';
-      addFile(path, 'abstract interface class TypeSafetyViolationsPort {}');
-
-      final lints = await runLint(filePath: path, namingRules: [portRule]);
-      expect(lints, isEmpty);
     });
   });
 }

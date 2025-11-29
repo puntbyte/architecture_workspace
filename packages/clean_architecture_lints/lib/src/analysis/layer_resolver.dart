@@ -1,5 +1,6 @@
 // lib/src/analysis/layer_resolver.dart
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:clean_architecture_lints/src/analysis/arch_component.dart';
 import 'package:clean_architecture_lints/src/models/configs/architecture_config.dart';
 import 'package:clean_architecture_lints/src/models/configs/module_config.dart';
@@ -16,43 +17,45 @@ class LayerResolver {
     final componentFromPath = _getComponentFromPath(path);
 
     if (className != null) {
-      if (componentFromPath == .manager) {
+      if (componentFromPath == ArchComponent.manager) {
         return _refineComponent(
           className: className,
-          baseComponent: .manager,
+          baseComponent: ArchComponent.manager,
           potentialComponents: [
-            .eventInterface,
-            .stateInterface,
-            .manager,
-            .stateImplementation,
-            .eventImplementation,
+            ArchComponent.eventInterface,
+            ArchComponent.stateInterface,
+            ArchComponent.manager,
+            ArchComponent.stateImplementation,
+            ArchComponent.eventImplementation,
           ],
         );
       }
-      if (componentFromPath == .source) {
+
+      if (componentFromPath == ArchComponent.source) {
         return _refineComponent(
           className: className,
-          baseComponent: .source,
+          baseComponent: ArchComponent.source,
           potentialComponents: [
-            .sourceImplementation,
-            .sourceInterface,
+            ArchComponent.sourceInterface,
+            ArchComponent.sourceImplementation,
           ],
         );
       }
     }
+
     return componentFromPath;
   }
 
   ArchComponent _getComponentFromPath(String path) {
     final segments = _getRelativePathSegments(path);
-    if (segments == null || !_isPathInArchitecturalLayer(segments)) {
-      return .unknown;
-    }
+    if (segments == null || !_isPathInArchitecturalLayer(segments)) return ArchComponent.unknown;
+
     for (final segment in segments.reversed) {
       final component = _componentDirectoryMap[segment];
       if (component != null) return component;
     }
-    return .unknown;
+
+    return ArchComponent.unknown;
   }
 
   ArchComponent _refineComponent({
@@ -84,32 +87,49 @@ class LayerResolver {
     final segments = p.split(normalized);
     final libIndex = segments.lastIndexOf('lib');
     if (libIndex == -1) return null;
+
     return segments.sublist(libIndex + 1);
+  }
+
+  /// NEW: Identifies the component type based on its supertypes (Inheritance).
+  /// This breaks ambiguities when the name doesn't match the location.
+  ArchComponent? getComponentFromSupertype(InterfaceElement element) {
+    for (final supertype in element.allSupertypes) {
+      final library = supertype.element.library;
+      // [Analyzer 8.0.0] Use firstFragment.source
+      final source = library.firstFragment.source;
+
+      // Check if the supertype definition file belongs to a known architectural component
+      final comp = getComponent(source.fullName);
+
+      // We are looking for core architectural identities (Entity, Port, etc.)
+      // If we find one, we assume this class IS that component.
+      if (comp != ArchComponent.unknown) return comp;
+    }
+    return null;
   }
 
   static Map<String, ArchComponent> _createComponentDirectoryMap(ArchitectureConfig config) {
     final map = <String, ArchComponent>{};
     final layers = config.layers;
 
-    // Local helper to reduce repetition
-    void register(List<String> directories, ArchComponent component) {
-      for (final dir in directories) { map[dir] = component; }
+    void register(List<String> dirs, ArchComponent component) {
+      for (final dir in dirs) {
+        map[dir] = component;
+      }
     }
 
-    // Domain
     register(layers.domain.entity, ArchComponent.entity);
     register(layers.domain.port, ArchComponent.port);
     register(layers.domain.usecase, ArchComponent.usecase);
 
-    // Data
     register(layers.data.model, ArchComponent.model);
-    register(layers.data.repository, ArchComponent.repository);
     register(layers.data.source, ArchComponent.source);
+    register(layers.data.repository, ArchComponent.repository);
 
-    // Presentation
-    register(layers.presentation.page, ArchComponent.page);
-    register(layers.presentation.widget, ArchComponent.widget);
     register(layers.presentation.manager, ArchComponent.manager);
+    register(layers.presentation.widget, ArchComponent.widget);
+    register(layers.presentation.page, ArchComponent.page);
 
     return map;
   }

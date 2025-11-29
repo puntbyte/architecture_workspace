@@ -34,18 +34,24 @@ class EnforceFileAndFolderLocation extends ArchitectureLintRule {
     context.registry.addClassDeclaration((node) {
       final className = node.name.lexeme;
       final filePath = resolver.source.fullName;
+
+      // [Analyzer 8.0.0]
       final classElement = node.declaredFragment?.element;
 
+      // 1. Actual Location
       final actualComponent = layerResolver.getComponent(filePath);
       if (actualComponent == ArchComponent.unknown) return;
 
+      // 2. Expected Location (Based on Name)
       final bestMatch = _getBestMatch(className);
       if (bestMatch == null) return;
 
       final expectedComponent = bestMatch.component;
 
       if (expectedComponent != actualComponent) {
-        // Check A: Ambiguity / Specificity
+        // Exception A: Ambiguity / Specificity
+        // If the class name matches the pattern for the CURRENT location as well,
+        // and that pattern is sufficiently specific (or equal), allow it.
         final actualPattern = _sortedPatterns.firstWhereOrNull(
           (p) =>
               p.component == actualComponent &&
@@ -53,12 +59,12 @@ class EnforceFileAndFolderLocation extends ArchitectureLintRule {
         );
 
         if (actualPattern != null) {
-          if (actualPattern.pattern.length >= bestMatch.pattern.length) {
-            return;
-          }
+          if (actualPattern.pattern.length >= bestMatch.pattern.length) return;
         }
 
-        // Check B: Inheritance Intent
+        // Exception B: Inheritance Intent
+        // If the class physically implements/extends the contract required by the ACTUAL location,
+        // we assume the location is correct and the name might just be weird.
         if (classElement != null && _satisfiesInheritanceRule(classElement, actualComponent)) {
           return;
         }
@@ -67,9 +73,9 @@ class EnforceFileAndFolderLocation extends ArchitectureLintRule {
           node.name,
           _code,
           arguments: [
-            expectedComponent.label,
-            actualComponent.label,
-            expectedComponent.label,
+            expectedComponent.label, // e.g. Entity (guessed from name)
+            actualComponent.label, // e.g. Port (actual folder)
+            expectedComponent.label, // e.g. Entity directory
           ],
         );
       }
@@ -79,29 +85,40 @@ class EnforceFileAndFolderLocation extends ArchitectureLintRule {
   bool _satisfiesInheritanceRule(ClassElement element, ArchComponent targetComponent) {
     final rule = config.inheritances.ruleFor(targetComponent.id);
     if (rule == null || rule.required.isEmpty) return false;
+
     return rule.required.any((detail) => _hasSupertype(element, detail));
   }
 
   bool _hasSupertype(ClassElement element, InheritanceDetail detail) {
+    // Case 1: Component-based check
+    if (detail.component != null) {
+      final requiredComponent = ArchComponent.fromId(detail.component!);
+      if (requiredComponent == ArchComponent.unknown) return false;
+
+      return element.allSupertypes.any((supertype) {
+        final source = supertype.element.library.firstFragment.source;
+        return layerResolver.getComponent(source.fullName) == requiredComponent;
+      });
+    }
+
+    // Case 2: Explicit Name/Import check
     if (detail.name == null || detail.import == null) return false;
 
     return element.allSupertypes.any((supertype) {
       final superElement = supertype.element;
       if (superElement.name != detail.name) return false;
 
-      // Analyzer 8.0.0
       final libraryUri = superElement.library.firstFragment.source.uri.toString();
       final configUri = detail.import!;
 
+      // Exact Match
       if (libraryUri == configUri) return true;
 
-      // Path Suffix Match (Robust)
+      // Robust Suffix Matching
       final libSuffix = _extractPathSuffix(libraryUri);
       final configSuffix = _extractPathSuffix(configUri);
 
-      if (libSuffix != null && configSuffix != null && libSuffix == configSuffix) {
-        return true;
-      }
+      if (libSuffix != null && configSuffix != null && libSuffix == configSuffix) return true;
 
       if (libraryUri.endsWith(configUri)) return true;
 
@@ -109,15 +126,18 @@ class EnforceFileAndFolderLocation extends ArchitectureLintRule {
     });
   }
 
+  /// Extracts the path relative to 'lib' or the package root.
   String? _extractPathSuffix(String uriString) {
     final uri = Uri.tryParse(uriString);
     if (uri == null) return null;
 
     if (uri.scheme == 'package') {
+      // package:example/core/port.dart -> core/port.dart
       if (uri.pathSegments.length > 1) {
         return uri.pathSegments.sublist(1).join('/');
       }
     } else if (uri.scheme == 'file') {
+      // file:///.../lib/core/port.dart -> core/port.dart
       final segments = uri.pathSegments;
       final libIndex = segments.lastIndexOf('lib');
       if (libIndex != -1 && libIndex < segments.length - 1) {

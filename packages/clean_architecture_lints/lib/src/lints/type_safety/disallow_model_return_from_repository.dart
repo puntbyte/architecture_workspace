@@ -1,4 +1,4 @@
-// lib/src/lints/purity/disallow_model_return_from_repository.dart
+// lib/src/lints/type_safety/disallow_model_return_from_repository.dart
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';

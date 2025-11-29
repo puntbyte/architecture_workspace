@@ -8,14 +8,12 @@ import 'package:clean_architecture_lints/src/utils/extensions/string_extension.d
 import 'package:clean_architecture_lints/src/utils/nlp/language_analyzer.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-/// Enforces that classes follow the semantic naming conventions (grammar).
 class EnforceSemanticNaming extends ArchitectureLintRule {
   static const _code = LintCode(
     name: 'enforce_semantic_naming',
     problemMessage: 'The {2} name "{0}" is grammatically incorrect: {1}',
     correctionMessage:
-        'Rename the class to satisfy the grammar rule (e.g., use Nouns for Entities, Verb-Noun for '
-        'UseCases).',
+        'Rename the class to satisfy the grammar rule (e.g., use Nouns for Entities, Verb-Noun for UseCases).',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
 
@@ -47,9 +45,9 @@ class EnforceSemanticNaming extends ArchitectureLintRule {
           node.name,
           _code,
           arguments: [
-            className, // {0} FetchingUser
-            result.message ?? 'Structure check failed', // {1} Must be a Noun...
-            component.label, // {2} Entity
+            className,
+            result.message ?? 'Structure check failed',
+            component.label,
           ],
         );
       }
@@ -57,7 +55,6 @@ class EnforceSemanticNaming extends ArchitectureLintRule {
   }
 }
 
-// ... (Helper classes _ValidationResult and _GrammarValidator remain unchanged)
 class _ValidationResult {
   final bool isValid;
   final String? message;
@@ -106,10 +103,13 @@ class _GrammarValidator {
       final token = grammar.substring(2, tokenEndIndex);
       final suffix = grammar.substring(tokenEndIndex + 2);
 
+      // FIX: If the name doesn't end with the required suffix, we skip checking semantics.
+      // The `enforce_naming_pattern` lint is responsible for enforcing the suffix.
       if (suffix.isNotEmpty && !className.endsWith(suffix)) {
-        return _ValidationResult.invalid('It must end with the suffix "$suffix".');
+        return const _ValidationResult.valid();
       }
 
+      // Extract the base name to check its grammar
       final baseName = suffix.isNotEmpty
           ? className.substring(0, className.length - suffix.length)
           : className;
@@ -148,6 +148,7 @@ class _GrammarValidator {
           );
         }
       }
+
       return const _ValidationResult.valid();
     }
 
@@ -177,6 +178,7 @@ class _GrammarValidator {
     if (nlp.isNounSingular(word)) types.add('Singular Noun');
     if (nlp.isNounPlural(word)) types.add('Plural Noun');
     if (types.isEmpty && nlp.isNoun(word)) types.add('Noun');
+
     if (nlp.isVerb(word) && !word.toLowerCase().endsWith('ed')) types.add('Verb');
     if (nlp.isAdjective(word)) types.add('Adjective');
     if (nlp.isVerbGerund(word)) types.add('Gerund');

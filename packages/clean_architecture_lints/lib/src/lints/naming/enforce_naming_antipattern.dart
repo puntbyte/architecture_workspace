@@ -8,13 +8,12 @@ import 'package:clean_architecture_lints/src/utils/nlp/naming_strategy.dart';
 import 'package:clean_architecture_lints/src/utils/nlp/naming_utils.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-/// Enforces that classes do not use forbidden naming patterns.
+/// Enforces that classes do not use forbidden naming patterns (e.g., `{{name}}Entity`).
 class EnforceNamingAntipattern extends ArchitectureLintRule {
   static const _code = LintCode(
     name: 'enforce_naming_antipattern',
     problemMessage: 'The {1} name "{0}" matches the forbidden pattern "{2}".',
-    correctionMessage:
-        'Rename the class to avoid this pattern. (e.g., remove the suffix if forbidden).',
+    correctionMessage: 'Rename the class to avoid this pattern. (e.g., remove the suffix if forbidden).',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
 
@@ -24,7 +23,7 @@ class EnforceNamingAntipattern extends ArchitectureLintRule {
     required super.config,
     required super.layerResolver,
   }) : _namingStrategy = NamingStrategy(config.namingConventions.rules),
-       super(code: _code);
+        super(code: _code);
 
   @override
   void run(CustomLintResolver resolver, DiagnosticReporter reporter, CustomLintContext context) {
@@ -38,16 +37,29 @@ class EnforceNamingAntipattern extends ArchitectureLintRule {
       final rule = config.namingConventions.getRuleFor(actualComponent);
       if (rule == null || rule.antipattern == null || rule.antipattern!.isEmpty) return;
 
-      if (_namingStrategy.shouldYieldToLocationLint(className, actualComponent)) return;
+      // 1. Determine Structural Identity (Inheritance)
+      final element = node.declaredFragment?.element;
+      final structuralComponent = element != null
+          ? layerResolver.getComponentFromSupertype(element)
+          : null;
 
+      // 2. Pre-Check: Is this actually a Location Error?
+      // If the class name strongly suggests another component AND inheritance doesn't prove otherwise,
+      // we yield to EnforceFileAndFolderLocation.
+      if (_namingStrategy.shouldYieldToLocationLint(
+          className, actualComponent, structuralComponent)) {
+        return;
+      }
+
+      // 3. Antipattern Check
       if (NamingUtils.validateName(name: className, template: rule.antipattern!)) {
         reporter.atToken(
           node.name,
           _code,
           arguments: [
-            className, // {0} UserEntity
+            className,             // {0} UserEntity
             actualComponent.label, // {1} Entity
-            rule.antipattern!, // {2} {{name}}Entity
+            rule.antipattern!,     // {2} {{name}}Entity
           ],
         );
       }

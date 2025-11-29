@@ -5,7 +5,7 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:clean_architecture_lints/src/analysis/layer_resolver.dart';
-import 'package:clean_architecture_lints/src/lints/purity/disallow_model_return_from_repository.dart';
+import 'package:clean_architecture_lints/src/lints/type_safety/disallow_model_return_from_repository.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

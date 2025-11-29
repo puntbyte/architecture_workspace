@@ -1,4 +1,4 @@
-// example/lib/features/auth/domain/ports/auth_port.violations.dart
+// lib/features/auth/domain/ports/auth_port.violations.dart
 
 import 'package:feature_first_example/core/port/port.dart';
 import 'package:feature_first_example/core/utils/types.dart';
