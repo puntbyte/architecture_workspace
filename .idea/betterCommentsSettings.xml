@@ -31,8 +31,12 @@
           <option name="type" value="---" />
         </CustomTag>
         <CustomTag>
-          <option name="color" value="#00FF66" />
+          <option name="color" value="#FFFF66" />
           <option name="type" value="===" />
+        </CustomTag>
+        <CustomTag>
+          <option name="color" value="#9999FF" />
+          <option name="type" value="≡≡≡" />
         </CustomTag>
       </list>
     </option>

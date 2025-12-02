@@ -12,12 +12,12 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/clean_architecture_core/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/packages/clean_architecture_core/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/packages/clean_architecture_core/build" />
-      <excludeFolder url="file://$MODULE_DIR$/packages/clean_architecture_lints/.dart_tool" />
-      <excludeFolder url="file://$MODULE_DIR$/packages/clean_architecture_lints/.pub" />
-      <excludeFolder url="file://$MODULE_DIR$/packages/clean_architecture_lints/build" />
-      <excludeFolder url="file://$MODULE_DIR$/packages/clean_architecture_lints/example/.dart_tool" />
-      <excludeFolder url="file://$MODULE_DIR$/packages/clean_architecture_lints/example/.pub" />
-      <excludeFolder url="file://$MODULE_DIR$/packages/clean_architecture_lints/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/architecture_lints/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/architecture_lints/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/architecture_lints/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/architecture_lints/example/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/architecture_lints/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/architecture_lints/example/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

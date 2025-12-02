@@ -6,9 +6,10 @@ environment:
   sdk: ^3.10.0
 
 workspace:
+  - packages/architecture_lints
   - packages/clean_architecture_core
   - packages/clean_architecture_kit
-  - packages/clean_architecture_lints
+  - packages/clean_architecture_lints_experimental
   - examples/feature_first_example
 
 dev_dependencies:
@@ -27,9 +28,9 @@ melos:
       run: dart run build_runner build --delete-conflicting-outputs
       exec:
         concurrency: 4
-      #packageFilters:
-        #scope:
+          #packageFilters:
+          #scope:
           #- app_example
-          #- console_example
+        #- console_example
     test:
       run: dart test
