@@ -4,43 +4,43 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:architecture_lints/src/analysis/layer_resolver.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
-import 'package:architecture_lints/src/lints/contract/enforce_custom_inheritance.dart';
-import 'package:architecture_lints/src/lints/contract/enforce_entity_contract.dart';
-import 'package:architecture_lints/src/lints/contract/enforce_port_contract.dart';
-import 'package:architecture_lints/src/lints/contract/enforce_repository_contract.dart';
-import 'package:architecture_lints/src/lints/contract/enforce_usecase_contract.dart';
-import 'package:architecture_lints/src/lints/dependency/'
+import 'package:architecture_lints/src/lints_old/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints_old/contract/enforce_custom_inheritance.dart';
+import 'package:architecture_lints/src/lints_old/contract/enforce_entity_contract.dart';
+import 'package:architecture_lints/src/lints_old/contract/enforce_port_contract.dart';
+import 'package:architecture_lints/src/lints_old/contract/enforce_repository_contract.dart';
+import 'package:architecture_lints/src/lints_old/contract/enforce_usecase_contract.dart';
+import 'package:architecture_lints/src/lints_old/dependency/'
     'disallow_dependency_instantiation.dart';
-import 'package:architecture_lints/src/lints/dependency/'
+import 'package:architecture_lints/src/lints_old/dependency/'
     'disallow_repository_in_presentation.dart';
-import 'package:architecture_lints/src/lints/dependency/disallow_service_locator.dart';
-import 'package:architecture_lints/src/lints/dependency/disallow_use_case_in_widget.dart';
-import 'package:architecture_lints/src/lints/dependency/'
+import 'package:architecture_lints/src/lints_old/dependency/disallow_service_locator.dart';
+import 'package:architecture_lints/src/lints_old/dependency/disallow_use_case_in_widget.dart';
+import 'package:architecture_lints/src/lints_old/dependency/'
     'enforce_abstract_data_source_dependency.dart';
-import 'package:architecture_lints/src/lints/dependency/'
+import 'package:architecture_lints/src/lints_old/dependency/'
     'enforce_abstract_repository_dependency.dart';
-import 'package:architecture_lints/src/lints/dependency/enforce_layer_independence.dart';
-import 'package:architecture_lints/src/lints/error_handling/'
+import 'package:architecture_lints/src/lints_old/dependency/enforce_layer_independence.dart';
+import 'package:architecture_lints/src/lints_old/error_handling/'
     'disallow_throwing_from_repository.dart';
-import 'package:architecture_lints/src/lints/error_handling/'
+import 'package:architecture_lints/src/lints_old/error_handling/'
     'enforce_exception_on_data_source.dart';
-import 'package:architecture_lints/src/lints/error_handling/'
+import 'package:architecture_lints/src/lints_old/error_handling/'
     'enforce_try_catch_in_repository.dart';
-import 'package:architecture_lints/src/lints/location/enforce_file_and_folder_location.dart';
-import 'package:architecture_lints/src/lints/naming/enforce_naming_antipattern.dart';
-import 'package:architecture_lints/src/lints/naming/enforce_naming_pattern.dart';
-import 'package:architecture_lints/src/lints/naming/enforce_semantic_naming.dart';
-import 'package:architecture_lints/src/lints/purity/disallow_entity_in_data_source.dart';
-import 'package:architecture_lints/src/lints/purity/disallow_flutter_in_domain.dart';
-import 'package:architecture_lints/src/lints/purity/disallow_model_in_domain.dart';
-import 'package:architecture_lints/src/lints/purity/enforce_contract_api.dart';
-import 'package:architecture_lints/src/lints/purity/require_to_entity_method.dart';
-import 'package:architecture_lints/src/lints/structure/enforce_annotations.dart';
-import 'package:architecture_lints/src/lints/structure/missing_use_case.dart';
-import 'package:architecture_lints/src/lints/type_safety/'
+import 'package:architecture_lints/src/lints_old/location/enforce_file_and_folder_location.dart';
+import 'package:architecture_lints/src/lints_old/naming/enforce_naming_antipattern.dart';
+import 'package:architecture_lints/src/lints_old/naming/enforce_naming_pattern.dart';
+import 'package:architecture_lints/src/lints_old/naming/enforce_semantic_naming.dart';
+import 'package:architecture_lints/src/lints_old/purity/disallow_entity_in_data_source.dart';
+import 'package:architecture_lints/src/lints_old/purity/disallow_flutter_in_domain.dart';
+import 'package:architecture_lints/src/lints_old/purity/disallow_model_in_domain.dart';
+import 'package:architecture_lints/src/lints_old/purity/enforce_contract_api.dart';
+import 'package:architecture_lints/src/lints_old/purity/require_to_entity_method.dart';
+import 'package:architecture_lints/src/lints_old/structure/enforce_annotations.dart';
+import 'package:architecture_lints/src/lints_old/structure/missing_use_case.dart';
+import 'package:architecture_lints/src/lints_old/type_safety/'
     'disallow_model_return_from_repository.dart';
-import 'package:architecture_lints/src/lints/type_safety/enforce_type_safety.dart';
+import 'package:architecture_lints/src/lints_old/type_safety/enforce_type_safety.dart';
 import 'package:architecture_lints/src/models/configs/architecture_config.dart';
 import 'package:architecture_lints/src/utils/nlp/language_analyzer.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';

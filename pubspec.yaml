@@ -10,7 +10,7 @@ workspace:
   - packages/clean_architecture_core
   - packages/clean_architecture_kit
   - packages/clean_architecture_lints_experimental
-  - examples/feature_first_example
+  - examples/clean_feature_first
 
 dev_dependencies:
   melos: ^7.3.0

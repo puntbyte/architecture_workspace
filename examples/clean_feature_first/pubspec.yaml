@@ -1,0 +1,30 @@
+name: clean_feature_first
+description: >-
+  A demonstration project for the architecture_lints package using feature first clean architecture.
+
+publish_to: 'none'
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  bloc: any
+  cached: any
+  clean_architecture_core:
+    path: ../../packages/clean_architecture_core
+  dart_mappable: any
+  flutter_bloc: any
+  flutter:
+    sdk: flutter
+  fpdart: any
+  injectable: any
+
+dev_dependencies:
+  custom_lint: any
+  architecture_lints:
+    path: ../../packages/architecture_lints
+
+flutter:
+  uses-material-design: true
