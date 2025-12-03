@@ -1,3 +1,5 @@
+// lib/src/utils/map_extensions.dart
+
 extension MapExtensions on Map<dynamic, dynamic> {
   /// Safely retrieves a non-nullable String.
   /// Returns [fallback] if key is missing or value is not a String.
@@ -30,10 +32,32 @@ extension MapExtensions on Map<dynamic, dynamic> {
     final value = this[key];
 
     // Filter out non-string elements to be safe
-
     if (value is List) return value.whereType<String>().toList();
 
+    // Handle single string promoted to list
     if (value is String) return [value];
+
+    return [];
+  }
+
+  /// Safely retrieves a List of Maps.
+  /// Used for parsing lists of objects (e.g., rules configuration).
+  ///
+  /// Filters out items in the list that are not Maps.
+  List<Map<String, dynamic>> getMapList(String key) {
+    final value = this[key];
+
+    if (value is List) {
+      return value.whereType<Map>().map((item) {
+        try {
+          return Map<String, dynamic>.from(item);
+        } catch (_) {
+          // If a map inside the list has non-string keys, ignoring it is safer
+          // than crashing the whole parser.
+          return <String, dynamic>{};
+        }
+      }).where((map) => map.isNotEmpty).toList();
+    }
 
     return [];
   }
@@ -53,6 +77,37 @@ extension MapExtensions on Map<dynamic, dynamic> {
         return {};
       }
     }
+    return {};
+  }
+
+  /// Safely retrieves a Map of Maps.
+  /// Used for nested configurations like `components: { domain: { ... } }`.
+  ///
+  /// - Skips entries where the key is not a String.
+  /// - Skips entries where the value is not a Map.
+  Map<String, Map<String, dynamic>> getMapMap(String key) {
+    final value = this[key];
+
+    if (value is Map) {
+      final result = <String, Map<String, dynamic>>{};
+
+      value.forEach((k, v) {
+        // 1. Key must be String
+        if (k is String) {
+          // 2. Value must be Map
+          if (v is Map) {
+            try {
+              result[k] = Map<String, dynamic>.from(v);
+            } catch (_) {
+              // Ignore malformed child maps
+            }
+          }
+        }
+      });
+
+      return result;
+    }
+
     return {};
   }
 }

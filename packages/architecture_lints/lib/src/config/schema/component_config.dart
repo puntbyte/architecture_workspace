@@ -45,6 +45,10 @@ class ComponentConfig {
     );
   }
 
+  factory ComponentConfig.fromMapEntry(MapEntry<String, Map<String, dynamic>> entry) {
+    return ComponentConfig.fromMap(entry.key, entry.value);
+  }
+
   @override
   String toString() {
     return 'ComponentConfig(id: $id, name: $name, paths: $paths)';

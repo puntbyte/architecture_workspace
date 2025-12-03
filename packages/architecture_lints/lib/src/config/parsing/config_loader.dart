@@ -1,11 +1,11 @@
+// lib/src/config/parsing/config_loader.dart
+
 import 'dart:io';
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
-
-
 
 class ConfigLoader {
   // Map<PathToYaml, CachedEntry>
@@ -50,7 +50,7 @@ class ConfigLoader {
         return config;
       }
     } catch (e) {
-      // print('ArchLint: Config Parse Error $e');
+      print('ArchLint: Config Parse Error $e');
     }
 
     return null;
@@ -59,7 +59,7 @@ class ConfigLoader {
   static String? _findProjectRoot(String path) {
     var directory = Directory(p.dirname(path));
 
-    for (int i = 0; i < 20; i++) {
+    for (var i = 0; i < 20; i++) {
       final configPath = p.join(directory.path, ConfigKeys.configFilename);
       if (File(configPath).existsSync()) {
         return directory.path;

@@ -2,6 +2,7 @@ import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
+import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
@@ -21,6 +22,7 @@ class OrphanFileRule extends ArchitectureLintRule {
     required CustomLintResolver resolver,
     required ArchitectureConfig config,
     ComponentConfig? component,
+    FileResolver? fileResolver,
   }) {
     // If a component WAS resolved, this file is fine. Return.
     if (component != null) return;

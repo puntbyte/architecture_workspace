@@ -1,3 +1,5 @@
+// lib/src/core/resolver/path_matcher.dart
+
 class PathMatcher {
   /// Checks if [filePath] matches the [configPath].
   ///
@@ -28,9 +30,23 @@ class PathMatcher {
       return regex.hasMatch(normalizedFile);
     }
 
-    // 4. Basic containment check (for exact paths like 'core/utils')
-    // We check if the file path *contains* the config path segments.
-    return normalizedFile.contains(normalizedConfig);
+    // 4. Robust Containment Check
+    // We want to match 'domain' against 'lib/domain/file.dart'
+    // But NOT against 'lib/domain_stuff/file.dart'
+
+    // Check if normalizedFile contains the config path surrounded by separators
+    // OR if it ends with the config path (folder name match)
+    // OR if it contains config path followed by a slash.
+
+    if (normalizedFile.contains('/$normalizedConfig/') ||
+        normalizedFile.endsWith('/$normalizedConfig') ||
+        normalizedFile.startsWith('$normalizedConfig/')) {
+      return true;
+    }
+
+    // Fallback for simple relative matches if above is too strict for your use case
+    // But generally, strictly checking boundaries prevents false positives.
+    return false;
   }
 
   static String _escapeRegex(String text) {

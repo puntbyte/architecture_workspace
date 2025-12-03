@@ -1,3 +1,5 @@
+// lib/src/lints/architecture_lint_rule.dart
+
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/parsing/config_loader.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
@@ -61,18 +63,16 @@ abstract class ArchitectureLintRule extends DartLintRule {
       resolver: resolver,
       config: config,
       component: component,
+      fileResolver: fileResolver,
     );
   }
 
-  /// Abstract method that provides the fully resolved [config] and [component].
-  ///
-  /// [component]: The architectural definition for the current file.
-  /// It is `null` if the file does not match any path defined in `architecture.yaml`.
   void runWithConfig({
     required CustomLintContext context,
     required DiagnosticReporter reporter,
     required CustomLintResolver resolver,
     required ArchitectureConfig config,
+    required FileResolver fileResolver,
     ComponentConfig? component,
   });
 }

@@ -7,6 +7,7 @@ abstract class ConfigKeys {
 
   static const root = _RootKeys();
   static const component = _ComponentKeys();
+  static const dependency = _DependencyKeys();
   static const placeholder = _PlaceholderKeys();
 }
 
@@ -21,6 +22,7 @@ class _RootKeys {
 abstract class _CommonKeys {
   static const name = 'name';
   static const path = 'path';
+  static const on = 'on';
 
   const _CommonKeys._();
 }
@@ -33,6 +35,19 @@ class _ComponentKeys {
   String get default$ => 'default';
   String get pattern => 'pattern';
   String get antipattern => 'antipattern';
+}
+
+class _DependencyKeys {
+  const _DependencyKeys();
+
+  String get on => _CommonKeys.on;
+
+  String get allowed => 'allowed';
+  String get forbidden => 'forbidden';
+
+  // Inside the detail object
+  String get component => 'component';
+  String get import => 'import';
 }
 
 class _PlaceholderKeys {
