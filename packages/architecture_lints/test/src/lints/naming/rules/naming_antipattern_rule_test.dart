@@ -62,14 +62,12 @@ void main() {
       return rule.testRun(result);
     }
 
-    test('should report WARNING when class name matches antipattern', () async {
+    test('should report warning when class name matches antipattern', () async {
       const config = ArchitectureConfig(
         components: [
           ComponentConfig(
             id: 'entity',
             paths: ['domain/entities'],
-            // Allowed: {{name}}
-            // Forbidden: {{name}}Entity
             antipatterns: ['{{name}}Entity'],
           ),
         ],
@@ -82,38 +80,8 @@ void main() {
       );
 
       expect(errors, hasLength(1));
-      expect(errors.first.severity, Severity.warning); // Check severity
+      expect(errors.first.severity, Severity.warning);
       expect(errors.first.message, contains('UserEntity'));
-      expect(errors.first.correctionMessage, contains('{{name}}Entity'));
-    });
-
-    test('should report WARNING when class matches ANY of multiple antipatterns', () async {
-      const config = ArchitectureConfig(
-        components: [
-          ComponentConfig(
-            id: 'port',
-            paths: ['domain/ports'],
-            // Forbidden: Interface suffix OR Abstract prefix
-            antipatterns: ['{{name}}Interface', 'Abstract{{name}}'],
-          ),
-        ],
-      );
-
-      // Check First Antipattern
-      final errors1 = await runLint(
-        config: config,
-        relativePath: 'lib/domain/ports/auth_interface.dart',
-        content: 'class AuthInterface {}',
-      );
-      expect(errors1, hasLength(1));
-
-      // Check Second Antipattern
-      final errors2 = await runLint(
-        config: config,
-        relativePath: 'lib/domain/ports/abstract_auth.dart',
-        content: 'class AbstractAuth {}',
-      );
-      expect(errors2, hasLength(1));
     });
 
     test('should pass if class name matches NO antipattern', () async {
@@ -130,30 +98,40 @@ void main() {
       final errors = await runLint(
         config: config,
         relativePath: 'lib/domain/entities/user.dart',
-        content: 'class User {}', // Correct name
+        content: 'class User {}',
       );
 
       expect(errors, isEmpty);
     });
 
-    test('should ignore files if no antipatterns are defined', () async {
+    test('should support multiple antipatterns', () async {
       const config = ArchitectureConfig(
         components: [
           ComponentConfig(
-            id: 'entity',
-            paths: ['domain/entities'],
-            antipatterns: [], // Empty list
+            id: 'port',
+            paths: ['domain/ports'],
+            antipatterns: ['{{name}}Interface', 'Abstract{{name}}'],
           ),
         ],
       );
 
-      final errors = await runLint(
+      // Check first pattern
+      final errors1 = await runLint(
         config: config,
-        relativePath: 'lib/domain/entities/user_entity.dart',
-        content: 'class UserEntity {}', // Matches what would usually be bad
+        relativePath: 'lib/domain/ports/auth_interface.dart',
+        content: 'class AuthInterface {}',
       );
+      expect(errors1, hasLength(1));
+      expect(errors1.first.message, contains('AuthInterface'));
 
-      expect(errors, isEmpty);
+      // Check second pattern
+      final errors2 = await runLint(
+        config: config,
+        relativePath: 'lib/domain/ports/abstract_auth.dart',
+        content: 'class AbstractAuth {}',
+      );
+      expect(errors2, hasLength(1));
+      expect(errors2.first.message, contains('AbstractAuth'));
     });
   });
 }

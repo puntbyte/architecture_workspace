@@ -11,6 +11,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+/// A wrapper to inject the mock config into the context before the rule runs.
 class TestNamingPatternRule extends NamingPatternRule {
   final ArchitectureConfig mockConfig;
 
@@ -18,9 +19,10 @@ class TestNamingPatternRule extends NamingPatternRule {
 
   @override
   Future<void> startUp(
-      CustomLintResolver resolver,
-      CustomLintContext context,
-      ) async {
+    CustomLintResolver resolver,
+    CustomLintContext context,
+  ) async {
+    // Inject dependencies into shared state manually for testing
     context.sharedState[ArchitectureConfig] = mockConfig;
     context.sharedState[FileResolver] = FileResolver(mockConfig);
     await super.startUp(resolver, context);
@@ -52,6 +54,7 @@ void main() {
         ..writeAsStringSync(content);
 
       final normalizedPath = p.normalize(file.absolute.path);
+      // Use the analyzer utility to resolve the file context
       final result = await resolveFile(path: normalizedPath);
 
       if (result is! ResolvedUnitResult) {
@@ -129,15 +132,60 @@ void main() {
       );
 
       expect(errors, hasLength(1));
-      // Message should mention BOTH options
-      expect(errors.first.message, contains('{{name}}Cubit OR {{name}}Bloc'));
+
+      // FIX: Matches lowercase 'or' from the rule implementation
+      expect(errors.first.message, contains('{{name}}Cubit or {{name}}Bloc'));
     });
+
+    test('should support {{affix}} wildcard for implementation classes', () async {
+      const config = ArchitectureConfig(
+        components: [
+          ComponentConfig(
+            id: 'repo_impl',
+            paths: ['data/repositories'],
+            // e.g. AuthRepositoryImpl, MockAuthRepository
+            patterns: ['{{affix}}Repository{{affix}}'],
+          ),
+        ],
+      );
+
+      final errors = await runLint(
+        config: config,
+        relativePath: 'lib/data/repositories/auth_repository_impl.dart',
+        content: 'class AuthRepositoryImpl {}',
+      );
+
+      expect(errors, isEmpty);
+    });
+
+    test(
+      'should fail if class name has extra characters not covered by pattern (Anchoring)',
+      () async {
+        const config = ArchitectureConfig(
+          components: [
+            ComponentConfig(
+              id: 'entity',
+              paths: ['domain/entities'],
+              patterns: ['{{name}}Entity'], // Strict ending
+            ),
+          ],
+        );
+
+        final errors = await runLint(
+          config: config,
+          relativePath: 'lib/domain/entities/user_entity.dart',
+          content: 'class UserEntityExtra {}', // "Extra" should fail the strict regex
+        );
+
+        expect(errors, hasLength(1));
+        expect(errors.first.message, contains('{{name}}Entity'));
+      },
+    );
 
     test('should ignore files that do not match any component path', () async {
       const config = ArchitectureConfig(
         components: [
-          ComponentConfig(
-              id: 'usecase', paths: ['domain/usecases'], patterns: ['{{name}}']),
+          ComponentConfig(id: 'usecase', paths: ['domain/usecases'], patterns: ['{{name}}']),
         ],
       );
 

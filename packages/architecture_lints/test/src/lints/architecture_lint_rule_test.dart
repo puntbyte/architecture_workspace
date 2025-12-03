@@ -59,6 +59,7 @@ class MockArchitectureRule extends ArchitectureLintRule {
     required DiagnosticReporter reporter,
     required CustomLintResolver resolver,
     required ArchitectureConfig config,
+    required FileResolver fileResolver,
     ComponentConfig? component,
   }) {
     wasRunWithConfigCalled = true;
@@ -112,7 +113,7 @@ void main() {
 
     test('should delegate file resolution to FileResolver', () async {
       // Arrange
-      const expectedComponent = ComponentConfig(id: 'mock_layer', path: 'any');
+      const expectedComponent = ComponentConfig(id: 'mock_layer', paths: ['any']);
 
       // STUBBING: We don't care about real paths. We force the mock to return a component.
       when(() => mockResolver.resolve(any())).thenReturn(expectedComponent);
