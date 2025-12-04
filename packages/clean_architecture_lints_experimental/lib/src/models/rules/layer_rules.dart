@@ -1,4 +1,4 @@
-// lib/src/models/rules/inheritance_rule.dart
+// lib/src/models/rules/inheritance_allowed_rule.dart
 
 part of '../configs/layer_config.dart';
 

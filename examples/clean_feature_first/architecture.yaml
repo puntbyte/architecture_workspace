@@ -331,7 +331,7 @@ types:
   # --- Domain Types ---
   usecase:
     # Sets the import context for subsequent items
-    base: { type: 'Usecase', import: 'package:feature_first_example/core/usecase/usecase.dart' }
+    base: { type: 'Usecase', import: 'package:clean_feature_first/core/usecase/usecase.dart' }
     # Inherits usecase.dart
     nullary: 'NullaryUsecase'
     # Inherits usecase.dart
@@ -345,7 +345,7 @@ types:
     # New import context
     wrapper.future:
       type: 'FutureEither'
-      import: 'package:feature_first_example/core/utils/types.dart'
+      import: 'package:clean_feature_first/core/utils/types.dart'
     # Inherits types.dart
     wrapper.stream: 'StreamEither'
     # Overrides context
@@ -371,7 +371,7 @@ types:
   failure:
     base:
       type: 'Failure'
-      import: 'package:feature_first_example/core/error/failures.dart'
+      import: 'package:clean_feature_first/core/error/failures.dart'
     server: 'ServerFailure'
     cache: 'CacheFailure'
 
@@ -380,7 +380,7 @@ types:
     raw: 'Exception'
     base:
       type: 'CustomException'
-      import: 'package:feature_first_example/core/error/exceptions.dart'
+      import: 'package:clean_feature_first/core/error/exceptions.dart'
     server: 'ServerException'
     cache: 'CacheException'
 
@@ -388,7 +388,7 @@ types:
   identity:
     integer:
       type: 'IntId'
-      import: 'package:feature_first_example/core/utils/types.dart'
+      import: 'package:clean_feature_first/core/utils/types.dart'
     string: 'StringId'
 
 # --------------------------------------------------------------------------------------------------
@@ -416,7 +416,7 @@ services:
   locator:
     type: [ 'Injector', 'GetIt' ]
     identifier: [ 'getIt', 'locator', 'serviceLocator' ]
-    import: 'package:feature_first_example/core/utils/service_locator.dart'
+    import: 'package:clean_feature_first/core/utils/service_locator.dart'
 
   logging:
     type: 'Logger'
@@ -473,13 +473,13 @@ inheritances:
   - on: entity
     required:
       type: 'Entity'
-      import: 'package:feature_first_example/core/entity/entity.dart'
+      import: 'package:clean_feature_first/core/entity/entity.dart'
 
   # Ports (Repository Interfaces) must inherit from the base Port interface.
   - on: port
     required:
       type: 'Port'
-      import: 'package:feature_first_example/core/port/port.dart'
+      import: 'package:clean_feature_first/core/port/port.dart'
 
   # Usecases must implement either the UnaryUsecase or NullaryUsecase base class.
   - on: usecase
@@ -496,7 +496,7 @@ inheritances:
   - on: source.interface
     required:
       type: 'Source'
-      import: 'package:feature_first_example/core/source/source.dart'
+      import: 'package:clean_feature_first/core/source/source.dart'
 
   # Sources (Data Sources) concrete must implement their corresponding interface.
   - on: source.implementation

@@ -3,15 +3,21 @@
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/config/schema/dependency_config.dart';
+import 'package:architecture_lints/src/config/schema/inheritance_config.dart';
+import 'package:architecture_lints/src/config/schema/type_definition.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
 
 class ArchitectureConfig {
   final List<ComponentConfig> components;
   final List<DependencyConfig> dependencies;
+  final List<InheritanceConfig> inheritances;
+  final Map<String, TypeDefinition> typeDefinitions;
 
   const ArchitectureConfig({
     required this.components,
     this.dependencies = const [],
+    this.inheritances = const [],
+    this.typeDefinitions = const {},
   });
 
   factory ArchitectureConfig.empty() => const ArchitectureConfig(components: []);
@@ -31,9 +37,51 @@ class ArchitectureConfig {
       DependencyConfig.fromMap,
     );
 
+    final inheritances = _mapList<InheritanceConfig>(
+      yaml,
+      ConfigKeys.root.inheritances,
+      InheritanceConfig.fromMap,
+    );
+
+    // 4. Parse Type Definitions
+    final typeDefinitions = <String, TypeDefinition>{};
+
+    // Safely get the 'types' map
+    final typesMap = yaml.getMapMap(ConfigKeys.root.types);
+
+    for (final groupEntry in typesMap.entries) {
+      final groupKey = groupEntry.key;
+      final groupItems = groupEntry.value; // This is a Map<String, dynamic>
+
+      String? currentCascadingImport;
+
+      for (final defEntry in groupItems.entries) {
+        final defKey = defEntry.key;
+        final fullKey = '$groupKey.$defKey'; // e.g. 'usecase.unary'
+
+        try {
+          final def = TypeDefinition.fromDynamic(
+            defEntry.value,
+            currentImport: currentCascadingImport,
+          );
+
+          typeDefinitions[fullKey] = def;
+
+          // Cascade the import to the next item in this group
+          if (def.import != null) {
+            currentCascadingImport = def.import;
+          }
+        } catch (e) {
+          // print('Failed to parse definition $fullKey: $e');
+        }
+      }
+    }
+
     return ArchitectureConfig(
       components: components,
       dependencies: dependencies,
+      inheritances: inheritances,
+      typeDefinitions: typeDefinitions,
     );
   }
 

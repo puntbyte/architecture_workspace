@@ -39,7 +39,6 @@ abstract interface class AuthContract implements Port { //! <-- LINT WARNING
 // LINT: [8] enforce_port_contract
 // REASON: Ports must implement/extend the base `Port` interface defined in Core.
 abstract interface class UncontractedAuthPort { //! <-- LINT WARNING
-  // ignore: missing_use_case
   void doSomething();
 }
 

@@ -9,3 +9,18 @@ class HomePage extends StatelessWidget {
     return const Scaffold(body: Center(child: Text('Home Page')));
   }
 }
+
+class SomePage extends StatefulWidget {
+  const SomePage({super.key});
+
+  @override
+  State<SomePage> createState() => _SomePageState();
+}
+
+class _SomePageState extends State<SomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
+
