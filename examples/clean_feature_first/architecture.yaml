@@ -2,6 +2,7 @@
 
 # Include the company-wide standard configuration
 #include: ../../architecture_standards/clean_feature_first_recommended.yaml
+#include: package:acme_architecture/presets/clean_architecture.yaml
 
 # ==================================================================================================
 # ARCHITECTURE CONFIGURATION
