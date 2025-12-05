@@ -611,7 +611,7 @@ dependencies:
 
   # Sources return Models.
   - on: source.interface
-    allowed: [ 'model' ]
+    allowed: 'model'
 
   # Concrete Sources implement Interfaces and return Models.
   - on: source.implementation

@@ -3,7 +3,7 @@
 import 'package:clean_feature_first/features/auth/domain/entities/user.dart';
 import 'package:clean_feature_first/features/auth/data/models/user_model.dart';
 
-// LINT: [1] enforce_layer_independence
+// LINT: [1] arch_dep_component
 // REASON: Data Models should not import from the Presentation layer.
 import 'package:clean_feature_first/features/auth/presentation/pages/home_page.dart'; //! <-- LINT WARNING
 
@@ -11,16 +11,18 @@ import 'package:clean_feature_first/features/auth/presentation/pages/home_page.d
 // REASON: Service Locators hide dependencies. Models should be data-only.
 import 'package:get_it/get_it.dart'; //! <-- LINT WARNING
 
-// LINT: [3] enforce_naming_pattern
+// LINT: [3] arch_naming_pattern
 // REASON: Name must match `{{name}}Model` (e.g., UserDTOModel or UserModel).
+// ignore: arch_member_missing
 class UserDTO extends User { //! <-- LINT WARNING
   const UserDTO({required super.id, required super.name});
 
   User toEntity() => this;
 }
 
-// LINT: [4] enforce_model_inherits_entity
+// LINT: [4] arch_type_missing_base
 // REASON: Models must extend a Domain Entity to ensure architectural alignment.
+// ignore: arch_member_missing
 class OrphanUserModel { //! <-- LINT WARNING
   final String id;
   const OrphanUserModel(this.id);
@@ -29,21 +31,31 @@ class OrphanUserModel { //! <-- LINT WARNING
   User toEntity() => User(id: id, name: 'Unknown');
 }
 
-// LINT: [5] require_to_entity_method
-// REASON: Class extends Entity but is missing the `toEntity()` mapping method.
+// LINT: [5] arch_member_missing
+// REASON: Class extends Entity but is missing the `toEntity()` mapping method as well `createdAt`
+// and `updatedAt` fields.
 class LazyUserModel extends User { //! <-- LINT WARNING
   const LazyUserModel({required super.id, required super.name});
-  // Missing toEntity()
 }
 
-// LINT: [6] enforce_semantic_naming
+// LINT: [6] arch_naming_grammar
 // REASON: Grammar violation. Models must be Noun Phrases.
 // 'Parsing' is a Verb (Gerund), implying this class performs an action.
 class ParsingUserModel extends User { //! <-- LINT WARNING
-  const ParsingUserModel({required super.id, required super.name});
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const ParsingUserModel({
+    required super.id,
+    required super.name,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
   User toEntity() => this;
 }
 
+// ignore: arch_member_missing
 class LogicHeavyModel extends User {
   const LogicHeavyModel({required super.id, required super.name});
 

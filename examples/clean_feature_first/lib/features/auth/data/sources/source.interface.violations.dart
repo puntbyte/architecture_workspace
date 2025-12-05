@@ -4,9 +4,9 @@ import 'package:clean_feature_first/core/source/source.dart';
 import 'package:clean_feature_first/core/utils/types.dart';
 import 'package:clean_feature_first/features/auth/data/models/user_model.dart';
 
-// LINT: [1] disallow_entity_in_data_source
+// LINT: [1] arch_dep_component
 // REASON: Data layer must deal with Models (DTOs), not pure Entities.
-import 'package:clean_feature_first/features/auth/domain/entities/user.dart'; // <-- LINT WARNING HERE
+import 'package:clean_feature_first/features/auth/domain/entities/user.dart'; //! <-- LINT WARNING HERE
 
 // LINT: [2] enforce_naming_pattern
 // REASON: Name must match `{{name}}Source` (e.g., AuthSource).
