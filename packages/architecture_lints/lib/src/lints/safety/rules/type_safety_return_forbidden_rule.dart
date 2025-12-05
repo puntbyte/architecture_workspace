@@ -11,8 +11,8 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 class TypeSafetyReturnForbiddenRule extends TypeSafetyBaseRule {
   static const _code = LintCode(
     name: 'arch_safety_return_forbidden',
-    problemMessage: 'Invalid Return Type: "{0}" is forbidden.',
-    correctionMessage: 'Avoid returning this type.',
+    problemMessage: 'Invalid Return Type: "{0}" is forbidden.{1}',
+    correctionMessage: 'Change the return type to a permitted type.',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
 
@@ -28,14 +28,30 @@ class TypeSafetyReturnForbiddenRule extends TypeSafetyBaseRule {
     required DiagnosticReporter reporter,
   }) {
     for (final rule in rules) {
-      final forbidden = rule.forbidden.where((c) => c.kind == 'return');
+      final forbidden = rule.forbidden.where((c) => c.kind == 'return').toList();
+
+      // Look for counterparts in the SAME rule to offer suggestions
+      final allowed = rule.allowed.where((c) => c.kind == 'return').toList();
 
       for (final c in forbidden) {
         if (matchesConstraint(type, c, fileResolver, config.typeDefinitions)) {
+
+          // Generate Suggestion
+          String suggestion = '';
+          if (allowed.isNotEmpty) {
+            final allowedNames = allowed
+                .map((a) => "'${describeConstraint(a, config.typeDefinitions)}'")
+                .join(' or ');
+            suggestion = ' Use $allowedNames instead.';
+          }
+
           reporter.atNode(
             node.returnType!,
             _code,
-            arguments: [type.getDisplayString()],
+            arguments: [
+              type.getDisplayString(),
+              suggestion,
+            ],
           );
         }
       }

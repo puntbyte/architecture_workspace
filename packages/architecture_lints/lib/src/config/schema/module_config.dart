@@ -20,7 +20,7 @@ class ModuleConfig {
 
   factory ModuleConfig.fromMap(String key, dynamic value) {
     String path;
-    bool isDefault = false;
+    var isDefault = false;
     bool? strict;
 
     if (value is String) {
@@ -29,7 +29,7 @@ class ModuleConfig {
       final map = Map<String, dynamic>.from(value);
       path = map.getString('path');
       isDefault = map.getBool('default');
-      strict = map.getBool('strict', fallback: false);
+      strict = map.getBool('strict');
       // Note: We can't easily detect "null" via getBool with fallback,
       // so we might check map.containsKey('strict') if we want smarter defaults below.
       if (map.containsKey('strict')) {
@@ -50,5 +50,10 @@ class ModuleConfig {
       isDefault: isDefault,
       strict: strict ?? defaultStrict,
     );
+  }
+
+  /// Parses the 'modules' map.
+  static List<ModuleConfig> parseMap(Map<String, dynamic> map) {
+    return map.entries.map((e) => ModuleConfig.fromMap(e.key, e.value)).toList();
   }
 }

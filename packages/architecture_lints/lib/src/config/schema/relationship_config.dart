@@ -17,7 +17,8 @@ class RelationshipConfig {
   const RelationshipConfig({
     required this.onIds,
     required this.element,
-    required this.targetComponent, this.visibility,
+    required this.targetComponent,
+    this.visibility,
     this.action,
   });
 
@@ -35,5 +36,10 @@ class RelationshipConfig {
       targetComponent: requiredMap.getString(ConfigKeys.relationship.component),
       action: requiredMap.tryGetString(ConfigKeys.relationship.action),
     );
+  }
+
+  /// Parses the 'relationships' list.
+  static List<RelationshipConfig> parseList(List<Map<String, dynamic>> list) {
+    return list.map(RelationshipConfig.fromMap).toList();
   }
 }

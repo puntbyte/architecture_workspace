@@ -32,11 +32,28 @@ class TypeSafetyReturnAllowedRule extends TypeSafetyBaseRule {
       if (allowed.isEmpty) continue;
 
       final matchesAny = allowed.any(
-        (c) => matchesConstraint(type, c, fileResolver, config.typeDefinitions),
+            (c) => matchesConstraint(type, c, fileResolver, config.typeDefinitions),
       );
 
       if (!matchesAny) {
-        final description = allowed.map(describeConstraint).join(', ');
+        // --- SMART CHECK: Avoid Double Jeopardy ---
+        // If this type is explicitly forbidden, the ForbiddenRule will catch it.
+        // We suppress this "Not Allowed" error to reduce noise.
+        final isForbidden = isExplicitlyForbidden(
+          type: type,
+          configRule: rule,
+          kind: 'return',
+          fileResolver: fileResolver,
+          typeRegistry: config.typeDefinitions,
+        );
+
+        if (isForbidden) continue;
+        // ------------------------------------------
+
+        final description = allowed
+            .map((c) => describeConstraint(c, config.typeDefinitions))
+            .join(', ');
+
         reporter.atNode(
           node.returnType!,
           _code,

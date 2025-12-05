@@ -11,8 +11,8 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 class TypeSafetyParamForbiddenRule extends TypeSafetyBaseRule {
   static const _code = LintCode(
     name: 'arch_safety_param_forbidden',
-    problemMessage: 'Invalid Parameter Type: "{0}" is forbidden for "{1}".',
-    correctionMessage: 'Avoid using this type.',
+    problemMessage: 'Invalid Parameter Type: "{0}" is forbidden for "{1}".{2}',
+    correctionMessage: 'Change the parameter type.',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
 
@@ -29,15 +29,35 @@ class TypeSafetyParamForbiddenRule extends TypeSafetyBaseRule {
     required DiagnosticReporter reporter,
   }) {
     for (final rule in rules) {
-      // Filter forbidden constraints that target this specific parameter name
-      final forbidden = rule.forbidden.where((c) => shouldCheckParam(c, paramName)).toList();
+      // 1. Find Forbidden constraints for this param
+      final forbidden = rule.forbidden
+          .where((c) => shouldCheckParam(c, paramName))
+          .toList();
+
+      // 2. Find Allowed constraints to offer suggestions
+      final allowed = rule.allowed
+          .where((c) => shouldCheckParam(c, paramName))
+          .toList();
 
       for (final c in forbidden) {
         if (matchesConstraint(type, c, fileResolver, config.typeDefinitions)) {
+
+          String suggestion = '';
+          if (allowed.isNotEmpty) {
+            final allowedNames = allowed
+                .map((a) => "'${describeConstraint(a, config.typeDefinitions)}'")
+                .join(' or ');
+            suggestion = ' Use $allowedNames instead.';
+          }
+
           reporter.atNode(
             node,
             _code,
-            arguments: [type.getDisplayString(), paramName],
+            arguments: [
+              type.getDisplayString(),
+              paramName,
+              suggestion,
+            ],
           );
         }
       }

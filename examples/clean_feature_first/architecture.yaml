@@ -359,12 +359,24 @@ types:
     wrapper.future:
       type: 'FutureEither'
       import: 'package:clean_feature_first/core/utils/types.dart'
+      argument: '*'
+
     # Inherits types.dart
-    wrapper.stream: 'StreamEither'
+    wrapper.stream:
+      type: 'StreamEither'
+      argument: '*'
+
     # Overrides context
-    success: { type: 'Right', import: 'package:fpdart/fpdart.dart' }
+    success:
+      type: 'Right'
+      import: 'package:fpdart/fpdart.dart'
+      argument: '*'
+
     # Inherits fpdart
-    failure: 'Left'
+    failure:
+      type: 'Left'
+      argument:
+        definition: 'failure.base'
 
     # 2. Explicit Nested Generics (The strict way)
     # Matches: Future<Either<Failure, T>>

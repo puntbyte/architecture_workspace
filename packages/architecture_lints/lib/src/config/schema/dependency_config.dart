@@ -27,4 +27,9 @@ class DependencyConfig {
       forbidden: DependencyDetail.fromDynamic(map[ConfigKeys.dependency.forbidden]),
     );
   }
+
+  /// Parses the 'dependencies' list.
+  static List<DependencyConfig> parseList(List<Map<String, dynamic>> list) {
+    return list.map(DependencyConfig.fromMap).toList();
+  }
 }

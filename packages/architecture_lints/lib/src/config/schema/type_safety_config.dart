@@ -22,4 +22,9 @@ class TypeSafetyConfig {
       forbidden: TypeSafetyConstraint.listFromDynamic(map[ConfigKeys.typeSafety.forbidden]),
     );
   }
+
+  /// Parses the 'type_safeties' list.
+  static List<TypeSafetyConfig> parseList(List<Map<String, dynamic>> list) {
+    return list.map(TypeSafetyConfig.fromMap).toList();
+  }
 }

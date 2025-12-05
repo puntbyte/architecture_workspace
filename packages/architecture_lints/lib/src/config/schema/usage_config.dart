@@ -17,10 +17,12 @@ class UsageConfig {
     return UsageConfig(
       onIds: map.getStringList(ConfigKeys.usage.on),
       // FIX: Use getMapList from MapExtensions for type safety
-      forbidden: map
-          .getMapList(ConfigKeys.usage.forbidden)
-          .map(UsageConstraint.fromMap)
-          .toList(),
+      forbidden: map.getMapList(ConfigKeys.usage.forbidden).map(UsageConstraint.fromMap).toList(),
     );
+  }
+
+  /// Parses the 'usages' list.
+  static List<UsageConfig> parseList(List<Map<String, dynamic>> list) {
+    return list.map(UsageConfig.fromMap).toList();
   }
 }

@@ -41,4 +41,9 @@ class InheritanceConfig {
       forbidden: TypeReference.fromDynamic(map[ConfigKeys.inheritance.forbidden]),
     );
   }
+
+  /// Parses the 'inheritances' list.
+  static List<InheritanceConfig> parseList(List<Map<String, dynamic>> list) {
+    return list.map(InheritanceConfig.fromMap).toList();
+  }
 }

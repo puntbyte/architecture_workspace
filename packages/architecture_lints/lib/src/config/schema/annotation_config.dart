@@ -29,4 +29,9 @@ class AnnotationConfig {
       forbidden: AnnotationConstraint.listFromDynamic(map[ConfigKeys.annotation.forbidden]),
     );
   }
+
+  /// Parses the 'annotations' list.
+  static List<AnnotationConfig> parseList(List<Map<String, dynamic>> list) {
+    return list.map(AnnotationConfig.fromMap).toList();
+  }
 }

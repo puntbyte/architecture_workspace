@@ -21,4 +21,9 @@ class SymbolDefinition {
       import: map.tryGetString(ConfigKeys.service.import),
     );
   }
+
+  /// Parses the 'services' map into a registry.
+  static Map<String, SymbolDefinition> parseRegistry(Map<String, Map<String, dynamic>> map) {
+    return map.map((key, value) => MapEntry(key, SymbolDefinition.fromMap(value)));
+  }
 }

@@ -29,17 +29,34 @@ class TypeSafetyParamAllowedRule extends TypeSafetyBaseRule {
     required DiagnosticReporter reporter,
   }) {
     for (final rule in rules) {
-      // Filter allowed constraints that target this specific parameter name
-      final allowed = rule.allowed.where((c) => shouldCheckParam(c, paramName)).toList();
+      final allowed = rule.allowed
+          .where((c) => shouldCheckParam(c, paramName))
+          .toList();
 
       if (allowed.isEmpty) continue;
 
       final matchesAny = allowed.any(
-        (c) => matchesConstraint(type, c, fileResolver, config.typeDefinitions),
+            (c) => matchesConstraint(type, c, fileResolver, config.typeDefinitions),
       );
 
       if (!matchesAny) {
-        final description = allowed.map(describeConstraint).join(', ');
+        // --- SMART CHECK: Avoid Double Jeopardy ---
+        final isForbidden = isExplicitlyForbidden(
+          type: type,
+          configRule: rule,
+          kind: 'parameter',
+          paramName: paramName,
+          fileResolver: fileResolver,
+          typeRegistry: config.typeDefinitions,
+        );
+
+        if (isForbidden) continue;
+        // ------------------------------------------
+
+        final description = allowed
+            .map((c) => describeConstraint(c, config.typeDefinitions))
+            .join(', ');
+
         reporter.atNode(
           node,
           _code,

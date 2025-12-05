@@ -25,4 +25,9 @@ class MemberConfig {
       forbidden: MemberConstraint.listFromDynamic(map[ConfigKeys.member.forbidden]),
     );
   }
+
+  /// Parses the 'members' list.
+  static List<MemberConfig> parseList(List<Map<String, dynamic>> list) {
+    return list.map(MemberConfig.fromMap).toList();
+  }
 }

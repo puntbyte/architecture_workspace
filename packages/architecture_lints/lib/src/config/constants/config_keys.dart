@@ -24,6 +24,7 @@ abstract class ConfigKeys {
 class _RootKeys {
   const _RootKeys();
 
+  String get modules => 'modules';
   String get components => 'components';
   String get types => 'types';
   String get dependencies => 'dependencies';
@@ -68,6 +69,9 @@ class _TypeDefinitionKeys {
   const _TypeDefinitionKeys();
   String get type => 'type';
   String get import => 'import';
+  String get name => 'name'; // Alias for type in some contexts
+  String get argument => 'argument'; // New: Recursive definition
+  String get definition => 'definition'; // Reference to another key
 }
 
 class _DependencyKeys {

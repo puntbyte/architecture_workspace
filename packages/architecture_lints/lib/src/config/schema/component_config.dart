@@ -49,8 +49,9 @@ class ComponentConfig {
     );
   }
 
-  factory ComponentConfig.fromMapEntry(MapEntry<String, Map<String, dynamic>> entry) {
-    return ComponentConfig.fromMap(entry.key, entry.value);
+  /// Parses the 'components' map.
+  static List<ComponentConfig> parseMap(Map<String, Map<String, dynamic>> map) {
+    return map.entries.map((e) => ComponentConfig.fromMap(e.key, e.value)).toList();
   }
 
   String get displayName {

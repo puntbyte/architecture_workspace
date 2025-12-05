@@ -12,7 +12,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 class ComponentDependencyRule extends ArchitectureLintRule {
   static const _code = LintCode(
     name: 'arch_dep_component',
-    problemMessage: 'Dependency Violation: {0} cannot depend on {1}.',
+    problemMessage: 'Dependency Violation: {0} cannot depend on {1}.{2}',
     correctionMessage: 'Remove the dependency to maintain architectural boundaries.',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
@@ -62,21 +62,36 @@ class ComponentDependencyRule extends ArchitectureLintRule {
     }) {
       if (component.id == targetComponent.id) return;
 
-      // A. Check Forbidden (Global Blacklist)
-      // If ANY rule forbids it, it is forbidden.
+      // Calculate Suggestion String based on allAllowed
+      // allAllowed is calculated in runWithConfig (see previous implementation)
+      var suggestion = '';
+      if (allAllowed.isNotEmpty) {
+        // Humanize the allowed list
+        // We limit to 3 items to keep message short
+        final allowedDisplay = allAllowed
+            .take(3)
+            .map((id) {
+              // Basic capitalization for display
+              return id.split('.').map((s) => s[0].toUpperCase() + s.substring(1)).join(' ');
+            })
+            .join(', ');
+
+        suggestion = ' Allowed dependencies: $allowedDisplay${allAllowed.length > 3 ? '...' : ''}.';
+      }
+
+      // A. Check Forbidden
       if (targetComponent.matchesAny(allForbidden.toList())) {
         _report(
           reporter: reporter,
           nodeOrToken: nodeOrToken,
           current: component,
           target: targetComponent,
+          suggestion: suggestion, // Pass it
         );
         return;
       }
 
-      // B. Check Allowed (Global Whitelist)
-      // Only enforce whitelist if at least one rule defined 'allowed'.
-      // If we have a whitelist, the target MUST be in the Union of all allowed lists.
+      // B. Check Allowed
       if (hasWhitelist) {
         if (!targetComponent.matchesAny(allAllowed.toList())) {
           _report(
@@ -84,6 +99,7 @@ class ComponentDependencyRule extends ArchitectureLintRule {
             nodeOrToken: nodeOrToken,
             current: component,
             target: targetComponent,
+            suggestion: suggestion, // Pass it
           );
         }
       }
@@ -122,10 +138,12 @@ class ComponentDependencyRule extends ArchitectureLintRule {
     required Object nodeOrToken,
     required ComponentContext current,
     required ComponentContext target,
+    required String suggestion,
   }) {
     final args = [
       current.displayName,
       target.displayName,
+      suggestion,
     ];
 
     if (nodeOrToken is AstNode) {
