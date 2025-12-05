@@ -2,15 +2,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/config/schema/member_constraint.dart'; // Import this
-import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
-import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.dart';
-import 'package:architecture_lints/src/lints/members/logic/member_logic.dart';
+import 'package:architecture_lints/src/config/schema/member_config.dart';
+import 'package:architecture_lints/src/config/schema/member_constraint.dart';
+import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/lints/members/base/member_base_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-class MemberRequiredRule extends ArchitectureLintRule with InheritanceLogic, MemberLogic {
+class MemberRequiredRule extends MemberBaseRule {
   static const _code = LintCode(
     name: 'arch_member_missing',
     problemMessage: 'Missing required member matching: {0}.',
@@ -21,47 +19,35 @@ class MemberRequiredRule extends ArchitectureLintRule with InheritanceLogic, Mem
   const MemberRequiredRule() : super(code: _code);
 
   @override
-  void runWithConfig({
-    required CustomLintContext context,
-    required DiagnosticReporter reporter,
-    required CustomLintResolver resolver,
+  void checkMembers({
+    required ClassDeclaration node,
+    required List<MemberConfig> rules,
     required ArchitectureConfig config,
-    required FileResolver fileResolver,
-    ComponentConfig? component,
+    required DiagnosticReporter reporter,
+    required ComponentContext component,
   }) {
-    if (component == null) return;
+    final members = node.members;
 
-    final rules = config.members.where((rule) {
-      return rule.onIds.any((id) => componentMatches(id, component.id));
-    }).toList();
+    for (final rule in rules) {
+      for (final constraint in rule.required) {
+        final hasMatch = members.any((m) => matchesConstraint(m, constraint));
 
-    if (rules.isEmpty) return;
-
-    context.registry.addClassDeclaration((node) {
-      final members = node.members;
-
-      for (final rule in rules) {
-        for (final constraint in rule.required) {
-          final hasMatch = members.any((m) => matchesConstraint(m, constraint));
-
-          if (!hasMatch) {
-            reporter.atToken(
-              node.name,
-              _code,
-              arguments: [_describeConstraint(constraint)],
-            );
-          }
+        if (!hasMatch) {
+          reporter.atToken(
+            node.name,
+            _code,
+            arguments: [_describeConstraint(constraint)],
+          );
         }
       }
-    });
+    }
   }
 
-  // FIX: Use MemberConstraint instead of dynamic
   String _describeConstraint(MemberConstraint c) {
     final parts = <String>[];
-    if (c.kind != null) parts.add(c.kind!);
-    if (c.visibility != null) parts.add(c.visibility!);
-    if (c.modifier != null) parts.add(c.modifier!);
+    if (c.kind != null) parts.add(c.kind!.yamlKey);
+    if (c.visibility != null) parts.add(c.visibility!.yamlKey);
+    if (c.modifier != null) parts.add(c.modifier!.yamlKey);
     if (c.identifiers.isNotEmpty) parts.add('named "${c.identifiers.join('|')}"');
     return parts.join(' ');
   }

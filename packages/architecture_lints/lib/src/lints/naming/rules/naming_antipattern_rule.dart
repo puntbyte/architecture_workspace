@@ -21,22 +21,22 @@ class NamingAntipatternRule extends NamingBaseRule with NamingLogic {
   @override
   void checkName({
     required ClassDeclaration node,
-    required ComponentConfig component,
+    required ComponentConfig config,
     required DiagnosticReporter reporter,
-    required ArchitectureConfig config,
+    required ArchitectureConfig rootConfig, // Fixed: Added missing parameter
   }) {
-    if (component.antipatterns.isEmpty) return;
+    if (config.antipatterns.isEmpty) return;
 
     final className = node.name.lexeme;
 
-    for (final antipattern in component.antipatterns) {
+    for (final antipattern in config.antipatterns) {
       if (validateName(className, antipattern)) {
         reporter.atToken(
           node.name,
           _code,
           arguments: [
             className,
-            component.displayName,
+            config.displayName,
             antipattern,
           ],
         );

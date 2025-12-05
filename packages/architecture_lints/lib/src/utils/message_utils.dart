@@ -1,7 +1,7 @@
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 
-class MessageUtils {
-  const MessageUtils._();
+class MessageUtilsOld {
+  const MessageUtilsOld._();
 
   /// Converts 'domain.usecase' -> 'Domain UseCase'.
   static String humanizeComponent(ComponentConfig component) {

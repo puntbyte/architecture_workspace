@@ -5,7 +5,6 @@ import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/lints/naming/base/naming_base_rule.dart';
 import 'package:architecture_lints/src/lints/naming/logic/grammar_logic.dart';
-import 'package:architecture_lints/src/utils/message_utils.dart';
 import 'package:architecture_lints/src/utils/nlp/language_analyzer.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:dictionaryx/dictionary_msa.dart';
@@ -27,19 +26,19 @@ class GrammarRule extends NamingBaseRule with GrammarLogic {
   @override
   void checkName({
     required ClassDeclaration node,
-    required ComponentConfig component,
+    required ComponentConfig config,
     required DiagnosticReporter reporter,
-    required ArchitectureConfig config,
+    required ArchitectureConfig rootConfig,
   }) {
-    if (component.grammar.isEmpty) return;
+    if (config.grammar.isEmpty) return;
 
     final className = node.name.lexeme;
 
     String? failureReason;
     String? failureCorrection;
-    var hasMatch = false;
+    bool hasMatch = false;
 
-    for (final grammar in component.grammar) {
+    for (final grammar in config.grammar) {
       // Use logic mixin
       final result = validateGrammar(grammar, className, _analyzer);
       if (result.isValid) {
@@ -51,12 +50,13 @@ class GrammarRule extends NamingBaseRule with GrammarLogic {
       }
     }
 
+    // Check failureReason is not null (implicitly promoted)
     if (!hasMatch && failureReason != null) {
       reporter.atToken(
         node.name,
         _code,
         arguments: [
-          MessageUtils.humanizeComponent(component),
+          config.displayName,
           failureReason,
           failureCorrection ?? 'Check grammar configuration.',
         ],

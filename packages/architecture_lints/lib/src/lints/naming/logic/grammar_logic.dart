@@ -15,9 +15,9 @@ class GrammarResult {
 mixin GrammarLogic {
   /// Validates [className] against a [grammar] string using the [analyzer].
   GrammarResult validateGrammar(String grammar, String className, LanguageAnalyzer analyzer) {
-    // 1. Extract Core Name (Strip structural suffixes if they explicitly match)
-    // e.g. Grammar: {{noun}}Model, Class: UserModel -> Core: User
-    String coreName = className;
+    var coreName = className;
+
+    // Extract Core Name by stripping pattern suffixes defined in the grammar string
     final startPlaceholder = grammar.indexOf('{{');
     final endPlaceholder = grammar.lastIndexOf('}}');
 
@@ -61,18 +61,17 @@ mixin GrammarLogic {
     if (GrammarToken.noun.isPresentIn(grammar) || GrammarToken.nounPhrase.isPresentIn(grammar)) {
       final head = words.last;
 
-      // Strict POS Check based on specific tokens
+      // Strict POS Check
       if (!analyzer.isNoun(head)) {
-        String specific = 'Noun';
         if (GrammarToken.nounPlural.isPresentIn(grammar) && !analyzer.isNounPlural(head)) {
-          return GrammarResult.invalid(
-            reason: '"$head" is not a Plural Noun.',
+          return const GrammarResult.invalid(
+            reason: 'Subject is not a Plural Noun.',
             correction: 'Use a plural noun.',
           );
         }
         if (GrammarToken.nounSingular.isPresentIn(grammar) && !analyzer.isNounSingular(head)) {
-          return GrammarResult.invalid(
-            reason: '"$head" is not a Singular Noun.',
+          return const GrammarResult.invalid(
+            reason: 'Subject is not a Singular Noun.',
             correction: 'Use a singular noun.',
           );
         }
@@ -85,7 +84,7 @@ mixin GrammarLogic {
       }
 
       // Modifier Check (No Verbs/Gerunds allowed in Noun Phrases)
-      for (int i = 0; i < words.length - 1; i++) {
+      for (var i = 0; i < words.length - 1; i++) {
         final word = words[i];
         if (analyzer.isVerbGerund(word)) {
           return GrammarResult.invalid(
@@ -93,7 +92,6 @@ mixin GrammarLogic {
             correction: 'Remove "$word" or change it to a descriptive adjective.',
           );
         }
-        // Strict Verb check (skipping ambiguous words)
         if (analyzer.isVerb(word) && !analyzer.isNoun(word)) {
           return GrammarResult.invalid(
             reason: '"$word" implies an action.',
@@ -109,7 +107,7 @@ mixin GrammarLogic {
         GrammarToken.verbGerund.isPresentIn(grammar) ||
         GrammarToken.verbPast.isPresentIn(grammar)) {
       final last = words.last;
-      bool match = false;
+      var match = false;
 
       if (GrammarToken.adjective.isPresentIn(grammar) && analyzer.isAdjective(last)) match = true;
       if (GrammarToken.verbGerund.isPresentIn(grammar) && analyzer.isVerbGerund(last)) match = true;

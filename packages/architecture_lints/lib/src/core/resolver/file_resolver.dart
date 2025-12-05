@@ -1,20 +1,35 @@
-// lib/src/core/resolver/file_resolver.dart
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
+import 'package:architecture_lints/src/core/resolver/module_resolver.dart';
 import 'package:architecture_lints/src/core/resolver/path_matcher.dart';
+import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/domain/module_context.dart';
 
 class FileResolver {
   final ArchitectureConfig config;
+  final ModuleResolver _moduleResolver;
 
-  const FileResolver(this.config);
+  FileResolver(this.config) : _moduleResolver = ModuleResolver(config.modules);
 
-  /// Returns the [ComponentConfig] that matches the given [filePath].
-  ComponentConfig? resolve(String filePath) {
+  /// Resolves the full architectural context of a file.
+  ComponentContext? resolve(String filePath) {
+    // 1. Resolve Config
+    final componentConfig = _resolveConfig(filePath);
+    if (componentConfig == null) return null;
+
+    // 2. Resolve Module
+    final moduleContext = _moduleResolver.resolve(filePath);
+
+    // 3. Create Rich Context
+    return ComponentContext(
+      filePath: filePath,
+      config: componentConfig,
+      module: moduleContext,
+    );
+  }
+
+  ComponentConfig? _resolveConfig(String filePath) {
     ComponentConfig? bestMatch;
-
-    // We track two metrics to determine the "best" match:
-    // 1. Match Start Index: The match that starts later in the string is "deeper".
-    // 2. Match Length: If two matches start at the same place, the longer one is specific.
     var bestMatchIndex = -1;
     var bestMatchLength = -1;
 
@@ -27,16 +42,11 @@ class FileResolver {
         final matchIndex = PathMatcher.getMatchIndex(normalizedFile, path);
 
         if (matchIndex != -1) {
-          // Logic:
-          // 1. Priority to the match that appears LATER in the path (Deeper folder)
           if (matchIndex > bestMatchIndex) {
             bestMatchIndex = matchIndex;
             bestMatchLength = path.length;
             bestMatch = component;
-          }
-          // 2. If they start at the same spot (rare with simple containment, but possible with globbing),
-          // prefer the longer pattern (More specific)
-          else if (matchIndex == bestMatchIndex) {
+          } else if (matchIndex == bestMatchIndex) {
             if (path.length > bestMatchLength) {
               bestMatchLength = path.length;
               bestMatch = component;
@@ -47,5 +57,10 @@ class FileResolver {
     }
 
     return bestMatch;
+  }
+
+  /// Resolves the ModuleContext for a given path, even if it's not a known component.
+  ModuleContext? resolveModule(String filePath) {
+    return _moduleResolver.resolve(filePath);
   }
 }

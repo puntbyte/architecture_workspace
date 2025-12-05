@@ -26,46 +26,29 @@ class ExceptionForbiddenRule extends ExceptionBaseRule {
   }) {
     for (final rule in rules) {
       for (final constraint in rule.forbidden) {
-        // Skip if operation is invalid/unknown
-        if (constraint.operation == null) continue;
+        if (constraint.operation == ExceptionOperation.throw$) {
+          final throws = findNodes<ThrowExpression>(node.body);
+          for (final t in throws) {
+            final type = t.expression.staticType;
+            final matchesSpecific = matchesType(
+              type,
+              constraint.definition,
+              constraint.type,
+              config.typeDefinitions,
+            );
+            final genericBan = constraint.definition == null && constraint.type == null;
 
-        switch (constraint.operation!) {
-          case ExceptionOperation.throw$:
-            final throws = findNodes<ThrowExpression>(node.body);
-            for (final t in throws) {
-              final type = t.expression.staticType;
-
-              final matchesSpecificType = matchesType(
-                type,
-                constraint.definition,
-                constraint.type,
-                config.typeDefinitions,
-              );
-
-              // If specific types aren't defined, it's a blanket ban on 'throw'
-              final isGenericBan = constraint.definition == null && constraint.type == null;
-
-              if (matchesSpecificType || isGenericBan) {
-                reporter.atNode(
-                  t,
-                  _code,
-                  arguments: ['throw ${type?.getDisplayString() ?? ''}'],
-                );
-              }
+            if (matchesSpecific || genericBan) {
+              reporter.atNode(t, _code, arguments: ['throw ${type?.getDisplayString() ?? ''}']);
             }
+          }
+        }
 
-          case ExceptionOperation.rethrow$:
-            final rethrows = findNodes<RethrowExpression>(node.body);
-            if (rethrows.isNotEmpty) {
-              reporter.atNode(rethrows.first, _code, arguments: ['rethrow']);
-            }
-
-          // 'try_return', 'catch_return' don't make sense in Forbidden context usually,
-          // but you could implement checks here if needed.
-          case ExceptionOperation.tryReturn:
-          case ExceptionOperation.catchReturn:
-          case ExceptionOperation.catchThrow:
-            break;
+        if (constraint.operation == ExceptionOperation.rethrow$) {
+          final rethrows = findNodes<RethrowExpression>(node.body);
+          if (rethrows.isNotEmpty) {
+            reporter.atNode(rethrows.first, _code, arguments: ['rethrow']);
+          }
         }
       }
     }

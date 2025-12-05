@@ -3,8 +3,9 @@ import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
+import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
-import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.dart';
+import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.dart'; // Required for findComponentIdByInheritance
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 abstract class NamingBaseRule extends ArchitectureLintRule with InheritanceLogic {
@@ -17,36 +18,37 @@ abstract class NamingBaseRule extends ArchitectureLintRule with InheritanceLogic
     required CustomLintResolver resolver,
     required ArchitectureConfig config,
     required FileResolver fileResolver,
-    ComponentConfig? component,
+    ComponentContext? component,
   }) {
     context.registry.addClassDeclaration((node) {
       // 1. Intent Detection via Inheritance
+      // (This requires InheritanceLogic mixin)
       final inheritanceId = findComponentIdByInheritance(node, config, fileResolver);
 
-      // 2. Determine Effective Component
-      var effectiveComponent = component;
+      ComponentConfig? effectiveConfig = component?.config;
+
+      // If inheritance dictates a specific component type, override the file-path based type.
       if (inheritanceId != null) {
         try {
-          effectiveComponent = config.components.firstWhere((c) => c.id == inheritanceId);
+          effectiveConfig = config.components.firstWhere((c) => c.id == inheritanceId);
         } catch (_) {}
       }
 
-      if (effectiveComponent == null) return;
+      if (effectiveConfig == null) return;
 
-      // 3. Delegate to implementation
       checkName(
         node: node,
-        component: effectiveComponent,
+        config: effectiveConfig,
         reporter: reporter,
-        config: config,
+        rootConfig: config,
       );
     });
   }
 
   void checkName({
     required ClassDeclaration node,
-    required ComponentConfig component,
+    required ComponentConfig config,
     required DiagnosticReporter reporter,
-    required ArchitectureConfig config,
+    required ArchitectureConfig rootConfig,
   });
 }

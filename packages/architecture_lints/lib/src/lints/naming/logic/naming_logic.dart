@@ -4,14 +4,12 @@ mixin NamingLogic {
   static const String _regexPascalCaseGroup = '([A-Z][a-zA-Z0-9]*)';
   static const String _regexWildcard = '.*';
 
-  /// Caches compiled regexes globally.
-  /// Static allows the Rules to be 'const' and improves performance.
+  /// Static cache to avoid recompiling regexes for the same pattern strings.
   static final Map<String, RegExp> _regexCache = {};
 
   bool validateName(String className, String pattern) {
     // Optimization: Direct equality check for simple patterns
     if (pattern == _placeholderName) {
-      // Just check if it is PascalCase
       return RegExp('^$_regexPascalCaseGroup\$').hasMatch(className);
     }
 
@@ -31,8 +29,6 @@ mixin NamingLogic {
   }
 
   String generateExample(String pattern) {
-    return pattern
-        .replaceAll('{{name}}', 'Login')
-        .replaceAll('{{affix}}', 'My');
+    return pattern.replaceAll('{{name}}', 'Login').replaceAll('{{affix}}', 'My');
   }
 }

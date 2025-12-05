@@ -12,7 +12,7 @@ class NamingPatternRule extends NamingBaseRule with NamingLogic {
     name: 'arch_naming_pattern',
     problemMessage: 'The {0} "{1}" does not follow the required naming convention.',
     correctionMessage: 'Rename it to match the pattern "{2}" (e.g., "{3}").',
-    errorSeverity: DiagnosticSeverity.WARNING,
+    errorSeverity: DiagnosticSeverity.ERROR,
   );
 
   const NamingPatternRule() : super(code: _code);
@@ -20,16 +20,16 @@ class NamingPatternRule extends NamingBaseRule with NamingLogic {
   @override
   void checkName({
     required ClassDeclaration node,
-    required ComponentConfig component,
+    required ComponentConfig config,
     required DiagnosticReporter reporter,
-    required ArchitectureConfig config,
+    required ArchitectureConfig rootConfig, // Fixed: Added missing parameter
   }) {
-    if (component.patterns.isEmpty) return;
+    if (config.patterns.isEmpty) return;
 
     final className = node.name.lexeme;
     var hasAnyMatch = false;
 
-    for (final pattern in component.patterns) {
+    for (final pattern in config.patterns) {
       if (validateName(className, pattern)) {
         hasAnyMatch = true;
         break;
@@ -41,10 +41,10 @@ class NamingPatternRule extends NamingBaseRule with NamingLogic {
         node.name,
         _code,
         arguments: [
-          component.displayName,
+          config.displayName,
           className,
-          component.patterns.join('" or "'),
-          generateExample(component.patterns.first),
+          config.patterns.join('" or "'),
+          generateExample(config.patterns.first),
         ],
       );
     }

@@ -14,8 +14,7 @@ class ModuleResolver {
     for (final module in modules) {
       if (!module.path.contains('{{name}}')) continue;
 
-      final pattern = PathMatcher.escapeRegex(module.path)
-          .replaceAll(r'\{\{name\}\}', r'([^/]+)');
+      final pattern = PathMatcher.escapeRegex(module.path).replaceAll(r'\{\{name\}\}', '([^/]+)');
 
       final regex = RegExp('/$pattern/');
       final match = regex.firstMatch(normalizedFile);

@@ -3,15 +3,13 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:architecture_lints/src/core/resolver/import_resolver.dart';
+import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
-import 'package:architecture_lints/src/lints/boundaries/logic/component_logic.dart'; // Import Logic
-import 'package:architecture_lints/src/utils/message_utils.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-class ComponentDependencyRule extends ArchitectureLintRule with ComponentLogic {
+class ComponentDependencyRule extends ArchitectureLintRule {
   static const _code = LintCode(
     name: 'arch_dep_component',
     problemMessage: 'Dependency Violation: {0} cannot depend on {1}.',
@@ -28,30 +26,29 @@ class ComponentDependencyRule extends ArchitectureLintRule with ComponentLogic {
     required CustomLintResolver resolver,
     required ArchitectureConfig config,
     required FileResolver fileResolver,
-    ComponentConfig? component,
+    ComponentContext? component,
   }) {
     if (component == null) return;
 
-    // 1. Get rules that apply to this component (or its parents)
-    // We use matchesComponent here too:
-    // If component is 'domain.usecase', it matches rules for 'domain' (Prefix)
-    // or 'usecase' (Suffix).
+    // 1. Filter rules: Ask the component if it matches the 'on' clause
     final rules = config.dependencies.where((rule) {
-      return rule.onIds.any((id) => matchesComponent([id], component.id));
+      return component.matchesAny(rule.onIds);
     }).toList();
 
     if (rules.isEmpty) return;
 
     // Helper to validate a specific dependency target
     void checkViolation({
-      required ComponentConfig targetComponent,
-      required Object nodeOrToken,
+      required ComponentContext targetComponent,
+      required Object nodeOrToken, // AstNode or Token
     }) {
+      // Allow self-references (same component definition)
       if (component.id == targetComponent.id) return;
 
       for (final rule in rules) {
         // A. Check Forbidden (Blacklist)
-        if (matchesComponent(rule.forbidden.components, targetComponent.id)) {
+        // Ask the TARGET component if it matches the forbidden list
+        if (targetComponent.matchesAny(rule.forbidden.components)) {
           _report(
             reporter: reporter,
             nodeOrToken: nodeOrToken,
@@ -62,8 +59,9 @@ class ComponentDependencyRule extends ArchitectureLintRule with ComponentLogic {
         }
 
         // B. Check Allowed (Whitelist)
+        // If an allow list exists, the target MUST be in it.
         if (rule.allowed.components.isNotEmpty) {
-          if (!matchesComponent(rule.allowed.components, targetComponent.id)) {
+          if (!targetComponent.matchesAny(rule.allowed.components)) {
             _report(
               reporter: reporter,
               nodeOrToken: nodeOrToken,
@@ -75,7 +73,7 @@ class ComponentDependencyRule extends ArchitectureLintRule with ComponentLogic {
       }
     }
 
-    // 2. Check Imports
+    // 2. Check Imports (Directives)
     context.registry.addImportDirective((node) {
       final importedPath = ImportResolver.resolvePath(node: node);
       if (importedPath == null) return;
@@ -86,7 +84,7 @@ class ComponentDependencyRule extends ArchitectureLintRule with ComponentLogic {
       }
     });
 
-    // 3. Check Usages
+    // 3. Check Usages (Named Types in code)
     context.registry.addNamedType((node) {
       final element = node.element;
       if (element == null) return;
@@ -106,12 +104,12 @@ class ComponentDependencyRule extends ArchitectureLintRule with ComponentLogic {
   void _report({
     required DiagnosticReporter reporter,
     required Object nodeOrToken,
-    required ComponentConfig current,
-    required ComponentConfig target,
+    required ComponentContext current,
+    required ComponentContext target,
   }) {
     final args = [
-      MessageUtils.humanizeComponent(current), // {0}
-      MessageUtils.humanizeComponent(target), // {1}
+      current.displayName, // Use getter from ComponentContext
+      target.displayName, // Use getter from ComponentContext
     ];
 
     if (nodeOrToken is AstNode) {

@@ -5,6 +5,7 @@ import 'package:architecture_lints/src/config/parsing/config_loader.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
+import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// The base class for all Architecture Lints.
@@ -54,7 +55,8 @@ abstract class ArchitectureLintRule extends DartLintRule {
 
     // 2. Resolve the file's architectural role
     // e.g., "This file is a Domain UseCase"
-    final component = fileResolver.resolve(resolver.path);
+    final componentContext = fileResolver.resolve(resolver.path);
+
 
     // 3. Delegate to the concrete rule logic
     runWithConfig(
@@ -62,8 +64,8 @@ abstract class ArchitectureLintRule extends DartLintRule {
       reporter: reporter,
       resolver: resolver,
       config: config,
-      component: component,
       fileResolver: fileResolver,
+      component: componentContext, // Pass Context
     );
   }
 
@@ -73,6 +75,6 @@ abstract class ArchitectureLintRule extends DartLintRule {
     required CustomLintResolver resolver,
     required ArchitectureConfig config,
     required FileResolver fileResolver,
-    ComponentConfig? component,
+    ComponentContext? component,
   });
 }

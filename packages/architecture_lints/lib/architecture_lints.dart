@@ -13,6 +13,7 @@ import 'package:architecture_lints/src/lints/members/rules/member_forbidden_rule
 import 'package:architecture_lints/src/lints/members/rules/member_required_rule.dart';
 import 'package:architecture_lints/src/lints/metadata/rules/annotation_forbidden_rule.dart';
 import 'package:architecture_lints/src/lints/metadata/rules/annotation_required_rule.dart';
+import 'package:architecture_lints/src/lints/metadata/rules/annotation_strict_rule.dart';
 import 'package:architecture_lints/src/lints/naming/rules/grammar_rule.dart';
 import 'package:architecture_lints/src/lints/naming/rules/misplaced_component_rule.dart';
 import 'package:architecture_lints/src/lints/naming/rules/naming_antipattern_rule.dart';
@@ -67,6 +68,7 @@ class _ArchitectureLintsPlugin extends PluginBase {
 
       const AnnotationRequiredRule(),
       const AnnotationForbiddenRule(),
+      const AnnotationStrictRule(),
 
       const ParityMissingRule(),
     ];

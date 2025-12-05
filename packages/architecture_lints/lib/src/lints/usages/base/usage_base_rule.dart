@@ -1,13 +1,12 @@
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/config/schema/usage_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
+import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
-import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-abstract class UsageBaseRule extends ArchitectureLintRule with InheritanceLogic {
+abstract class UsageBaseRule extends ArchitectureLintRule {
   const UsageBaseRule({required super.code});
 
   @override
@@ -17,33 +16,32 @@ abstract class UsageBaseRule extends ArchitectureLintRule with InheritanceLogic 
     required CustomLintResolver resolver,
     required ArchitectureConfig config,
     required FileResolver fileResolver,
-    ComponentConfig? component,
+    ComponentContext? component,
   }) {
     if (component == null) return;
 
-    // 1. Filter rules relevant to the current component
     final rules = config.usages.where((rule) {
-      return rule.onIds.any((id) => componentMatches(id, component.id));
+      return component.matchesAny(rule.onIds);
     }).toList();
 
     if (rules.isEmpty) return;
 
-    // 2. Delegate to subclass to register specific listeners
     registerListeners(
       context: context,
       rules: rules,
       config: config,
       fileResolver: fileResolver,
       reporter: reporter,
+      component: component,
     );
   }
 
-  /// Override this to register specific AST node listeners (Identifier vs InstanceCreation).
   void registerListeners({
     required CustomLintContext context,
     required List<UsageConfig> rules,
     required ArchitectureConfig config,
     required FileResolver fileResolver,
     required DiagnosticReporter reporter,
+    required ComponentContext component,
   });
 }

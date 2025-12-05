@@ -5,7 +5,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/type_safety_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
-import 'package:architecture_lints/src/lints/safety/base/type_safety_base_rule.dart'; // Import Base
+import 'package:architecture_lints/src/lints/safety/base/type_safety_base_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class TypeSafetyReturnAllowedRule extends TypeSafetyBaseRule {

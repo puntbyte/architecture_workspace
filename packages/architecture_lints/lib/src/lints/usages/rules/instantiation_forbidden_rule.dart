@@ -1,11 +1,12 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/enums/usage_kind.dart'; // Import Enum
+import 'package:architecture_lints/src/config/enums/usage_kind.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/usage_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
-import 'package:architecture_lints/src/lints/usages/base/usage_base_rule.dart'; // Import Base
+import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/lints/usages/base/usage_base_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class InstantiationForbiddenRule extends UsageBaseRule {
@@ -25,8 +26,8 @@ class InstantiationForbiddenRule extends UsageBaseRule {
     required ArchitectureConfig config,
     required FileResolver fileResolver,
     required DiagnosticReporter reporter,
+    required ComponentContext component,
   }) {
-    // 1. Pre-calculate forbidden target components
     final forbiddenComponents = rules
         .expand((r) => r.forbidden)
         .where((c) => c.kind == UsageKind.instantiation)
@@ -35,23 +36,19 @@ class InstantiationForbiddenRule extends UsageBaseRule {
 
     if (forbiddenComponents.isEmpty) return;
 
-    // 2. Register Constructor Call Listener
     context.registry.addInstanceCreationExpression((node) {
       final type = node.constructorName.type.type;
       final element = type?.element;
 
       if (element != null) {
         final library = element.library;
-        // Access source via fragment for analyzer 8.x compatibility
         if (library != null) {
           final sourcePath = library.firstFragment.source.fullName;
           final instantiatedComponent = fileResolver.resolve(sourcePath);
 
           if (instantiatedComponent != null) {
-            // Check matching (Suffix/Prefix logic handled by InheritanceLogic mixin)
-            final isForbidden = forbiddenComponents.any(
-              (id) => componentMatches(id, instantiatedComponent.id),
-            );
+            // Check matchesAny on the *instantiated* component against the *forbidden* list
+            final isForbidden = instantiatedComponent.matchesAny(forbiddenComponents.toList());
 
             if (isForbidden) {
               reporter.atNode(

@@ -1,9 +1,11 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:architecture_lints/src/config/enums/member_kind.dart';
+import 'package:architecture_lints/src/config/enums/member_modifier.dart';
+import 'package:architecture_lints/src/config/enums/member_visibility.dart';
 import 'package:architecture_lints/src/config/schema/member_constraint.dart';
 
 mixin MemberLogic {
-  /// Checks if [member] matches the criteria in [constraint].
   bool matchesConstraint(ClassMember member, MemberConstraint constraint) {
     final element = _getElement(member);
     if (element == null) return false;
@@ -11,11 +13,10 @@ mixin MemberLogic {
     // 1. Kind Match
     if (constraint.kind != null) {
       final kind = _getKind(member);
-      if (kind != constraint.kind && constraint.kind != 'override') {
-        return false;
-      }
-      // Special handle for 'override' kind (checks annotation)
-      if (constraint.kind == 'override' && !_hasOverrideAnnotation(member)) {
+      // 'overrideKind' is a special case check for annotation
+      if (constraint.kind == MemberKind.overrideKind) {
+        if (!_hasOverrideAnnotation(member)) return false;
+      } else if (kind != constraint.kind) {
         return false;
       }
     }
@@ -23,8 +24,8 @@ mixin MemberLogic {
     // 2. Visibility Match
     if (constraint.visibility != null) {
       final isPublic = !element.isPrivate;
-      if (constraint.visibility == 'public' && !isPublic) return false;
-      if (constraint.visibility == 'private' && isPublic) return false;
+      if (constraint.visibility == MemberVisibility.public && !isPublic) return false;
+      if (constraint.visibility == MemberVisibility.private && isPublic) return false;
     }
 
     // 3. Modifier Match
@@ -32,12 +33,12 @@ mixin MemberLogic {
       if (!_hasModifier(member, element, constraint.modifier!)) return false;
     }
 
-    // 4. Identifier Match (Regex or Exact)
+    // 4. Identifier Match
     if (constraint.identifiers.isNotEmpty) {
       final name = element.name;
       if (name == null) return false;
 
-      bool idMatch = false;
+      var idMatch = false;
       for (final pattern in constraint.identifiers) {
         if (RegExp(pattern).hasMatch(name)) {
           idMatch = true;
@@ -57,38 +58,36 @@ mixin MemberLogic {
     return null;
   }
 
-  String _getKind(ClassMember member) {
-    if (member is ConstructorDeclaration) return 'constructor';
+  MemberKind? _getKind(ClassMember member) {
+    if (member is ConstructorDeclaration) return MemberKind.constructor;
     if (member is MethodDeclaration) {
-      if (member.isGetter) return 'getter';
-      if (member.isSetter) return 'setter';
-      return 'method';
+      if (member.isGetter) return MemberKind.getter;
+      if (member.isSetter) return MemberKind.setter;
+      return MemberKind.method;
     }
-    if (member is FieldDeclaration) return 'field';
-    return 'unknown';
+    if (member is FieldDeclaration) return MemberKind.field;
+    return null;
   }
 
   bool _hasOverrideAnnotation(ClassMember member) {
     return member.metadata.any((a) => a.name.name == 'override');
   }
 
-  bool _hasModifier(ClassMember member, Element element, String modifier) {
+  bool _hasModifier(ClassMember member, Element element, MemberModifier modifier) {
     switch (modifier) {
-      case 'static':
+      case MemberModifier.staticMod:
         if (element is ExecutableElement) return element.isStatic;
         if (element is FieldElement) return element.isStatic;
         return false;
-      case 'final':
+      case MemberModifier.finalMod:
         if (element is FieldElement) return element.isFinal;
         return false;
-      case 'const':
+      case MemberModifier.constMod:
         if (element is FieldElement) return element.isConst;
         if (element is ConstructorElement) return element.isConst;
         return false;
-      case 'late':
+      case MemberModifier.lateMod:
         if (element is FieldElement) return element.isLate;
-        return false;
-      default:
         return false;
     }
   }
