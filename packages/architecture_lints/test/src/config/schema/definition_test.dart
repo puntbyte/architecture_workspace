@@ -1,3 +1,5 @@
+// test/src/config/schema/definition_test.dart
+
 import 'package:architecture_lints/src/config/schema/definition.dart';
 import 'package:test/test.dart';
 
@@ -23,7 +25,9 @@ void main() {
       });
 
       test('should parse identifiers list', () {
-        final def = Definition.fromDynamic({'identifiers': ['sl', 'getIt']});
+        final def = Definition.fromDynamic(const {
+          'identifiers': ['sl', 'getIt'],
+        });
         expect(def.identifiers, ['sl', 'getIt']);
       });
 
@@ -32,8 +36,8 @@ void main() {
           'type': 'Either',
           'argument': [
             {'type': 'L'},
-            {'type': 'R'}
-          ]
+            {'type': 'R'},
+          ],
         };
         final def = Definition.fromDynamic(map);
         expect(def.arguments, hasLength(2));
@@ -47,8 +51,8 @@ void main() {
         final yaml = {
           'domain': {
             '.base': {'type': 'Entity'},
-            '.sub': {'type': 'SubEntity'}
-          }
+            '.sub': {'type': 'SubEntity'},
+          },
         };
 
         final registry = Definition.parseRegistry(yaml);
@@ -61,16 +65,13 @@ void main() {
         final yaml = {
           'result': {
             // First item defines import
-            '.success': {
-              'type': 'Right',
-              'import': 'package:fpdart'
-            },
+            '.success': {'type': 'Right', 'import': 'package:fpdart'},
             // Second item should inherit 'package:fpdart' via HierarchyParser
             '.failure': {
-              'type': 'Left'
+              'type': 'Left',
               // missing import
-            }
-          }
+            },
+          },
         };
 
         final registry = Definition.parseRegistry(yaml);
@@ -83,8 +84,8 @@ void main() {
         final yaml = {
           'group': {
             '.first': {'type': 'A', 'import': 'pkg/a'},
-            '.second': {'type': 'B', 'import': 'pkg/b'}
-          }
+            '.second': {'type': 'B', 'import': 'pkg/b'},
+          },
         };
 
         final registry = Definition.parseRegistry(yaml);

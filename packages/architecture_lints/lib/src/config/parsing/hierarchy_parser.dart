@@ -1,3 +1,5 @@
+// lib/src/config/parsing/hierarchy_parser.dart
+
 class HierarchyParser {
   const HierarchyParser._();
 
@@ -42,7 +44,7 @@ class HierarchyParser {
   }) {
     // 1. Prepare Effective Node Data
     dynamic effectiveNode = node;
-    Map<String, dynamic> dataForChildren = Map.from(contextData);
+    var dataForChildren = Map<String, dynamic>.from(contextData);
 
     // Expand Shorthand if applicable (String -> Map)
     Map<String, dynamic>? mapNode;
@@ -75,7 +77,7 @@ class HierarchyParser {
 
     // 2. Parse Object
     if (parentId.isNotEmpty) {
-      bool isValid = true;
+      var isValid = true;
       if (shouldParseNode != null) {
         isValid = shouldParseNode(effectiveNode);
       }
@@ -90,14 +92,14 @@ class HierarchyParser {
     // 3. Iterate Children (Only if original node was a Map)
     if (node is! Map) return;
 
-    Map<String, dynamic> siblingContext = {};
+    final siblingContext = <String, dynamic>{};
 
     for (final entry in node.entries) {
       final key = entry.key.toString();
       final value = entry.value;
 
       String? nextParentId;
-      bool resetContext = false;
+      var resetContext = false;
 
       // Case A: Child
       if (key.startsWith('.')) {

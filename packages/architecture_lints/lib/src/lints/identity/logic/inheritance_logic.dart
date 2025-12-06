@@ -1,3 +1,5 @@
+// lib/src/lints/identity/logic/inheritance_logic.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -9,7 +11,8 @@ import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 mixin InheritanceLogic {
-  /// Attempts to identify the architectural component of a class based on what it extends/implements.
+  /// Attempts to identify the architectural component of a class based on what it
+  /// extends/implements.
   String? findComponentIdByInheritance(
     ClassDeclaration node,
     ArchitectureConfig config,
@@ -111,15 +114,25 @@ mixin InheritanceLogic {
   }
 
   String describeDefinition(Definition def, [Map<String, Definition>? registry]) {
-    if (def.type != null) return def.type!;
-    if (def.component != null) return 'Component: ${def.component}';
+    // 1. Resolve Reference
     if (def.ref != null) {
       if (registry != null) {
         final resolved = registry[def.ref];
-        if (resolved != null) return describeDefinition(resolved, registry);
+        // RECURSIVE: If resolved, describe THAT.
+        if (resolved != null) {
+          return describeDefinition(resolved, registry);
+        }
       }
-      return 'Defined: ${def.ref}';
+      // Fallback if registry missing or key not found
+      return 'Reference(${def.ref})';
     }
+
+    // 2. Direct Type
+    if (def.type != null) return def.type!;
+
+    // 3. Component
+    if (def.component != null) return 'Component(${def.component})';
+
     return 'Defined Rule';
   }
 

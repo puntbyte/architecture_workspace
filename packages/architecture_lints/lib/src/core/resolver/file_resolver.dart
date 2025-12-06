@@ -1,3 +1,5 @@
+// lib/src/core/resolver/file_resolver.dart
+
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/core/resolver/module_resolver.dart';
@@ -51,7 +53,8 @@ class FileResolver {
               bestMatchLength = path.length;
               bestMatch = component;
             }
-            // 3. CRITICAL FIX: If paths are identical (Co-located), prefer the Child/Specific component.
+            // 3. CRITICAL FIX: If paths are identical (Co-located), prefer the Child/Specific
+            // component.
             // We assume the Child has a longer ID (e.g. 'data.source.interface' > 'data.source')
             else if (path.length == bestMatchLength) {
               if (component.id.length > (bestMatch?.id.length ?? 0)) {

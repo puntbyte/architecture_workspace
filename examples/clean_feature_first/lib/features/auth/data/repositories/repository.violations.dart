@@ -79,10 +79,6 @@ class BadErrorHandlingRepository implements AuthPort {
     }
   }
 
-
-
   @override
   FutureEither<void> logout() => throw UnimplementedError();
-
-
 }

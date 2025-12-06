@@ -509,9 +509,15 @@ definitions:
       type: 'Usecase'
       import: 'package:clean_feature_first/core/usecase/usecase.dart'
     # Inherits usecase.dart
-    .nullary: 'NullaryUsecase'
+    .nullary:
+      type: 'NullaryUsecase'
+      argument: '*'
     # Inherits usecase.dart
-    .unary: 'UnaryUsecase'
+    .unary:
+      type: 'UnaryUsecase'
+      argument:
+        - type: '*'
+        - type: '*'
 
   # --- Functional Wrappers ---
   result:

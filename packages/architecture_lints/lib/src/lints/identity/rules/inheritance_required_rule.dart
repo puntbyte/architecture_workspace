@@ -1,3 +1,5 @@
+// lib/src/lints/identity/rules/inheritance_required_rule.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -13,7 +15,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 class InheritanceRequiredRule extends InheritanceBaseRule {
   static const _code = LintCode(
     name: 'arch_type_missing_base',
-    problemMessage: 'The component "{0}" must inherit from {1}.',
+    problemMessage: '{0}', // Generic placeholder
     correctionMessage: 'Extend or implement one of the required types.',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
@@ -34,8 +36,6 @@ class InheritanceRequiredRule extends InheritanceBaseRule {
     for (final rule in rules) {
       if (rule.required.isEmpty) continue;
 
-      // Check if ANY supertype matches ANY of the required definitions
-      // Logic: At least one supertype must satisfy one requirement.
       final hasMatch = supertypes.any((type) {
         return rule.required.any(
           (reqDef) => matchesDefinition(type, reqDef, fileResolver, config.definitions),
@@ -43,18 +43,26 @@ class InheritanceRequiredRule extends InheritanceBaseRule {
       });
 
       if (!hasMatch) {
-        final description = rule.required
+        // Generate a rich, human-readable message
+        final buffer = StringBuffer()
+          ..write('The component "${component.displayName}" is invalid. ');
+
+        final descriptions = rule.required
             .map((d) => describeDefinition(d, config.definitions))
             .join(' OR ');
+
+        // Check if we are demanding a Component location vs a Class type
+        if (rule.required.any((d) => d.component != null)) {
+          buffer.write('It must inherit from a class belonging to: $descriptions.');
+        } else {
+          buffer.write('It must extend or implement: $descriptions.');
+        }
 
         report(
           reporter: reporter,
           nodeOrToken: node.name,
           code: _code,
-          arguments: [
-            component.displayName,
-            description,
-          ],
+          arguments: [buffer.toString()],
         );
       }
     }

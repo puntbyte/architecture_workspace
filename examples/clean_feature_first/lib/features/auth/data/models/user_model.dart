@@ -9,11 +9,15 @@ import 'package:clean_feature_first/features/auth/domain/entities/user.dart';
 class UserModel extends User {
   // Models often have extra fields for serialization that aren't in the Entity
   final String? internalApiId;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   const UserModel({
     required super.id,
     required super.name,
     this.internalApiId,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(

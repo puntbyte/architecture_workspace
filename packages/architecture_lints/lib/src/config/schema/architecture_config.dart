@@ -15,8 +15,10 @@ import 'package:architecture_lints/src/config/schema/usage_config.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
 
 class ArchitectureConfig {
-  final List<ComponentConfig> components;
   final List<ModuleConfig> modules;
+  final List<ComponentConfig> components;
+  final Map<String, Definition> definitions;
+
   final List<DependencyConfig> dependencies;
   final List<InheritanceConfig> inheritances;
   final List<TypeSafetyConfig> typeSafeties;
@@ -27,7 +29,6 @@ class ArchitectureConfig {
   final List<RelationshipConfig> relationships;
   final Map<String, String> templates;
   final List<String> excludes;
-  final Map<String, Definition> definitions; // Replaces 'services' and 'typeDefinitions'
 
   const ArchitectureConfig({
     required this.components,
@@ -84,14 +85,12 @@ class ArchitectureConfig {
 
       // Templates are simple String maps, no schema needed
       templates: yaml.mustGetMap(ConfigKeys.root.templates).map((key, value) {
-        if (value is! String) {
-          throw FormatException("Template '$key' must be a String.");
-        }
+        if (value is! String) throw FormatException("Template '$key' must be a String.");
+
         return MapEntry(key, value);
       }),
 
       excludes: yaml.mustGetStringList(ConfigKeys.root.excludes),
-
 
     );
   }

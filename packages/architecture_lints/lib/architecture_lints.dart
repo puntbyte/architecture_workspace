@@ -3,7 +3,6 @@
 import 'package:architecture_lints/src/lints/boundaries/rules/component_dependency_rule.dart';
 import 'package:architecture_lints/src/lints/boundaries/rules/external_dependency_rule.dart';
 import 'package:architecture_lints/src/lints/boundaries/rules/module_dependency_rule.dart';
-import 'package:architecture_lints/src/lints/consistency/fixes/create_missing_component_fix.dart';
 import 'package:architecture_lints/src/lints/consistency/rules/orphan_file_rule.dart';
 import 'package:architecture_lints/src/lints/consistency/rules/parity_missing_rule.dart';
 import 'package:architecture_lints/src/lints/identity/rules/inheritance_allowed_rule.dart';

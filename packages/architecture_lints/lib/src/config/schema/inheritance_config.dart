@@ -1,3 +1,5 @@
+// lib/src/config/schema/inheritance_config.dart
+
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/config/schema/definition.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
@@ -34,11 +36,29 @@ class InheritanceConfig {
   static List<Definition> _parseDefinitionList(dynamic value) {
     if (value == null) return const [];
 
+    // Case 1: Standard List of Objects/Strings
     if (value is List) {
       return value.map(Definition.fromDynamic).toList();
     }
 
-    // Allow single object/string shorthand (e.g. required: 'Entity')
+    // Case 2: Map Shorthand (e.g. { definition: ['a', 'b'] })
+    if (value is Map) {
+      // Check for 'definition' list
+      final defs = value[ConfigKeys.definition.definition];
+      if (defs is List) {
+        return defs.map((ref) => Definition(ref: ref.toString())).toList();
+      }
+
+      // Check for 'type' list
+      final types = value[ConfigKeys.definition.type];
+      if (types is List) {
+        return types.map((t) => Definition(type: t.toString())).toList();
+      }
+
+      // Fallback: It's a single definition object
+      return [Definition.fromDynamic(value)];
+    }
+
     return [Definition.fromDynamic(value)];
   }
 }

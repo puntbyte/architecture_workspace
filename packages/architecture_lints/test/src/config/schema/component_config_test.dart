@@ -1,3 +1,5 @@
+// test/src/config/schema/component_config_test.dart
+
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/config/schema/module_config.dart';
 import 'package:test/test.dart';
@@ -6,11 +8,7 @@ void main() {
   group('ComponentConfig', () {
     group('fromMap', () {
       test('should parse fields', () {
-        final map = {
-          'path': 'lib',
-          'pattern': '{{name}}',
-          'default': true
-        };
+        final map = {'path': 'lib', 'pattern': '{{name}}', 'default': true};
         final config = ComponentConfig.fromMap('id', map);
         expect(config.id, 'id');
         expect(config.paths, ['lib']);
@@ -23,8 +21,8 @@ void main() {
         final yaml = {
           '.domain': {
             'path': 'domain',
-            '.entity': {'pattern': '{{name}}'}
-          }
+            '.entity': {'pattern': '{{name}}'},
+          },
         };
         final results = ComponentConfig.parseMap(yaml, []);
 
@@ -41,16 +39,11 @@ void main() {
             'path': 'data/sources',
 
             // Child missing path, should get 'data/sources'
-            '.interface': {
-              'pattern': 'I{{name}}'
-            },
+            '.interface': {'pattern': 'I{{name}}'},
 
             // Child overrides path
-            '.impl': {
-              'path': 'data/sources/impl',
-              'pattern': '{{name}}Impl'
-            }
-          }
+            '.impl': {'path': 'data/sources/impl', 'pattern': '{{name}}Impl'},
+          },
         };
 
         final results = ComponentConfig.parseMap(yaml, []);
@@ -66,8 +59,8 @@ void main() {
         final modules = [const ModuleConfig(key: 'core', path: 'core')];
         final yaml = {
           'core': {
-            '.util': {'path': 'utils'}
-          }
+            '.util': {'path': 'utils'},
+          },
         };
 
         final results = ComponentConfig.parseMap(yaml, modules);

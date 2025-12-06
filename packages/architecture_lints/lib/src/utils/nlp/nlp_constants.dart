@@ -33,6 +33,8 @@ const Set<String> commonNouns = {
   'date',
   'image',
   'list',
+  'login',
+  'logout',
   'map',
   'type',
   'info',

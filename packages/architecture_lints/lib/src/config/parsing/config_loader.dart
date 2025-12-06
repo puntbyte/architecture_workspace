@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
-import 'package:architecture_lints/src/config/parsing/yaml_merger.dart'; // Import Merger
+import 'package:architecture_lints/src/config/parsing/yaml_merger.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:path/path.dart' as p;
 
@@ -65,5 +65,6 @@ class ConfigLoader {
 class _CachedEntry {
   final ArchitectureConfig config;
   final DateTime lastModified;
+
   _CachedEntry(this.config, this.lastModified);
 }

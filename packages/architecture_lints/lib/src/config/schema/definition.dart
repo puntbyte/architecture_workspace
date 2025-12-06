@@ -1,3 +1,5 @@
+// lib/src/config/schema/definition.dart
+
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/config/parsing/hierarchy_parser.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
@@ -6,7 +8,7 @@ import 'package:meta/meta.dart';
 @immutable
 class Definition {
   final String? type;
-  final List<String> types; // New: Support list of types (for Services)
+  final List<String> types;
   final List<String> identifiers;
   final String? import;
   final String? ref;
@@ -26,7 +28,8 @@ class Definition {
   });
 
   /// Factory to parse a definition value.
-  /// Note: Context/Inheritance is handled by [HierarchyParser] merging properties into [value] if it is a Map.
+  /// Note: Context/Inheritance is handled by [HierarchyParser] merging properties into [value] if
+  /// it is a Map.
   factory Definition.fromDynamic(dynamic value) {
     if (value == null) return const Definition();
 
@@ -66,7 +69,7 @@ class Definition {
       final args = <Definition>[];
       if (rawArgs != null) {
         if (rawArgs is List) {
-          args.addAll(rawArgs.map((e) => Definition.fromDynamic(e)));
+          args.addAll(rawArgs.map(Definition.fromDynamic));
         } else {
           args.add(Definition.fromDynamic(rawArgs));
         }
@@ -90,7 +93,8 @@ class Definition {
       yaml: map,
       factory: (id, node) => Definition.fromDynamic(node),
       cascadeProperties: [ConfigKeys.definition.import],
-      shorthandKey: ConfigKeys.definition.type, // NEW: Expands string shorthands to {type: string}
+      shorthandKey: ConfigKeys.definition.type,
+      // NEW: Expands string shorthands to {type: string}
       shouldParseNode: (node) {
         if (node is String) return true;
         if (node is Map) {
