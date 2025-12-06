@@ -5,31 +5,18 @@ import 'package:meta/meta.dart';
 
 @immutable
 class Definition {
-  /// The class name (e.g. 'Future', 'GetIt', 'int').
   final String? type;
-
-  /// Variable, Property, or Method names (e.g. ['sl', 'getIt', 'setup']).
-  /// Used primarily for Usage checks.
+  final List<String> types; // New: Support list of types (for Services)
   final List<String> identifiers;
-
-  /// Strict package import URI (e.g. 'package:get_it/get_it.dart').
   final String? import;
-
-  /// Reference to another key in the definitions registry (e.g. 'failure.base').
   final String? ref;
-
-  /// Reference to an architectural component (e.g. 'model').
-  /// Used to enforce that a type belongs to a specific layer.
   final String? component;
-
-  /// Recursive generic arguments (e.g. <Failure, T>).
   final List<Definition> arguments;
-
-  /// If true, this definition matches anything (used for '*').
   final bool isWildcard;
 
   const Definition({
     this.type,
+    this.types = const [],
     this.identifiers = const [],
     this.import,
     this.ref,
@@ -38,74 +25,62 @@ class Definition {
     this.isWildcard = false,
   });
 
-  /// Factory to parse a definition value which can be a String or a Map.
-  /// [currentImport] allows inheriting the import from a parent context (if applicable).
-  factory Definition.fromDynamic(dynamic value, {String? currentImport}) {
+  /// Factory to parse a definition value.
+  /// Note: Context/Inheritance is handled by [HierarchyParser] merging properties into [value] if it is a Map.
+  factory Definition.fromDynamic(dynamic value) {
     if (value == null) return const Definition();
 
-    // 1. Shorthand String: 'MyClass' or '*'
+    // 1. Shorthand String
     if (value is String) {
       if (value == '*') return const Definition(isWildcard: true);
-      return Definition(type: value, import: currentImport);
+      return Definition(type: value);
     }
 
-    // 2. Detailed Map
+    // 2. Map
     if (value is Map) {
       final map = Map<String, dynamic>.from(value);
 
-      // --- References ---
-
-      // A. Component Reference
       final compRef = map.tryGetString(ConfigKeys.definition.component);
-      if (compRef != null) {
-        return Definition(component: compRef);
-      }
+      if (compRef != null) return Definition(component: compRef);
 
-      // B. Definition Reference
       final refKey = map.tryGetString(ConfigKeys.definition.definition);
-      if (refKey != null) {
-        return Definition(ref: refKey);
-      }
-
-      // --- Explicit Definition ---
+      if (refKey != null) return Definition(ref: refKey);
 
       final typeName = map.tryGetString(ConfigKeys.definition.type);
       if (typeName == '*') return const Definition(isWildcard: true);
 
-      final explicitImport = map.tryGetString(ConfigKeys.definition.import);
-      final resolvedImport = explicitImport ?? currentImport;
+      // Parse List of Types (reuse 'type' key)
+      final rawType = map[ConfigKeys.definition.type];
+      final typesList = <String>[];
+      if (rawType is List) typesList.addAll(rawType.map((e) => e.toString()));
+      if (typeName != null) typesList.add(typeName);
 
-      // Parse Identifiers (String or List)
+      final import = map.tryGetString(ConfigKeys.definition.import);
+
       final rawIds = map[ConfigKeys.definition.identifiers];
       final ids = <String>[];
       if (rawIds is String) ids.add(rawIds);
       if (rawIds is List) ids.addAll(rawIds.map((e) => e.toString()));
 
-      // Parse Recursive Arguments
       final rawArgs = map[ConfigKeys.definition.argument];
       final args = <Definition>[];
-
       if (rawArgs != null) {
         if (rawArgs is List) {
-          // Argument list: [ {type: A}, {type: B} ]
-          args.addAll(
-            rawArgs.map((e) => Definition.fromDynamic(e, currentImport: resolvedImport)),
-          );
+          args.addAll(rawArgs.map((e) => Definition.fromDynamic(e)));
         } else {
-          // Single argument shorthand: { type: A }
-          args.add(Definition.fromDynamic(rawArgs, currentImport: resolvedImport));
+          args.add(Definition.fromDynamic(rawArgs));
         }
       }
 
       return Definition(
         type: typeName,
+        types: typesList,
         identifiers: ids,
-        import: resolvedImport,
+        import: import,
         arguments: args,
       );
     }
 
-    // Fail safe for invalid config types
     return const Definition();
   }
 
@@ -114,9 +89,10 @@ class Definition {
     return HierarchyParser.parse<Definition>(
       yaml: map,
       factory: (id, node) => Definition.fromDynamic(node),
-      // Valid if it's a String (shorthand) OR a Map with keys
+      cascadeProperties: [ConfigKeys.definition.import],
+      shorthandKey: ConfigKeys.definition.type, // NEW: Expands string shorthands to {type: string}
       shouldParseNode: (node) {
-        if (node is String) return true; // Shorthand 'MyClass' is valid
+        if (node is String) return true;
         if (node is Map) {
           return node.containsKey(ConfigKeys.definition.type) ||
               node.containsKey(ConfigKeys.definition.identifiers) ||
@@ -128,15 +104,6 @@ class Definition {
       },
     );
   }
-
-  bool get isEmpty =>
-      type == null &&
-          identifiers.isEmpty &&
-          ref == null &&
-          component == null &&
-          !isWildcard;
-
-  bool get isNotEmpty => !isEmpty;
 
   @override
   String toString() {

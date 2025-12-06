@@ -142,7 +142,7 @@ modules:
 # - verb: {{verb}}, {{verb.present}}, {{verb.past}}, {{verb.gerund}}
 # - other: {{adjective}}, {{adverb}}, {{pronoun}}, {{preposition}}, {{conjunction}}
 # --------------------------------------------------------------------------------------------------
-componentsOld:
+componentsX:
   # ---- Domain (Inner Circle) ---
   domain:
     name: 'Domain'
@@ -505,7 +505,9 @@ definitions:
   # --- Domain Types ---
   usecase:
     # Sets the import context for subsequent items
-    .base: { type: 'Usecase', import: 'package:clean_feature_first/core/usecase/usecase.dart' }
+    .base:
+      type: 'Usecase'
+      import: 'package:clean_feature_first/core/usecase/usecase.dart'
     # Inherits usecase.dart
     .nullary: 'NullaryUsecase'
     # Inherits usecase.dart
@@ -517,15 +519,30 @@ definitions:
     .future: 'Future'
     .stream: 'Stream'
     # New import context
-    .wrapper.future:
-      type: 'FutureEither'
-      import: 'package:clean_feature_first/core/utils/types.dart'
-      argument: '*'
+    .wrapper:
+      .future:
+        type: 'FutureEither'
+        import: 'package:clean_feature_first/core/utils/types.dart'
+        argument: '*'
 
-    # Inherits types.dart
-    .wrapper.stream:
-      type: 'StreamEither'
-      argument: '*'
+      # Inherits types.dart
+      .stream:
+        type: 'StreamEither'
+        argument: '*'
+
+      # 2. Explicit Nested Generics (The strict way)
+      # Matches: Future<Either<Failure, T>>
+      # This ensures you aren't just returning Future<int> or Future<Either<String, int>>.
+      .future.strict:
+        name: 'Future'
+        argument:
+          name: 'Either'
+          import: 'package:fpdart/fpdart.dart'
+          argument:
+            # First arg must be a Failure
+            - definition: 'failure.base'
+            # Second arg can be anything (Wildcard)
+            - type: '*'
 
     # Overrides context
     .success:
@@ -538,20 +555,6 @@ definitions:
       type: 'Left'
       argument:
         definition: 'failure.base'
-
-    # 2. Explicit Nested Generics (The strict way)
-    # Matches: Future<Either<Failure, T>>
-    # This ensures you aren't just returning Future<int> or Future<Either<String, int>>.
-    .wrapper.strict:
-      name: 'Future'
-      argument:
-        name: 'Either'
-        import: 'package:fpdart/fpdart.dart'
-        argument:
-          # First arg must be a Failure
-          - definition: 'failure.base'
-          # Second arg can be anything (Wildcard)
-          - type: '*'
 
   # --- Failure ---
   failure:
@@ -570,13 +573,14 @@ definitions:
     .server: 'ServerException'
     .cache: 'CacheException'
 
-  # --- identity ---
+  # --- Identity ---
   identity:
     .integer:
       type: 'IntId'
       import: 'package:clean_feature_first/core/utils/types.dart'
     .string: 'StringId'
 
+  # --- Services ---
   service:
     .locator:
       type: [ 'Injector', 'GetIt' ]

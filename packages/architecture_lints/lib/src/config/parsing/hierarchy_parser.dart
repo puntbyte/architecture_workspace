@@ -1,13 +1,13 @@
 class HierarchyParser {
   const HierarchyParser._();
 
-  /// Parses a hybrid hierarchical YAML map into a flat Map of [ID -> Object].
   static Map<String, T> parse<T>({
     required Map<String, dynamic> yaml,
-    // CHANGED: Factory now accepts dynamic value (could be Map or String)
     required T Function(String id, dynamic value) factory,
     Set<String> scopeKeys = const {},
-    // CHANGED: Validation now accepts dynamic value
+    List<String> inheritProperties = const [],
+    List<String> cascadeProperties = const [],
+    String? shorthandKey, // New: Key to use when expanding primitives
     bool Function(dynamic value)? shouldParseNode,
   }) {
     final results = <String, T>{};
@@ -17,6 +17,10 @@ class HierarchyParser {
       parentId: '',
       results: results,
       scopeKeys: scopeKeys,
+      inheritProperties: inheritProperties,
+      cascadeProperties: cascadeProperties,
+      shorthandKey: shorthandKey,
+      contextData: {},
       factory: factory,
       shouldParseNode: shouldParseNode,
     );
@@ -25,77 +29,122 @@ class HierarchyParser {
   }
 
   static void _parseNode<T>({
-    required dynamic node, // CHANGED: allow non-Map inputs
+    required dynamic node,
     required String parentId,
     required Map<String, T> results,
     required Set<String> scopeKeys,
+    required List<String> inheritProperties,
+    required List<String> cascadeProperties,
+    required String? shorthandKey,
+    required Map<String, dynamic> contextData,
     required T Function(String id, dynamic value) factory,
     bool Function(dynamic value)? shouldParseNode,
   }) {
-    // 1. Try to parse the current node as an object [T]
+    // 1. Prepare Effective Node Data
+    dynamic effectiveNode = node;
+    Map<String, dynamic> dataForChildren = Map.from(contextData);
+
+    // Expand Shorthand if applicable (String -> Map)
+    Map<String, dynamic>? mapNode;
+    if (node is Map) {
+      mapNode = Map<String, dynamic>.from(node);
+    } else if (shorthandKey != null && node is String) {
+      mapNode = {shorthandKey: node};
+    }
+
+    // Apply Context (Inheritance/Cascading)
+    if (mapNode != null) {
+      for (final entry in contextData.entries) {
+        if (!mapNode.containsKey(entry.key)) {
+          mapNode[entry.key] = entry.value;
+        }
+      }
+
+      effectiveNode = mapNode;
+
+      // Update context for children (Parent Inheritance)
+      for (final prop in inheritProperties) {
+        if (mapNode.containsKey(prop)) {
+          dataForChildren[prop] = mapNode[prop];
+        }
+      }
+    } else {
+      // Primitive node without expansion: just pass existing context down
+      dataForChildren = contextData;
+    }
+
+    // 2. Parse Object
     if (parentId.isNotEmpty) {
       bool isValid = true;
       if (shouldParseNode != null) {
-        isValid = shouldParseNode(node);
+        isValid = shouldParseNode(effectiveNode);
       }
 
       if (isValid) {
         try {
-          results[parentId] = factory(parentId, node);
+          results[parentId] = factory(parentId, effectiveNode);
         } catch (_) {}
       }
     }
 
-    // 2. Iterate children (Only if node is a Map)
+    // 3. Iterate Children (Only if original node was a Map)
     if (node is! Map) return;
+
+    Map<String, dynamic> siblingContext = {};
 
     for (final entry in node.entries) {
       final key = entry.key.toString();
       final value = entry.value;
 
-      // --- CASE A: Child Node (starts with .) ---
-      if (key.startsWith('.')) {
-        final childSuffix = key.substring(1);
-        final newId = parentId.isEmpty
-            ? childSuffix
-            : '$parentId.$childSuffix';
+      String? nextParentId;
+      bool resetContext = false;
 
-        _parseNode(
-          node: value, // Recurse with value (Map or String)
-          parentId: newId,
-          results: results,
-          scopeKeys: scopeKeys,
-          factory: factory,
-          shouldParseNode: shouldParseNode,
-        );
-        continue;
+      // Case A: Child
+      if (key.startsWith('.')) {
+        final suffix = key.substring(1);
+        nextParentId = parentId.isEmpty ? suffix : '$parentId.$suffix';
+      }
+      // Case B: Root Scope
+      else if (parentId.isEmpty && scopeKeys.contains(key)) {
+        nextParentId = key;
+        resetContext = true;
+      }
+      // Case C: Root Flat
+      else if (parentId.isEmpty) {
+        nextParentId = key;
+        resetContext = true;
       }
 
-      // --- CASE B: Root Level Special Handling ---
-      if (parentId.isEmpty) {
-        // Sub-case B1: Scope Key
-        if (scopeKeys.contains(key)) {
-          _parseNode(
-            node: value,
-            parentId: key,
-            results: results,
-            scopeKeys: scopeKeys,
-            factory: factory,
-            shouldParseNode: shouldParseNode,
-          );
-          continue;
+      if (nextParentId != null) {
+        final childContext = resetContext
+            ? <String, dynamic>{}
+            : Map<String, dynamic>.from(dataForChildren);
+
+        if (!resetContext) {
+          siblingContext.forEach((k, v) => childContext[k] = v);
         }
 
-        // Sub-case B2: Flat Key
         _parseNode(
           node: value,
-          parentId: key,
+          parentId: nextParentId,
           results: results,
           scopeKeys: scopeKeys,
+          inheritProperties: inheritProperties,
+          cascadeProperties: cascadeProperties,
+          shorthandKey: shorthandKey,
+          contextData: childContext,
           factory: factory,
           shouldParseNode: shouldParseNode,
         );
-        continue;
+
+        // Update Sibling Context
+        if (value is Map) {
+          for (final prop in cascadeProperties) {
+            if (value.containsKey(prop)) {
+              siblingContext[prop] = value[prop];
+            }
+          }
+        }
       }
     }
   }

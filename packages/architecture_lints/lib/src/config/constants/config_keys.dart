@@ -7,6 +7,7 @@ abstract class ConfigKeys {
 
   static const root = _RootKeys();
   static const typeDef = _TypeDefinitionKeys();
+  static const module = _ModuleKeys(); // New
   static const component = _ComponentKeys();
   static const definition = _DefinitionKeys();
   static const dependency = _DependencyKeys();
@@ -54,6 +55,13 @@ abstract class _CommonKeys {
   static const forbidden = 'forbidden';
 
   const _CommonKeys._();
+}
+
+class _ModuleKeys {
+  const _ModuleKeys();
+  String get path => 'path';
+  String get default$ => 'default';
+  String get strict => 'strict';
 }
 
 class _ComponentKeys {

@@ -1,5 +1,3 @@
-// lib/src/lints/identity/rules/inheritance_required_rule.dart
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -15,8 +13,8 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 class InheritanceRequiredRule extends InheritanceBaseRule {
   static const _code = LintCode(
     name: 'arch_type_missing_base',
-    problemMessage: 'The component "{0}" must inherit from "{1}".',
-    correctionMessage: 'Extend or implement the required type.',
+    problemMessage: 'The component "{0}" must inherit from {1}.',
+    correctionMessage: 'Extend or implement one of the required types.',
     errorSeverity: DiagnosticSeverity.WARNING,
   );
 
@@ -36,23 +34,26 @@ class InheritanceRequiredRule extends InheritanceBaseRule {
     for (final rule in rules) {
       if (rule.required.isEmpty) continue;
 
-      final hasMatch = supertypes.any(
-        (type) => matchesDefinition(
-          type,
-          rule.required,
-          fileResolver,
-          config.definitions,
-        ),
-      );
+      // Check if ANY supertype matches ANY of the required definitions
+      // Logic: At least one supertype must satisfy one requirement.
+      final hasMatch = supertypes.any((type) {
+        return rule.required.any(
+          (reqDef) => matchesDefinition(type, reqDef, fileResolver, config.definitions),
+        );
+      });
 
       if (!hasMatch) {
+        final description = rule.required
+            .map((d) => describeDefinition(d, config.definitions))
+            .join(' OR ');
+
         report(
           reporter: reporter,
           nodeOrToken: node.name,
           code: _code,
           arguments: [
             component.displayName,
-            describeDefinition(rule.required, config.definitions),
+            description,
           ],
         );
       }

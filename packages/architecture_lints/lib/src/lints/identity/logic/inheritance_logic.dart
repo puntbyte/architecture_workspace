@@ -1,5 +1,3 @@
-// lib/src/lints/identity/logic/inheritance_logic.dart
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -11,6 +9,7 @@ import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 mixin InheritanceLogic {
+  /// Attempts to identify the architectural component of a class based on what it extends/implements.
   String? findComponentIdByInheritance(
     ClassDeclaration node,
     ArchitectureConfig config,
@@ -23,16 +22,15 @@ mixin InheritanceLogic {
     if (supertypes.isEmpty) return null;
 
     for (final rule in config.inheritances) {
+      // We are looking for "Identification Rules" (Required inheritance).
       if (rule.required.isEmpty) continue;
 
-      final matchesRule = supertypes.any(
-        (type) => matchesDefinition(
-          type,
-          rule.required,
-          fileResolver,
-          config.definitions,
-        ),
-      );
+      // Check if ANY supertype matches ANY of the required definitions
+      final matchesRule = supertypes.any((type) {
+        return rule.required.any(
+          (reqDef) => matchesDefinition(type, reqDef, fileResolver, config.definitions),
+        );
+      });
 
       if (matchesRule && rule.onIds.isNotEmpty) {
         return rule.onIds.first;
@@ -50,20 +48,34 @@ mixin InheritanceLogic {
   ) {
     final element = type.element;
 
-    // 1. Direct Type Match
+    // 1. Wildcard
+    if (def.isWildcard) return true;
+
+    // 2. Reference (Recursive)
+    if (def.ref != null) {
+      final referencedDef = registry[def.ref];
+      if (referencedDef != null) {
+        return matchesDefinition(type, referencedDef, fileResolver, registry);
+      }
+    }
+
+    // 3. Direct Type Match
     if (def.type != null) {
       if (element.name == def.type) {
+        // Import Check
         if (def.import != null) {
-          final uri = element.library.firstFragment.source.uri.toString();
+          final lib = element.library;
+          final uri = lib.firstFragment.source.uri.toString();
           if (uri != def.import) return false;
         }
         return true;
       }
     }
 
-    // 2. Component Match
+    // 4. Component Match
     if (def.component != null) {
-      final sourcePath = element.library.firstFragment.source.fullName;
+      final lib = element.library;
+      final sourcePath = lib.firstFragment.source.fullName;
       final componentContext = fileResolver.resolve(sourcePath);
 
       if (componentContext != null) {
@@ -73,20 +85,10 @@ mixin InheritanceLogic {
       }
     }
 
-    // 3. Reference (e.g. 'failure.base')
-    if (def.ref != null) {
-      final referencedDef = registry[def.ref];
-      if (referencedDef != null) {
-        return matchesDefinition(type, referencedDef, fileResolver, registry);
-      }
-    }
-
-    // 4. Wildcard
-    if (def.isWildcard) return true;
-
-    // 5. Arguments (Recursion) - Handled for TypeSafety,
-    // but typically Inheritance rules don't check strict generics unless specified.
-    // If you need deep generic check here, you can adapt TypeSafetyLogic's recursive matcher.
+    // 5. Generics (Arguments)
+    // Inheritance checks usually care about the base class, not specific generics,
+    // unless you want to enforce "extends State<MyWidget>".
+    // If needed, you can adapt the recursive logic from TypeSafetyLogic here.
 
     return false;
   }

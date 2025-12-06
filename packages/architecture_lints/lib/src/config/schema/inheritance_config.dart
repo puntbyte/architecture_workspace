@@ -5,17 +5,10 @@ import 'package:meta/meta.dart';
 
 @immutable
 class InheritanceConfig {
-  /// The component IDs this rule applies to.
   final List<String> onIds;
-
-  /// The class MUST inherit from one of these.
-  final Definition required;
-
-  /// The class MAY ONLY inherit from one of these (Whitelist).
-  final Definition allowed;
-
-  /// The class MUST NOT inherit from these (Blacklist).
-  final Definition forbidden;
+  final List<Definition> required;
+  final List<Definition> allowed;
+  final List<Definition> forbidden;
 
   const InheritanceConfig({
     required this.onIds,
@@ -27,14 +20,25 @@ class InheritanceConfig {
   factory InheritanceConfig.fromMap(Map<dynamic, dynamic> map) {
     return InheritanceConfig(
       onIds: map.getStringList(ConfigKeys.inheritance.on),
-      required: Definition.fromDynamic(map[ConfigKeys.inheritance.required]),
-      allowed: Definition.fromDynamic(map[ConfigKeys.inheritance.allowed]),
-      forbidden: Definition.fromDynamic(map[ConfigKeys.inheritance.forbidden]),
+      required: _parseDefinitionList(map[ConfigKeys.inheritance.required]),
+      allowed: _parseDefinitionList(map[ConfigKeys.inheritance.allowed]),
+      forbidden: _parseDefinitionList(map[ConfigKeys.inheritance.forbidden]),
     );
   }
 
-  /// Parses the 'inheritances' list.
+  /// Parses a list of Maps into a list of InheritanceConfigs.
   static List<InheritanceConfig> parseList(List<Map<String, dynamic>> list) {
     return list.map(InheritanceConfig.fromMap).toList();
+  }
+
+  static List<Definition> _parseDefinitionList(dynamic value) {
+    if (value == null) return const [];
+
+    if (value is List) {
+      return value.map(Definition.fromDynamic).toList();
+    }
+
+    // Allow single object/string shorthand (e.g. required: 'Entity')
+    return [Definition.fromDynamic(value)];
   }
 }

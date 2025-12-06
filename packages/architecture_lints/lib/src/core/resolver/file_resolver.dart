@@ -1,5 +1,3 @@
-// lib/src/core/resolver/file_resolver.dart
-
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/core/resolver/module_resolver.dart';
@@ -13,16 +11,12 @@ class FileResolver {
 
   FileResolver(this.config) : _moduleResolver = ModuleResolver(config.modules);
 
-  /// Resolves the full architectural context of a file.
   ComponentContext? resolve(String filePath) {
-    // 1. Resolve Config
     final componentConfig = _resolveConfig(filePath);
     if (componentConfig == null) return null;
 
-    // 2. Resolve Module
     final moduleContext = _moduleResolver.resolve(filePath);
 
-    // 3. Create Rich Context
     return ComponentContext(
       filePath: filePath,
       config: componentConfig,
@@ -44,14 +38,25 @@ class FileResolver {
         final matchIndex = PathMatcher.getMatchIndex(normalizedFile, path);
 
         if (matchIndex != -1) {
+          // 1. Prefer match deeper in the path (e.g. 'domain/entities' over 'domain')
           if (matchIndex > bestMatchIndex) {
             bestMatchIndex = matchIndex;
             bestMatchLength = path.length;
             bestMatch = component;
-          } else if (matchIndex == bestMatchIndex) {
+          }
+          // 2. If start index is same (e.g. 'domain' vs 'domain')
+          else if (matchIndex == bestMatchIndex) {
+            // Prefer longer path match
             if (path.length > bestMatchLength) {
               bestMatchLength = path.length;
               bestMatch = component;
+            }
+            // 3. CRITICAL FIX: If paths are identical (Co-located), prefer the Child/Specific component.
+            // We assume the Child has a longer ID (e.g. 'data.source.interface' > 'data.source')
+            else if (path.length == bestMatchLength) {
+              if (component.id.length > (bestMatch?.id.length ?? 0)) {
+                bestMatch = component;
+              }
             }
           }
         }
@@ -61,7 +66,6 @@ class FileResolver {
     return bestMatch;
   }
 
-  /// Resolves the ModuleContext for a given path, even if it's not a known component.
   ModuleContext? resolveModule(String filePath) {
     return _moduleResolver.resolve(filePath);
   }

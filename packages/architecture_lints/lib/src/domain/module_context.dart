@@ -1,4 +1,4 @@
-// lib/src/domain/module_config.dart
+// lib/src/domain/module_context.dart
 
 import 'package:architecture_lints/src/config/schema/module_config.dart';
 import 'package:meta/meta.dart';

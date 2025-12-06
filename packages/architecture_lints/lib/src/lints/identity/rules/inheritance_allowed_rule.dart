@@ -1,5 +1,3 @@
-// lib/src/lints/identity/rules/inheritance_allowed_rule.dart
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -37,14 +35,16 @@ class InheritanceAllowedRule extends InheritanceBaseRule {
       if (rule.allowed.isEmpty) continue;
 
       for (final type in supertypes) {
-        final isAllowed = matchesDefinition(
-          type,
-          rule.allowed,
-          fileResolver,
-          config.definitions,
+        // Is this type allowed by ANY of the definitions in the allowed list?
+        final isAllowed = rule.allowed.any(
+          (def) => matchesDefinition(type, def, fileResolver, config.definitions),
         );
 
         if (!isAllowed) {
+          final description = rule.allowed
+              .map((d) => describeDefinition(d, config.definitions))
+              .join(', ');
+
           report(
             reporter: reporter,
             nodeOrToken: getNodeForType(node, type) ?? node.name,
@@ -52,7 +52,7 @@ class InheritanceAllowedRule extends InheritanceBaseRule {
             arguments: [
               component.displayName,
               type.element.name ?? 'Unknown',
-              describeDefinition(rule.allowed, config.definitions),
+              description,
             ],
           );
         }

@@ -1,3 +1,5 @@
+// lib/src/lints/boundaries/logic/component_logic.dart
+
 mixin ComponentLogic {
   /// Checks if [targetId] matches any rule ID in the [configList].
   ///

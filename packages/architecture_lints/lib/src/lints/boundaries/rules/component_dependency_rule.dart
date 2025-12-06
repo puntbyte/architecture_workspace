@@ -1,15 +1,13 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
-import 'package:architecture_lints/src/core/resolver/import_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/boundaries/base/boundary_base_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-class ComponentDependencyRule extends ArchitectureLintRule {
+class ComponentDependencyRule extends BoundaryBaseRule {
   static const _code = LintCode(
     name: 'arch_dep_component',
     problemMessage: 'Dependency Violation: {0} cannot depend on {1}.{2}',
@@ -20,136 +18,113 @@ class ComponentDependencyRule extends ArchitectureLintRule {
   const ComponentDependencyRule() : super(code: _code);
 
   @override
-  void runWithConfig({
-    required CustomLintContext context,
-    required DiagnosticReporter reporter,
-    required CustomLintResolver resolver,
+  void checkImport({
+    required ImportDirective node,
+    required String uri,
+    required String? importedPath,
     required ArchitectureConfig config,
     required FileResolver fileResolver,
-    ComponentContext? component,
+    required ComponentContext? component,
+    required DiagnosticReporter reporter,
+    required CustomLintResolver resolver,
+    required CustomLintContext context,
+  }) {
+    if (component == null || importedPath == null) return;
+
+    final targetComponent = fileResolver.resolve(importedPath);
+    if (targetComponent != null) {
+      _validate(node.uri, component, targetComponent, config, reporter);
+    }
+  }
+
+  @override
+  void checkUsage({
+    required NamedType node,
+    required ArchitectureConfig config,
+    required FileResolver fileResolver,
+    required ComponentContext? component,
+    required DiagnosticReporter reporter,
+    required CustomLintResolver resolver,
+    required CustomLintContext context,
   }) {
     if (component == null) return;
 
-    // 1. Find all rules that apply to this component
+    final element = node.element;
+    if (element == null) return;
+
+    final library = element.library;
+    // We only care about code inside the project, so ignore SDK/DartCore
+    if (library == null || library.isInSdk || library.isDartCore) return;
+
+    final sourcePath = library.firstFragment.source.fullName;
+    final targetComponent = fileResolver.resolve(sourcePath);
+
+    if (targetComponent != null) {
+      _validate(node, component, targetComponent, config, reporter);
+    }
+  }
+
+  void _validate(
+      AstNode node,
+      ComponentContext component,
+      ComponentContext targetComponent,
+      ArchitectureConfig config,
+      DiagnosticReporter reporter,
+      ) {
+    if (component.id == targetComponent.id) return;
+
     final rules = config.dependencies.where((rule) {
       return component.matchesAny(rule.onIds);
     }).toList();
 
     if (rules.isEmpty) return;
 
-    // 2. Aggregate Constraints (Union Logic)
+    // Aggregate Rules (Additive)
     final allForbidden = <String>{};
     final allAllowed = <String>{};
     var hasWhitelist = false;
 
     for (final rule in rules) {
-      // Collect forbidden
       allForbidden.addAll(rule.forbidden.components);
-
-      // Collect allowed
-      // We only consider it a "whitelist rule" if it actually defines allowed items.
-      // Rules that only define 'forbidden' are considered "Permissive" (Allow All except X).
       if (rule.allowed.components.isNotEmpty) {
         hasWhitelist = true;
         allAllowed.addAll(rule.allowed.components);
       }
     }
 
-    // Helper to validate a specific dependency target
-    void checkViolation({
-      required ComponentContext targetComponent,
-      required Object nodeOrToken,
-    }) {
-      if (component.id == targetComponent.id) return;
-
-      // Calculate Suggestion String based on allAllowed
-      // allAllowed is calculated in runWithConfig (see previous implementation)
-      var suggestion = '';
-      if (allAllowed.isNotEmpty) {
-        // Humanize the allowed list
-        // We limit to 3 items to keep message short
-        final allowedDisplay = allAllowed
-            .take(3)
-            .map((id) {
-              // Basic capitalization for display
-              return id.split('.').map((s) => s[0].toUpperCase() + s.substring(1)).join(' ');
-            })
-            .join(', ');
-
-        suggestion = ' Allowed dependencies: $allowedDisplay${allAllowed.length > 3 ? '...' : ''}.';
-      }
-
-      // A. Check Forbidden
-      if (targetComponent.matchesAny(allForbidden.toList())) {
-        _report(
-          reporter: reporter,
-          nodeOrToken: nodeOrToken,
-          current: component,
-          target: targetComponent,
-          suggestion: suggestion, // Pass it
-        );
-        return;
-      }
-
-      // B. Check Allowed
-      if (hasWhitelist) {
-        if (!targetComponent.matchesAny(allAllowed.toList())) {
-          _report(
-            reporter: reporter,
-            nodeOrToken: nodeOrToken,
-            current: component,
-            target: targetComponent,
-            suggestion: suggestion, // Pass it
-          );
-        }
-      }
+    // A. Check Forbidden
+    if (targetComponent.matchesAny(allForbidden.toList())) {
+      _report(reporter, node, component, targetComponent, allAllowed);
+      return;
     }
 
-    // 3. Check Imports
-    context.registry.addImportDirective((node) {
-      final importedPath = ImportResolver.resolvePath(node: node);
-      if (importedPath == null) return;
-
-      final targetComponent = fileResolver.resolve(importedPath);
-      if (targetComponent != null) {
-        checkViolation(targetComponent: targetComponent, nodeOrToken: node.uri);
+    // B. Check Allowed
+    if (hasWhitelist) {
+      if (!targetComponent.matchesAny(allAllowed.toList())) {
+        _report(reporter, node, component, targetComponent, allAllowed);
       }
-    });
-
-    // 4. Check Usages
-    context.registry.addNamedType((node) {
-      final element = node.element;
-      if (element == null) return;
-
-      final library = element.library;
-      if (library == null || library.isInSdk || library.isDartCore) return;
-
-      final sourcePath = library.firstFragment.source.fullName;
-      final targetComponent = fileResolver.resolve(sourcePath);
-
-      if (targetComponent != null) {
-        checkViolation(targetComponent: targetComponent, nodeOrToken: node);
-      }
-    });
+    }
   }
 
-  void _report({
-    required DiagnosticReporter reporter,
-    required Object nodeOrToken,
-    required ComponentContext current,
-    required ComponentContext target,
-    required String suggestion,
-  }) {
-    final args = [
-      current.displayName,
-      target.displayName,
-      suggestion,
-    ];
-
-    if (nodeOrToken is AstNode) {
-      reporter.atNode(nodeOrToken, _code, arguments: args);
-    } else if (nodeOrToken is Token) {
-      reporter.atToken(nodeOrToken, _code, arguments: args);
+  void _report(
+      DiagnosticReporter reporter,
+      AstNode node,
+      ComponentContext current,
+      ComponentContext target,
+      Set<String> allAllowed,
+      ) {
+    var suggestion = '';
+    if (allAllowed.isNotEmpty) {
+      final allowedDisplay = allAllowed.take(3).map((id) {
+        return id.split('.').map((s) => s[0].toUpperCase() + s.substring(1)).join(' ');
+      }).join(', ');
+      suggestion = ' Allowed dependencies: $allowedDisplay${allAllowed.length > 3 ? '...' : ''}.';
     }
+
+    reporter.atNode(
+      node,
+      _code,
+      arguments: [current.displayName, target.displayName, suggestion],
+    );
   }
 }

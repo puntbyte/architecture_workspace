@@ -1,159 +1,122 @@
 import 'package:architecture_lints/src/config/parsing/hierarchy_parser.dart';
 import 'package:test/test.dart';
 
-/// Simple DTO to verify parser output
 class TestItem {
   final String id;
-  final dynamic value; // Can be Map or String
-
-  TestItem(this.id, this.value);
-
+  final dynamic data;
+  TestItem(this.id, this.data);
+  dynamic get(String key) => (data is Map) ? data[key] : null;
   @override
-  String toString() => '$id: $value';
-
-  @override
-  bool operator ==(Object other) => other is TestItem && other.id == id;
-
-  @override
-  int get hashCode => id.hashCode;
+  String toString() => '$id: $data';
 }
 
 void main() {
   group('HierarchyParser', () {
+    TestItem factory(String id, dynamic value) => TestItem(id, value);
+    bool alwaysValid(dynamic v) => true;
 
-    // Helper factory that accepts Map OR String
-    TestItem createItem(String id, dynamic value) {
-      return TestItem(id, value);
-    }
+    test('should support Parent Inheritance (inheritProperties)', () {
+      final yaml = {
+        '.parent': {
+          'path': 'root', // Inherited property
+          '.child1': {'val': 1}, // Should inherit 'root'
+          '.child2': {'path': 'override'} // Should override
+        }
+      };
 
-    // Helper validator
-    bool isValidNode(dynamic value) {
-      if (value is String) return true; // Shorthand is valid
-      if (value is Map) return value.containsKey('valid'); // Maps need a flag
-      return false;
-    }
-
-    Map<String, TestItem> runParser(
-        Map<String, dynamic> yaml, {
-          Set<String> scopeKeys = const {},
-        }) {
-      return HierarchyParser.parse<TestItem>(
+      final result = HierarchyParser.parse<TestItem>(
         yaml: yaml,
-        scopeKeys: scopeKeys,
-        factory: createItem,
-        shouldParseNode: isValidNode,
+        factory: factory,
+        shouldParseNode: alwaysValid,
+        inheritProperties: ['path'],
       );
-    }
 
-    test('should parse top-level flat keys', () {
-      final yaml = {
-        'flat_a': {'valid': true},
-        'flat_b': 'ShorthandValue', // String value at root
-      };
-
-      final result = runParser(yaml);
-
-      expect(result.keys, containsAll(['flat_a', 'flat_b']));
-      expect(result['flat_b']?.value, 'ShorthandValue');
+      expect(result['parent']?.get('path'), 'root');
+      expect(result['parent.child1']?.get('path'), 'root');
+      expect(result['parent.child2']?.get('path'), 'override');
     });
 
-    test('should parse top-level keys starting with dot (strip dot)', () {
+    test('should support Sibling Cascading (cascadeProperties)', () {
       final yaml = {
-        '.domain': {'valid': true},
-      };
-
-      final result = runParser(yaml);
-
-      expect(result.keys, contains('domain'));
-      expect(result.keys, isNot(contains('.domain')));
-    });
-
-    test('should parse nested hierarchies (requiring dots)', () {
-      final yaml = {
-        'domain': {
-          'valid': true,
-          '.entity': { // Starts with dot -> Child
-            'valid': true,
-            '.field': 'FieldShorthand' // Nested Shorthand
+        '.group': {
+          '.first': {
+            'import': 'pkg/a', // Cascades
+            'val': 1
           },
-          'ignored_child': {'valid': true} // No dot -> Property -> Ignored
-        }
-      };
-
-      final result = runParser(yaml);
-
-      // Should contain the dotted hierarchy
-      expect(result.keys, containsAll([
-        'domain',
-        'domain.entity',
-        'domain.entity.field',
-      ]));
-
-      // Should NOT contain the child without a dot
-      expect(result.keys, isNot(contains('domain.ignored_child')));
-    });
-
-    test('should handle Module scoping correctly', () {
-      final scopes = {'core', 'infra'};
-
-      final yaml = {
-        // 'core' is a scope key. It resets the path.
-        'core': {
-          '.network': {'valid': true},
-          '.db': 'DbShorthand'
-        },
-        // 'feature' is NOT a scope key. It is treated as a component root.
-        'feature': {
-          'valid': true,
-          '.auth': {'valid': true}
-        }
-      };
-
-      final result = runParser(yaml, scopeKeys: scopes);
-
-      expect(result.keys, containsAll([
-        'core.network',
-        'core.db',
-        'feature',
-        'feature.auth',
-      ]));
-
-      // 'core' itself is not a result (unless it matched valid logic, which scopes usually don't)
-      expect(result.containsKey('core'), isFalse);
-    });
-
-    test('should support structural containers (nodes that are not items themselves)', () {
-      // Logic: A node might fail `shouldParseNode` (e.g. missing 'valid: true'),
-      // but we still traverse its children.
-      final yaml = {
-        '.domain': {
-          // No 'valid: true' here, just a folder
-          '.usecase': {
-            'valid': true // This one is valid
+          '.second': {
+            'val': 2
+            // Should inherit 'pkg/a' from .first
+          },
+          '.third': {
+            'import': 'pkg/b', // Overrides
+            'val': 3
+          },
+          '.fourth': {
+            'val': 4
+            // Should inherit 'pkg/b' from .third
           }
         }
       };
 
-      final result = runParser(yaml);
+      final result = HierarchyParser.parse<TestItem>(
+        yaml: yaml,
+        factory: factory,
+        shouldParseNode: alwaysValid,
+        cascadeProperties: ['import'],
+      );
 
-      expect(result.containsKey('domain'), isFalse); // Container skipped
-      expect(result.containsKey('domain.usecase'), isTrue); // Child found
+      expect(result['group.first']?.get('import'), 'pkg/a');
+      expect(result['group.second']?.get('import'), 'pkg/a');
+      expect(result['group.third']?.get('import'), 'pkg/b');
+      expect(result['group.fourth']?.get('import'), 'pkg/b');
     });
 
-    test('should ignore non-map properties inside nested nodes', () {
+    test('should combine Parent and Sibling inheritance', () {
       final yaml = {
-        '.domain': {
-          'valid': true,
-          'path': 'some/path', // String property
-          'list': ['a', 'b'],  // List property
-          '.child': {'valid': true}
+        '.parent': {
+          'path': 'root', // Parent Inherit
+
+          '.childA': {
+            'import': 'pkg/a' // Sibling Cascade
+          },
+          '.childB': {
+            // Should have path='root' AND import='pkg/a'
+          }
         }
       };
 
-      final result = runParser(yaml);
+      final result = HierarchyParser.parse<TestItem>(
+        yaml: yaml,
+        factory: factory,
+        shouldParseNode: alwaysValid,
+        inheritProperties: ['path'],
+        cascadeProperties: ['import'],
+      );
 
-      expect(result.keys, containsAll(['domain', 'domain.child']));
-      expect(result.length, 2);
+      final childB = result['parent.childB']!;
+      expect(childB.get('path'), 'root');
+      expect(childB.get('import'), 'pkg/a');
+    });
+
+    test('should reset Sibling Context when entering new parent', () {
+      final yaml = {
+        '.group1': {
+          '.item': {'import': 'pkg/1'}
+        },
+        '.group2': {
+          '.item': {} // Should NOT inherit pkg/1 from group1
+        }
+      };
+
+      final result = HierarchyParser.parse<TestItem>(
+        yaml: yaml,
+        factory: factory,
+        shouldParseNode: alwaysValid,
+        cascadeProperties: ['import'],
+      );
+
+      expect(result['group1.item']?.get('import'), 'pkg/1');
+      expect(result['group2.item']?.get('import'), isNull);
     });
   });
 }

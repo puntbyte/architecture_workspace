@@ -1,5 +1,3 @@
-// lib/src/lints/identity/rules/inheritance_forbidden_rule.dart
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -10,6 +8,7 @@ import 'package:architecture_lints/src/config/schema/inheritance_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/identity/base/inheritance_base_rule.dart';
+import 'package:collection/collection.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class InheritanceForbiddenRule extends InheritanceBaseRule {
@@ -37,12 +36,12 @@ class InheritanceForbiddenRule extends InheritanceBaseRule {
       if (rule.forbidden.isEmpty) continue;
 
       for (final type in supertypes) {
-        if (matchesDefinition(
-          type,
-          rule.forbidden,
-          fileResolver,
-          config.definitions,
-        )) {
+        // Check if this type matches ANY forbidden definition
+        final match = rule.forbidden.firstWhereOrNull(
+          (def) => matchesDefinition(type, def, fileResolver, config.definitions),
+        );
+
+        if (match != null) {
           report(
             reporter: reporter,
             nodeOrToken: getNodeForType(node, type) ?? node.name,

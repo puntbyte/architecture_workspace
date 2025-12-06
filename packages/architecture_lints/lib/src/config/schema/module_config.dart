@@ -1,3 +1,6 @@
+// lib/src/config/schema/module_config.dart
+
+import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
 import 'package:meta/meta.dart';
 
@@ -6,9 +9,6 @@ class ModuleConfig {
   final String key;
   final String path;
   final bool isDefault;
-
-  /// If true, instances of this module cannot import other instances of the same module.
-  /// Example: 'features/auth' cannot import 'features/home'.
   final bool strict;
 
   const ModuleConfig({
@@ -27,21 +27,18 @@ class ModuleConfig {
       path = value;
     } else if (value is Map) {
       final map = Map<String, dynamic>.from(value);
-      path = map.getString('path');
-      isDefault = map.getBool('default');
-      strict = map.getBool('strict');
-      // Note: We can't easily detect "null" via getBool with fallback,
-      // so we might check map.containsKey('strict') if we want smarter defaults below.
-      if (map.containsKey('strict')) {
-        strict = map['strict'] as bool;
+      // FIX: Use ConfigKeys
+      path = map.getString(ConfigKeys.module.path);
+      isDefault = map.getBool(ConfigKeys.module.default$);
+
+      // Check for strict key existence before getting bool
+      if (map.containsKey(ConfigKeys.module.strict)) {
+        strict = map[ConfigKeys.module.strict] as bool;
       }
     } else {
       throw FormatException('Invalid module config for $key');
     }
 
-    // Smart Default: If path contains wildcard, assume strict isolation is desired
-    // unless explicitly disabled.
-    // Static modules (e.g. 'core') don't need strict isolation from themselves.
     final defaultStrict = path.contains('{{name}}') || path.contains('*');
 
     return ModuleConfig(
@@ -52,7 +49,6 @@ class ModuleConfig {
     );
   }
 
-  /// Parses the 'modules' map.
   static List<ModuleConfig> parseMap(Map<String, dynamic> map) {
     return map.entries.map((e) => ModuleConfig.fromMap(e.key, e.value)).toList();
   }
