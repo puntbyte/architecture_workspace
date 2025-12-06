@@ -14,7 +14,7 @@ mixin MemberLogic {
     if (constraint.kind != null) {
       final kind = _getKind(member);
       // 'overrideKind' is a special case check for annotation
-      if (constraint.kind == MemberKind.overrideKind) {
+      if (constraint.kind == MemberKind.override) {
         if (!_hasOverrideAnnotation(member)) return false;
       } else if (kind != constraint.kind) {
         return false;
@@ -75,18 +75,18 @@ mixin MemberLogic {
 
   bool _hasModifier(ClassMember member, Element element, MemberModifier modifier) {
     switch (modifier) {
-      case MemberModifier.staticMod:
+      case MemberModifier.static$:
         if (element is ExecutableElement) return element.isStatic;
         if (element is FieldElement) return element.isStatic;
         return false;
-      case MemberModifier.finalMod:
+      case MemberModifier.final$:
         if (element is FieldElement) return element.isFinal;
         return false;
-      case MemberModifier.constMod:
+      case MemberModifier.const$:
         if (element is FieldElement) return element.isConst;
         if (element is ConstructorElement) return element.isConst;
         return false;
-      case MemberModifier.lateMod:
+      case MemberModifier.late$:
         if (element is FieldElement) return element.isLate;
         return false;
     }

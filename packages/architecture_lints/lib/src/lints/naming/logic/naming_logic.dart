@@ -1,7 +1,13 @@
+// lib/src/naming/logic/naming_logic.dart
+
 mixin NamingLogic {
   static const String _placeholderName = '{{name}}';
   static const String _placeholderAffix = '{{affix}}';
+
+  // PascalCase: Starts with Uppercase, followed by alphanumerics
   static const String _regexPascalCaseGroup = '([A-Z][a-zA-Z0-9]*)';
+
+  // Wildcard: Matches anything
   static const String _regexWildcard = '.*';
 
   /// Static cache to avoid recompiling regexes for the same pattern strings.
@@ -18,17 +24,23 @@ mixin NamingLogic {
   }
 
   RegExp _buildRegex(String pattern) {
-    var escaped = RegExp.escape(pattern);
+    // FIX: Do NOT use RegExp.escape(pattern).
+    // The configuration supports Regex syntax (like '(C|c)'), so we must preserve it.
+    // We only replace the specific placeholders.
 
-    // Un-escape the specific placeholders
-    escaped = escaped
-        .replaceAll(RegExp.escape(_placeholderName), _regexPascalCaseGroup)
-        .replaceAll(RegExp.escape(_placeholderAffix), _regexWildcard);
+    final regexString = pattern
+        .replaceAll(_placeholderName, _regexPascalCaseGroup)
+        .replaceAll(_placeholderAffix, _regexWildcard);
 
-    return RegExp('^$escaped\$');
+    return RegExp('^$regexString\$');
   }
 
   String generateExample(String pattern) {
-    return pattern.replaceAll('{{name}}', 'Login').replaceAll('{{affix}}', 'My');
+    return pattern
+        .replaceAll('{{name}}', 'Login')
+        .replaceAll('{{affix}}', 'My')
+        // Clean up regex artifacts for display if present
+        .replaceAll(RegExp(r'[\(\)\|]'), '') // Remove ( ) |
+        .replaceAll(r'\', '');
   }
 }

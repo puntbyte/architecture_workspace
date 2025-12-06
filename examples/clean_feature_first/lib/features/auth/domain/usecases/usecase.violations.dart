@@ -32,7 +32,7 @@ class UserLogin { //! <-- LINT WARNING
   const UserLogin();
 }
 
-// LINT: [6] enforce_naming_antipattern
+// LINT: [6] arch_naming_antipattern
 // Reason: Name uses forbidden suffix `UseCase`. Pattern should be `{{name}}` (e.g. `GetProfile`).
 @injectable
 class GetProfileUseCase { //! <-- LINT WARNING

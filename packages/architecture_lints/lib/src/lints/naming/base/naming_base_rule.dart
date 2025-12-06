@@ -1,3 +1,5 @@
+// lib/src/lints/naming/base/naming_base_rule.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
@@ -5,7 +7,7 @@ import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
-import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.dart'; // Required for findComponentIdByInheritance
+import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 abstract class NamingBaseRule extends ArchitectureLintRule with InheritanceLogic {
@@ -25,7 +27,7 @@ abstract class NamingBaseRule extends ArchitectureLintRule with InheritanceLogic
       // (This requires InheritanceLogic mixin)
       final inheritanceId = findComponentIdByInheritance(node, config, fileResolver);
 
-      ComponentConfig? effectiveConfig = component?.config;
+      var effectiveConfig = component?.config;
 
       // If inheritance dictates a specific component type, override the file-path based type.
       if (inheritanceId != null) {

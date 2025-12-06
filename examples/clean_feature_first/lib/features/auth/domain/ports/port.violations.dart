@@ -42,7 +42,7 @@ abstract interface class UncontractedAuthPort { //! <-- LINT WARNING
   // REASON: Cannot accept a Data Model as a parameter. Use Entities.
   FutureEither<void> unsafeParam(UserModel user); //! <-- LINT WARNING
 
-  // LINT: [7] missing_use_case
+  // LINT: [7*] missing_use_case
   // REASON: No corresponding UseCase file found for method `revokeToken`.
   // (Expected: lib/features/auth/domain/usecases/revoke_token.dart)
   FutureEither<void> revokeToken(); //! <-- LINT WARNING (Quick Fix available)

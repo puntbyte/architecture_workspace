@@ -62,7 +62,6 @@ abstract class AnnotationBaseRule extends ArchitectureLintRule with AnnotationLo
   });
 
   /// Checks import directives. Defaults to no-op.
-  /// Override this in [AnnotationForbiddenRule].
   void checkImports({
     required ImportDirective node,
     required List<AnnotationConfig> rules,

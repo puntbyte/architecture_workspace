@@ -6,8 +6,8 @@ enum MemberKind {
   getter('getter'),
   setter('setter'),
   constructor('constructor'),
-  overrideKind('override')
-  ; // Special handling for @override
+  override('override')
+  ;
 
   final String yamlKey;
 

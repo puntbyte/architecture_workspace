@@ -1,10 +1,10 @@
 import 'package:collection/collection.dart';
 
 enum MemberModifier {
-  finalMod('final'),
-  constMod('const'),
-  staticMod('static'),
-  lateMod('late')
+  final$('final'),
+  const$('const'),
+  static$('static'),
+  late$('late')
   ;
 
   final String yamlKey;
