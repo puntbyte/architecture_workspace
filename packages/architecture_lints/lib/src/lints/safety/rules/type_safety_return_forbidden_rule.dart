@@ -29,30 +29,49 @@ class TypeSafetyReturnForbiddenRule extends TypeSafetyBaseRule {
   }) {
     for (final rule in rules) {
       final forbidden = rule.forbidden.where((c) => c.kind == 'return').toList();
-
-      // Look for counterparts in the SAME rule to offer suggestions
       final allowed = rule.allowed.where((c) => c.kind == 'return').toList();
 
-      for (final c in forbidden) {
-        if (matchesConstraint(type, c, fileResolver, config.typeDefinitions)) {
-          // Generate Suggestion
-          var suggestion = '';
-          if (allowed.isNotEmpty) {
-            final allowedNames = allowed
-                .map((a) => "'${describeConstraint(a, config.typeDefinitions)}'")
-                .join(' or ');
-            suggestion = ' Use $allowedNames instead.';
-          }
+      // Skip if no forbidden rules exist
+      if (forbidden.isEmpty) continue;
 
-          reporter.atNode(
-            node.returnType!,
-            _code,
-            arguments: [
-              type.getDisplayString(),
-              suggestion,
-            ],
-          );
+      // 1. Check if the type matches any FORBIDDEN rule
+      final isForbidden = matchesAnyConstraint(
+          type,
+          forbidden,
+          fileResolver,
+          config.typeDefinitions
+      );
+
+      if (isForbidden) {
+        // 2. CRITICAL FIX: "Specific Beats General"
+        // If the type is ALSO matched by an ALLOWED rule, assume the user
+        // intended to allow this specific case (e.g., allow FutureEither vs forbid Future).
+        final isAllowed = matchesAnyConstraint(
+            type,
+            allowed,
+            fileResolver,
+            config.typeDefinitions
+        );
+
+        if (isAllowed) continue; // Skip reporting
+
+        // 3. Generate Suggestion
+        var suggestion = '';
+        if (allowed.isNotEmpty) {
+          final allowedNames = allowed
+              .map((a) => "'${describeConstraint(a, config.typeDefinitions)}'")
+              .join(' or ');
+          suggestion = ' Use $allowedNames instead.';
         }
+
+        reporter.atNode(
+          node.returnType!,
+          _code,
+          arguments: [
+            type.getDisplayString(),
+            suggestion,
+          ],
+        );
       }
     }
   }

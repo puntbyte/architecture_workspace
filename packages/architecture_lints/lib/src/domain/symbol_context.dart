@@ -1,3 +1,5 @@
+// lib/src/domain/symbol_context.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:architecture_lints/src/config/schema/symbol_definition.dart';

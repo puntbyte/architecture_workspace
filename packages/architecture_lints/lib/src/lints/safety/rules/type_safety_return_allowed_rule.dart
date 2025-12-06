@@ -1,3 +1,5 @@
+// lib/src/lints/safety/rules/type_safety_return_allowed_rule.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;

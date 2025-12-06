@@ -10,11 +10,11 @@ import 'package:flutter/material.dart'; //! <-- LINT WARNING (Forbidden Import)
 // REASON: Domain layer must not import components from the Data layer.
 import 'package:clean_feature_first/features/auth/data/models/user_model.dart'; //! <-- LINT WARNING
 
-// LINT: [3] enforce_annotations (Forbidden Import)
+// LINT: [3] arch_annot_forbidden
 // REASON: Entities should be POJOs; Dependency Injection imports are forbidden.
 import 'package:injectable/injectable.dart'; //! <-- LINT WARNING (the warning is visible)
 
-// LINT: [4*] arch_annot_forbidden (Forbidden Annotation)
+// LINT: [4] arch_annot_forbidden (Forbidden Annotation)
 // REASON: Entities should be POJOs; Dependency Injection annotations are forbidden.
 @Injectable() @lazySingleton //! <-- LINT WARNING
 // ignore: arch_member_missing
@@ -49,4 +49,11 @@ class UncontractedUser { //! <-- LINT WARNING
 // ignore: arch_member_missing
 class FetchingUser extends Entity { //! <-- LINT WARNING
   const FetchingUser();
+}
+
+// LINT: [10] arch_member_missing
+// REASON:
+// ignore: arch_naming_grammar,
+class MissingMember extends Entity{ //! <-- LINT WARNING
+  const MissingMember();
 }

@@ -1,3 +1,5 @@
+// lib/src/lints/logic/type_safety_logic.dart
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:architecture_lints/src/config/schema/type_definition.dart';
@@ -8,13 +10,13 @@ import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 mixin TypeSafetyLogic {
   /// Checks if [type] matches any constraint in the [constraintList].
   bool matchesAnyConstraint(
-    DartType type,
-    List<TypeSafetyConstraint> constraintList,
-    FileResolver fileResolver,
-    Map<String, TypeDefinition> typeRegistry,
-  ) {
+      DartType type,
+      List<TypeSafetyConstraint> constraintList,
+      FileResolver fileResolver,
+      Map<String, TypeDefinition> typeRegistry,
+      ) {
     return constraintList.any(
-      (c) => matchesConstraint(type, c, fileResolver, typeRegistry),
+          (c) => matchesConstraint(type, c, fileResolver, typeRegistry),
     );
   }
 
@@ -206,13 +208,10 @@ mixin TypeSafetyLogic {
   /// Converts a constraint into a human-readable string.
   /// Looks up definition keys in [registry] to find the actual Class Name.
   String describeConstraint(TypeSafetyConstraint c, Map<String, TypeDefinition> registry) {
-    // 1. Definitions (Lookup key -> type name)
+    // 1. Definitions (Lookup key -> Resolve to String)
     if (c.definitions.isNotEmpty) {
       return c.definitions
-          .map((key) {
-            // Return the actual type name (e.g. 'FutureEither') or fallback to key
-            return registry[key]?.type ?? key;
-          })
+          .map((key) => _resolveReadableName(key, registry))
           .join(' or ');
     }
 
@@ -223,5 +222,39 @@ mixin TypeSafetyLogic {
     if (c.component != null) return 'Component: ${c.component}';
 
     return 'Defined Rule';
+  }
+
+  /// Recursively resolves the display name for a type definition key.
+  /// e.g. 'result.wrapper' -> 'FutureEither'
+  String _resolveReadableName(String key, Map<String, TypeDefinition> registry) {
+    final def = registry[key];
+    if (def == null) return key;
+
+    // Case A: It's a reference to another definition
+    if (def.definitionReference != null) {
+      return _resolveReadableName(def.definitionReference!, registry);
+    }
+
+    // Case B: It has a concrete type name
+    if (def.type != null) {
+      // If it has generic arguments, try to format them nicely
+      if (def.arguments.isNotEmpty) {
+        final args = def.arguments.map((arg) {
+          // If the arg is a wildcard, print '*'
+          if (arg.isWildcard) return '*';
+          // If the arg refers to another def, resolve it
+          if (arg.definitionReference != null) {
+            return _resolveReadableName(arg.definitionReference!, registry);
+          }
+          // Otherwise print type name or '?'
+          return arg.type ?? '?';
+        }).join(', ');
+
+        return '${def.type}<$args>';
+      }
+      return def.type!;
+    }
+
+    return key;
   }
 }

@@ -12,71 +12,23 @@ import 'package:clean_feature_first/features/auth/data/models/user_model.dart'; 
 // REASON: Domain must be platform agnostic (no UI types).
 import 'package:flutter/material.dart'; //! <-- LINT WARNING
 
-// LINT: [3] arch_naming_pattern // correct
+// LINT: [3] arch_naming_pattern
 // REASON: Name must match the pattern `{{name}}Port` (e.g., AuthPort).
-abstract interface class AuthContract implements Port { //! <-- LINT WARNING
+abstract interface class AuthContract implements Port {
+  // LINT: [4] arch_safety_return_forbidden
   // REASON: Return type must be `FutureEither<T>`, not raw `Future<T>`.
-
-  // Warning: arch_safety_return_strict
-  // Message: Invalid Return Type: "Future<User>" is not allowed.
-  //
-  // Return one of the allowed types: result.wrapper.
-
-  // Warning: arch_safety_return_forbidden
-  // Message: Invalid Return Type: "Future<User>" is forbidden. Use 'result.wrapper' instead.
-  //
-  // Change the return type to a permitted type.
   Future<User> login(String username); //! <-- LINT WARNING
 
+  // LINT: [4] arch_dep_component
   // REASON: Cannot return a Data Model (DTO) from a Domain Port. Use Entities.
-
-  // Warning: arch_safety_return_strict
-  // Message: Invalid Return Type: "Future<Either<Failure, UserModel>>" is not allowed.
-  //
-  // Return one of the allowed types: result.wrapper.
-
-  // Warning: arch_safety_return_forbidden
-  // Message: Invalid Return Type: "Future<Either<Failure, UserModel>>" is forbidden. Use 'result.wrapper' instead.
-  //
-  // Change the return type to a permitted type.
-
-  // Warning: arch_dep_component
-  // Message: Dependency Violation: Port cannot depend on Model. Allowed dependencies: Core, Shared, Config....
-  //
-  // Remove the dependency to maintain architectural boundaries.
-  FutureEither<UserModel> unsafeReturn(); //! <-- LINT WARNING
-}
-
-
-
-// LINT: [3] arch_naming_pattern // correct
-// REASON: Name must match the pattern `{{name}}Port` (e.g., AuthPort).
-abstract interface class AuthContract2 implements Port { //! <-- LINT WARNING
-  // REASON: Return type must be `FutureEither<T>`, not raw `Future<T>`.
-
-  // Warning: arch_safety_return_forbidden
-  // Message: Invalid Return Type: "Future<User>" is forbidden. Use 'result.wrapper' instead.
-  //
-  // Change the return type to a permitted type.
-  Future<User> login(String username); //! <-- LINT WARNING
-
-  // REASON: Cannot return a Data Model (DTO) from a Domain Port. Use Entities.
-
-  // Warning: arch_safety_return_forbidden
-  // Message: Invalid Return Type: "Future<Either<Failure, UserModel>>" is forbidden. Use 'result.wrapper' instead.
-  //
-  // Change the return type to a permitted type.
-
-  // Warning: arch_dep_component
-  // Message: Dependency Violation: Port cannot depend on Model. Allowed dependencies: Core, Shared, Config....
-  //
-  // Remove the dependency to maintain architectural boundaries.
-  // My Review:
   FutureEither<UserModel> unsafeReturn(); //! <-- LINT WARNING
 
-  // LINT: [9] enforce_type_safety
+
+  // LINT: [9] arch_safety_param_forbidden
   // REASON: Parameter named 'id' must be of type `IntId`, not `int`.
-  FutureEither<User> getUser(int id); //! <-- LINT WARNING
+  FutureEither<User> unsafeParameter(int id); //! <-- LINT WARNING
+
+  FutureEither<User> getUser(IntId id);
 }
 
 // LINT: [8] arch_type_missing_base
@@ -110,7 +62,7 @@ abstract interface class TypeSafetyViolationsPort implements Port {
 abstract interface class PurityViolationsPort implements Port {
   // LINT: [11] disallow_flutter_in_domain
   // REASON: Cannot use Flutter types (Color) in the Domain layer.
-  // ignore: missing_use_case
+  // ignore: missing_use_case, arch_safety_return_strict
   Color getUserColor(); //! <-- LINT WARNING
 }
 

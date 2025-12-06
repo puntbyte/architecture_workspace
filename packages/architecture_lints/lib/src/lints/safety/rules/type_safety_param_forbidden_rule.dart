@@ -29,32 +29,48 @@ class TypeSafetyParamForbiddenRule extends TypeSafetyBaseRule {
     required DiagnosticReporter reporter,
   }) {
     for (final rule in rules) {
-      // 1. Find Forbidden constraints for this param
       final forbidden = rule.forbidden.where((c) => shouldCheckParam(c, paramName)).toList();
-
-      // 2. Find Allowed constraints to offer suggestions
       final allowed = rule.allowed.where((c) => shouldCheckParam(c, paramName)).toList();
 
-      for (final c in forbidden) {
-        if (matchesConstraint(type, c, fileResolver, config.typeDefinitions)) {
-          var suggestion = '';
-          if (allowed.isNotEmpty) {
-            final allowedNames = allowed
-                .map((a) => "'${describeConstraint(a, config.typeDefinitions)}'")
-                .join(' or ');
-            suggestion = ' Use $allowedNames instead.';
-          }
+      if (forbidden.isEmpty) continue;
 
-          reporter.atNode(
-            node,
-            _code,
-            arguments: [
-              type.getDisplayString(),
-              paramName,
-              suggestion,
-            ],
-          );
+      // 1. Check Forbidden
+      final isForbidden = matchesAnyConstraint(
+          type,
+          forbidden,
+          fileResolver,
+          config.typeDefinitions
+      );
+
+      if (isForbidden) {
+        // 2. CRITICAL FIX: Check Allowed Override
+        final isAllowed = matchesAnyConstraint(
+            type,
+            allowed,
+            fileResolver,
+            config.typeDefinitions
+        );
+
+        if (isAllowed) continue; // Skip reporting
+
+        // 3. Suggestion
+        var suggestion = '';
+        if (allowed.isNotEmpty) {
+          final allowedNames = allowed
+              .map((a) => "'${describeConstraint(a, config.typeDefinitions)}'")
+              .join(' or ');
+          suggestion = ' Use $allowedNames instead.';
         }
+
+        reporter.atNode(
+          node,
+          _code,
+          arguments: [
+            type.getDisplayString(),
+            paramName,
+            suggestion,
+          ],
+        );
       }
     }
   }

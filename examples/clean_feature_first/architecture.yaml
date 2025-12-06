@@ -158,7 +158,7 @@ components:
 
   # Ports are interfaces. They are Noun Phrases (e.g., "AuthPort").
   domain.port:
-    name: 'Port'
+    name: 'Port (aka Repository Interface)'
     path: 'ports'
     pattern: '{{name}}Port'
     antipattern: '{{name}}(Interface|Repository)'
@@ -166,7 +166,7 @@ components:
 
   # UseCases are actions. They must start with a Verb and end with a Noun (e.g., "GetUser").
   domain.usecase:
-    name: 'UseCase'
+    name: 'Usecase (aka Interactor)'
     path: 'usecases'
     pattern: '{{name}}'
     antipattern: '{{name}}Use(C|c)ase'
@@ -191,24 +191,24 @@ components:
     grammar: '{{noun.phrase}}Model'
 
   data.source:
-    name: 'Source'
+    name: 'Data Source'
     path: 'sources'
 
   # Source Interfaces are objects. Noun Phrases (e.g., "AuthSource").
   data.source.interface:
-    name: 'Source Interface'
+    name: 'Data Source (Interface)'
     pattern: '{{name}}Source'
     grammar: '{{noun.phrase}}Source'
 
   # Source Implementations are concrete objects. Noun Phrases (e.g., "RemoteAuthSource").
   data.source.implementation:
-    name: 'Source Implementation'
+    name: 'Data Source (Implementation)'
     pattern: '{{affix}}{{name}}Source'
     grammar: '{{noun.phrase}}Source'
 
   # Repositories are objects. Noun Phrases (e.g., "AuthRepository").
   data.repository:
-    name: 'Repository'
+    name: 'Repository (Implementation)'
     path: 'repositories'
     pattern: '{{affix}}{{name}}Repository'
     grammar: '{{noun.phrase}}Repository'
@@ -227,27 +227,27 @@ components:
 
   # Event Interfaces are objects/categories. Noun Phrases (e.g., "AuthEvent").
   presentation.manager.event.interface:
-    name: 'Event Interface'
+    name: 'Bloc/Cubit Event (Interface)'
     pattern: '{{name}}Event'
     grammar: '{{noun.phrase}}Event'
 
   # Concrete Events represent something that HAPPENED.
   # Grammar: Subject + Past Tense Verb (e.g., "UserLoggedIn", "DataLoaded", "ErrorOccurred").
   presentation.manager.event.implementation:
-    name: 'Event Implementation'
+    name: 'Bloc/Cubit Event (Implementation)'
     pattern: '{{name}}'
     grammar: '{{noun.phrase}}{{verb.past}}'
 
   # State Interfaces are objects/categories. Noun Phrases (e.g., "AuthState").
   presentation.manager.state.interface:
-    name: 'State Interface'
+    name: 'Bloc/Cubit State (Interface)'
     pattern: '{{name}}State'
     grammar: '{{noun.singular}}State'
 
   # Concrete States represent a STATUS.
   # Grammar: Subject + Adjective OR Gerund (e.g., "AuthInitial", "AuthLoading", "AuthSuccess").
   presentation.manager.state.implementation:
-    name: 'State Implementation'
+    name: 'Bloc/Cubit State (Implementation)'
     pattern: '{{name}}'
     grammar:
       - '{{noun.phrase}}{{adjective}}'     # AuthInitial, AuthLoading
@@ -684,7 +684,7 @@ type_safeties:
     # Must return FutureEither<T>
     allowed:
       kind: 'return'
-      definition: 'result.wrapper'
+      definition: 'result.wrapper.future'
     # Must NOT return raw Future<T>
     forbidden:
       kind: 'return'
@@ -699,7 +699,7 @@ type_safeties:
     # Must NOT return FutureEither<T>
     forbidden:
       kind: 'return'
-      definition: 'result.wrapper'
+      definition: 'result.wrapper.future'
 
   # Repositories must return Entities, not Models.
   - on: repository

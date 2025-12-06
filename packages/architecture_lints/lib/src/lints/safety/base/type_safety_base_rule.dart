@@ -1,3 +1,5 @@
+// lib/src/lints/safety/base/type_safety_base_rule.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
