@@ -554,13 +554,9 @@ definitions:
     .success:
       type: 'Right'
       import: 'package:fpdart/fpdart.dart'
-      argument: '*'
 
     # Inherits fpdart
-    .failure:
-      type: 'Left'
-      argument:
-        definition: 'failure.base'
+    .failure: 'Left'
 
   # --- Failure ---
   failure:
@@ -1138,13 +1134,13 @@ usages:
     # Prevents usage like `GetIt.I.get()` or `sl()`
     forbidden:
       kind: 'access'
-      definition: 'locator'
+      definition: 'service.locator'
 
   # Routing Logic Ban in Domain.
   - on: domain
     forbidden:
       kind: 'access'
-      definition: 'routing'
+      definition: 'service.routing'
 
   # Instantiation Ban (Dependency Injection Enforcement).
   # Don't create Repositories or Sources manually; inject them.

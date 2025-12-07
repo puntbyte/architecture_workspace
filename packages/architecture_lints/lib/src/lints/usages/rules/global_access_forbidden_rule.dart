@@ -1,3 +1,5 @@
+// lib/src/lints/usages/rules/global_access_forbidden.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';

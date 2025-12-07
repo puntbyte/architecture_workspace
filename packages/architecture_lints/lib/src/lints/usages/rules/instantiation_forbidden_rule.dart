@@ -1,3 +1,5 @@
+// lib/src/lints/usages/rules/instantiation_forbidden_rule.dart
+
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/enums/usage_kind.dart';

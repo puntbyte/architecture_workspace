@@ -1,3 +1,5 @@
+// lib/src/lints/usages/base/usage_base_rule.dart
+
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/usage_config.dart';

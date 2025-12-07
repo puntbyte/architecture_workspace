@@ -1,6 +1,8 @@
+// lib/src/lints/usages/logic/usage_logic.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart'; // Unified Schema
+import 'package:architecture_lints/src/config/schema/definition.dart';
 
 mixin UsageLogic {
   /// Checks if an identifier usage matches a forbidden definition.
