@@ -1,0 +1,340 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:acme:schemas:architecture",
+  "title": "Architecture configuration",
+  "description": "JSON Schema for clean_feature_first/architecture.yaml used by the architecture linter",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "include": {
+      "description": "Optional include(s) for base presets",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "architecture": {
+      "description": "Architecture style and mode",
+      "type": "object",
+      "properties": {
+        "style": {
+          "type": "string",
+          "enum": [
+            "clean",
+            "mvvm",
+            "mvc"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "feature_first",
+            "layer_first",
+            "reactive",
+            "data_driven",
+            "traditional",
+            "web"
+          ]
+        }
+      },
+      "required": [
+        "style",
+        "mode"
+      ],
+      "additionalProperties": false
+    },
+    "excludes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "modules": {
+      "description": "Top-level modules mapping",
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "default": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "components": {
+      "description": "Component tree; keys may use dot-notation",
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_.-]+$": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "module": {
+              "type": "string"
+            },
+            "path": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            },
+            "patternx": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            },
+            "antipattern": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            },
+            "grammar": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "definitions": {
+      "description": "Re-usable types, services, wrappers",
+      "type": "object",
+      "additionalProperties": true
+    },
+    "inheritances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "on": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "requiredx": {
+            "type": [
+              "object",
+              "array",
+              "string"
+            ]
+          },
+          "allowed": {
+            "type": [
+              "object",
+              "array",
+              "string"
+            ]
+          },
+          "forbidden": {
+            "type": [
+              "object",
+              "array",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "on": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "allowed": {
+            "type": [
+              "object",
+              "array",
+              "string"
+            ]
+          },
+          "forbidden": {
+            "type": [
+              "object",
+              "array",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "type_safeties": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "exceptions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "usages": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "annotations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "vocabulary": {
+      "type": "object",
+      "properties": {
+        "nouns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "verbs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "actions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "descriptionx": {
+            "type": "string"
+          },
+          "trigger": {
+            "type": "object"
+          },
+          "target": {
+            "type": "object"
+          },
+          "variables": {
+            "type": "object"
+          },
+          "imports": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "template_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "templates": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "architecture"
+  ],
+  "definitions": {
+    "idRef": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_.-]+$"
+    }
+  }
+}

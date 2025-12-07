@@ -1,4 +1,4 @@
-// example/lib/features/auth/data/sources/source.implementation.violations.dart
+// lib/features/auth/data/sources/source.implementation.violations.dart
 
 import 'package:clean_feature_first/core/error/failures.dart';
 import 'package:clean_feature_first/core/utils/types.dart';

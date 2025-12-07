@@ -1,4 +1,4 @@
-// example/lib/features/auth/data/sources/source.interface.violations.dart
+// lib/features/auth/data/sources/source.interface.violations.dart
 
 import 'package:clean_feature_first/core/source/source.dart';
 import 'package:clean_feature_first/core/utils/types.dart';
