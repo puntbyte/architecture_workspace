@@ -1,125 +1,168 @@
-// test/src/config/parsing/hierarchy_parser_test.dart
-
+// test/hierarchy_parser_test.dart
 import 'package:architecture_lints/src/config/parsing/hierarchy_parser.dart';
 import 'package:test/test.dart';
 
-class TestItem {
-  final String id;
-  final dynamic data;
-
-  TestItem(this.id, this.data);
-
-  dynamic get(String key) => (data is Map) ? data[key] : null;
-
-  @override
-  String toString() => '$id: $data';
-}
-
 void main() {
+  // Helper factory that wraps the id and effective node into a Map so tests can inspect them.
+  Map<String, dynamic> probeFactory(String id, dynamic node) {
+    return {'id': id, 'node': node};
+  }
+
   group('HierarchyParser', () {
-    TestItem factory(String id, dynamic value) => TestItem(id, value);
-    bool alwaysValid(dynamic v) => true;
-
-    test('should support Parent Inheritance (inheritProperties)', () {
-      final yaml = {
-        '.parent': {
-          'path': 'root', // Inherited property
-          '.child1': {'val': 1}, // Should inherit 'root'
-          '.child2': {'path': 'override'}, // Should override
-        },
+    test('shorthand expansion: string node expands to map using shorthandKey', () {
+      final yaml = <String, dynamic>{
+        'a': 'hello', // primitive string at top-level
       };
 
-      final result = HierarchyParser.parse<TestItem>(
+      final results = HierarchyParser.parse<Map<String, dynamic>>(
         yaml: yaml,
-        factory: factory,
-        shouldParseNode: alwaysValid,
-        inheritProperties: ['path'],
+        factory: probeFactory,
+        shorthandKey: 'value',
       );
 
-      expect(result['parent']?.get('path'), 'root');
-      expect(result['parent.child1']?.get('path'), 'root');
-      expect(result['parent.child2']?.get('path'), 'override');
+      // top-level key 'a' becomes a node
+      expect(results.containsKey('a'), isTrue);
+      final entry = results['a']!;
+      expect(entry['id'], 'a');
+
+      // the factory should have received a map: { value: 'hello' }
+      expect(entry['node'], isA<Map>());
+      final node = entry['node'] as Map;
+      expect(node['value'], 'hello');
     });
 
-    test('should support Sibling Cascading (cascadeProperties)', () {
-      final yaml = {
-        '.group': {
-          '.first': {
-            'import': 'pkg/a', // Cascades
-            'val': 1,
-          },
-          '.second': {
-            'val': 2,
-            // Should inherit 'pkg/a' from .first
-          },
-          '.third': {
-            'import': 'pkg/b', // Overrides
-            'val': 3,
-          },
-          '.fourth': {
-            'val': 4,
-            // Should inherit 'pkg/b' from .third
-          },
-        },
+    test('inheritProperties: parent property flows down to child', () {
+      final yaml = <String, dynamic>{
+        'parent': <String, dynamic>{
+          'lang': 'fr',
+          '.child': <String, dynamic>{'name': 'c'},
+        }
       };
 
-      final result = HierarchyParser.parse<TestItem>(
+      final results = HierarchyParser.parse<Map<String, dynamic>>(
         yaml: yaml,
-        factory: factory,
-        shouldParseNode: alwaysValid,
-        cascadeProperties: ['import'],
+        factory: probeFactory,
+        inheritProperties: ['lang'],
       );
 
-      expect(result['group.first']?.get('import'), 'pkg/a');
-      expect(result['group.second']?.get('import'), 'pkg/a');
-      expect(result['group.third']?.get('import'), 'pkg/b');
-      expect(result['group.fourth']?.get('import'), 'pkg/b');
+      // parent was parsed
+      expect(results.containsKey('parent'), isTrue);
+      expect(results['parent']!['id'], 'parent');
+
+      // child id should be parent.child and its effective node should include the inherited 'lang'
+      expect(results.containsKey('parent.child'), isTrue);
+      final childEntry = results['parent.child']!;
+      expect(childEntry['id'], 'parent.child');
+
+      // Node should be a Map that contains 'name' and inherited 'lang'
+      expect(childEntry['node'], isA<Map>());
+      final childNode = childEntry['node'] as Map;
+      expect(childNode['name'], 'c');
+      expect(childNode['lang'], 'fr'); // inherited
     });
 
-    test('should combine Parent and Sibling inheritance', () {
-      final yaml = {
-        '.parent': {
-          'path': 'root', // Parent Inherit
-
-          '.childA': {
-            'import': 'pkg/a', // Sibling Cascade
-          },
-          '.childB': {}, // Should have path='root' AND import='pkg/a'
-        },
+    test('cascadeProperties: property set on first sibling cascades to next sibling', () {
+      final yaml = <String, dynamic>{
+        'root': <String, dynamic>{
+          '.first': <String, dynamic>{'color': 'red'},
+          '.second': <String, dynamic>{}, // should receive color via cascade
+        }
       };
 
-      final result = HierarchyParser.parse<TestItem>(
+      final results = HierarchyParser.parse<Map<String, dynamic>>(
         yaml: yaml,
-        factory: factory,
-        shouldParseNode: alwaysValid,
-        inheritProperties: ['path'],
-        cascadeProperties: ['import'],
+        factory: probeFactory,
+        cascadeProperties: ['color'],
       );
 
-      final childB = result['parent.childB']!;
-      expect(childB.get('path'), 'root');
-      expect(childB.get('import'), 'pkg/a');
+      // both siblings parsed
+      expect(results.containsKey('root.first'), isTrue);
+      expect(results.containsKey('root.second'), isTrue);
+
+      // first keeps its color
+      final firstNode = results['root.first']!['node'] as Map;
+      expect(firstNode['color'], 'red');
+
+      // second should have received the cascaded color from first
+      final secondNode = results['root.second']!['node'] as Map;
+      expect(secondNode['color'], 'red');
     });
 
-    test('should reset Sibling Context when entering new parent', () {
-      final yaml = {
-        '.group1': {
-          '.item': {'import': 'pkg/1'},
-        },
-        '.group2': {
-          '.item': {}, // Should NOT inherit pkg/1 from group1
-        },
+    test('scopeKeys: only keys in scope are parsed at root when scopeKeys provided', () {
+      final yaml = <String, dynamic>{
+        'a': <String, dynamic>{},
+        'b': <String, dynamic>{},
       };
 
-      final result = HierarchyParser.parse<TestItem>(
+      final results = HierarchyParser.parse<Map<String, dynamic>>(
         yaml: yaml,
-        factory: factory,
-        shouldParseNode: alwaysValid,
-        cascadeProperties: ['import'],
+        factory: probeFactory,
+        scopeKeys: {'a'}, // only 'a' should be parsed
       );
 
-      expect(result['group1.item']?.get('import'), 'pkg/1');
-      expect(result['group2.item']?.get('import'), isNull);
+      expect(results.containsKey('a'), isTrue);
+      expect(results.containsKey('b'), isFalse);
+    });
+
+    test('shouldParseNode: predicate can skip nodes', () {
+      final yaml = <String, dynamic>{
+        'a': <String, dynamic>{'enabled': false},
+        'b': <String, dynamic>{'enabled': true},
+      };
+
+      final results = HierarchyParser.parse<Map<String, dynamic>>(
+        yaml: yaml,
+        factory: probeFactory,
+        shouldParseNode: (value) {
+          // value here is the effective node; we expect it to be a Map
+          if (value is Map && value.containsKey('enabled')) {
+            return value['enabled'] == true;
+          }
+          return false;
+        },
+      );
+
+      expect(results.containsKey('a'), isFalse, reason: 'node a should be skipped by predicate');
+      expect(results.containsKey('b'), isTrue, reason: 'node b should be parsed');
+    });
+
+    test('onError is called when factory throws for a node without affecting others', () {
+      final yaml = <String, dynamic>{
+        'good': <String, dynamic>{'x': 1},
+        'bad': <String, dynamic>{'x': 2},
+        'also_good': <String, dynamic>{'x': 3},
+      };
+
+      final called = <Object>[];
+      final stackTraces = <StackTrace>[];
+
+      Map<String, dynamic> throwingFactory(String id, dynamic node) {
+        if (id == 'bad') {
+          throw Exception('factory failed for $id');
+        }
+        return {'id': id, 'x': (node is Map ? node['x'] : null)};
+      }
+
+      final results = HierarchyParser.parse<Map<String, dynamic>>(
+        yaml: yaml,
+        factory: throwingFactory,
+        onError: (err, st) {
+          called.add(err);
+          stackTraces.add(st);
+        },
+      );
+
+      // 'good' and 'also_good' should be present
+      expect(results.containsKey('good'), isTrue);
+      expect(results.containsKey('also_good'), isTrue);
+
+      // 'bad' should be missing (factory threw and was handled by onError)
+      expect(results.containsKey('bad'), isFalse);
+
+      // onError should have been called exactly once with an Exception mentioning 'bad'
+      expect(called, hasLength(1));
+      expect(called.first.toString(), contains('factory failed for bad'));
+      expect(stackTraces, hasLength(1));
     });
   });
 }

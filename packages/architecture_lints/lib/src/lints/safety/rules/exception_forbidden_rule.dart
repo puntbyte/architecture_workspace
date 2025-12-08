@@ -26,28 +26,59 @@ class ExceptionForbiddenRule extends ExceptionBaseRule {
   }) {
     for (final rule in rules) {
       for (final constraint in rule.forbidden) {
+
+        // CHECK 1: Forbidden Throw
         if (constraint.operation == ExceptionOperation.throw$) {
           final throws = findNodes<ThrowExpression>(node.body);
+
           for (final t in throws) {
             final type = t.expression.staticType;
+
             final matchesSpecific = matchesType(
               type,
               constraint.definition,
               constraint.type,
               config.definitions,
             );
+
             final genericBan = constraint.definition == null && constraint.type == null;
 
             if (matchesSpecific || genericBan) {
-              reporter.atNode(t, _code, arguments: ['throw ${type?.getDisplayString() ?? ''}']);
+              // FIX: Remove (withNullability: false)
+              final typeName = type?.getDisplayString() ?? 'unknown';
+
+              reporter.atNode(
+                t,
+                _code,
+                arguments: ['throw $typeName'],
+              );
             }
           }
         }
 
+        // CHECK 2: Forbidden Rethrow
         if (constraint.operation == ExceptionOperation.rethrow$) {
           final rethrows = findNodes<RethrowExpression>(node.body);
-          if (rethrows.isNotEmpty) {
-            reporter.atNode(rethrows.first, _code, arguments: ['rethrow']);
+          for (final r in rethrows) {
+            reporter.atNode(r, _code, arguments: ['rethrow']);
+          }
+        }
+
+        // CHECK 3: Forbidden Return inside Catch
+        if (constraint.operation == ExceptionOperation.catchReturn) {
+          final catches = findNodes<CatchClause>(node.body);
+          for (final c in catches) {
+            final returns = findNodes<ReturnStatement>(c.body);
+
+            for (final r in returns) {
+              if (constraint.definition != null) {
+                if (returnStatementMatchesType(r, constraint.definition!, config.definitions)) {
+                  reporter.atNode(r, _code, arguments: ['return inside catch']);
+                }
+              } else {
+                reporter.atNode(r, _code, arguments: ['return inside catch']);
+              }
+            }
           }
         }
       }

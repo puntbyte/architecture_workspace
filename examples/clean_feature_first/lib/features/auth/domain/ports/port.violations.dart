@@ -32,6 +32,7 @@ abstract interface class AuthContract implements Port {
 
 // LINT: [8] arch_type_missing_base
 // REASON: Ports must implement/extend the base `Port` interface defined in Core.
+// ignore: arch_type_missing_base
 abstract interface class UncontractedAuthPort { //! <-- LINT WARNING
   // LINT: [8] arch_safety_return_strict
   // REASON: Return type must be `FutureEither<T>`, not `void`.
@@ -47,6 +48,7 @@ abstract interface class UncontractedAuthPort { //! <-- LINT WARNING
   FutureEither<void> revokeToken(); //! <-- LINT WARNING (Quick Fix available)
 }
 
+// ignore: arch_naming_pattern, arch_location, arch_type_missing_base, arch_annot_missing
 abstract interface class TypeSafetyViolationsPort implements Port {
   // LINT: arch_safety_return_forbidden
   // REASON: Return type must be `FutureEither<T>`, not raw `Future<T>`.

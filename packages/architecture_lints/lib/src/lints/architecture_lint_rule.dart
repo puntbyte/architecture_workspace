@@ -1,19 +1,13 @@
-// lib/src/lints/architecture_lint_rule.dart
+// lib/src/lints/inheritance_lint_rule.dart
 
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/parsing/config_loader.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
+import 'package:architecture_lints/src/core/resolver/component_refiner.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-/// The base class for all Architecture Lints.
-///
-/// It handles:
-/// 1. Locating and loading [ArchitectureConfig] from `architecture.yaml`.
-/// 2. Resolving the current file's [ComponentConfig] (what layer/component is this?).
-/// 3. Delegating the actual check to [runWithConfig].
 abstract class ArchitectureLintRule extends DartLintRule {
   const ArchitectureLintRule({required super.code});
 
@@ -22,19 +16,27 @@ abstract class ArchitectureLintRule extends DartLintRule {
     CustomLintResolver resolver,
     CustomLintContext context,
   ) async {
-    // 1. Check if Config is already injected (useful for Unit Tests with Mocks)
     if (context.sharedState.containsKey(ArchitectureConfig)) {
       await super.startUp(resolver, context);
       return;
     }
 
-    // 2. Load Config from disk based on the file path
     final config = await ConfigLoader.loadFromContext(resolver.path);
 
-    // 3. Store in Shared State so 'run' method can access it
     if (config != null) {
+      final fileResolver = FileResolver(config);
       context.sharedState[ArchitectureConfig] = config;
-      context.sharedState[FileResolver] = FileResolver(config);
+      context.sharedState[FileResolver] = fileResolver;
+
+      // REFINEMENT LOGIC
+      final unit = await resolver.getResolvedUnitResult();
+
+      // Use the new Refiner
+      final refiner = ComponentRefiner(config, fileResolver);
+      final refinedComponent = refiner.refine(filePath: resolver.path, unit: unit);
+
+      // Store ComponentContext, not Config
+      if (refinedComponent != null) context.sharedState[ComponentContext] = refinedComponent;
     }
 
     await super.startUp(resolver, context);
@@ -46,26 +48,24 @@ abstract class ArchitectureLintRule extends DartLintRule {
     DiagnosticReporter reporter,
     CustomLintContext context,
   ) {
-    // 1. Retrieve Config and Resolver
     final config = context.sharedState[ArchitectureConfig] as ArchitectureConfig?;
     final fileResolver = context.sharedState[FileResolver] as FileResolver?;
 
-    // If config is missing (file not found or parse error), we can't run rules.
     if (config == null || fileResolver == null) return;
 
-    // 2. Resolve the file's architectural role
-    // e.g., "This file is a Domain UseCase"
-    final componentContext = fileResolver.resolve(resolver.path);
+    // 1. Try to get the Refined Component (from startUp)
+    var component = context.sharedState[ComponentContext] as ComponentContext?;
 
+    // 2. Fallback to basic Path Resolution if refiner failed or wasn't run
+    component ??= fileResolver.resolve(resolver.path);
 
-    // 3. Delegate to the concrete rule logic
     runWithConfig(
       context: context,
       reporter: reporter,
       resolver: resolver,
       config: config,
       fileResolver: fileResolver,
-      component: componentContext, // Pass Context
+      component: component,
     );
   }
 

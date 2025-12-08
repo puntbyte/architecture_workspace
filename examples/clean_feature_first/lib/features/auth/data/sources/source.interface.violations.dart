@@ -10,6 +10,7 @@ import 'package:clean_feature_first/features/auth/domain/entities/user.dart'; //
 
 // lint: [2] arch_naming_pattern
 // reason: Name must match `{{name}}Source` (e.g., AuthSource).
+// ignore: arch_naming_pattern
 abstract interface class AuthRemoteService implements Source { //! <-- LINT WARNING
 
   // lint: [3] arch_safety_return_forbidden

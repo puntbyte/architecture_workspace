@@ -32,6 +32,41 @@ class ComponentContext {
   List<String> get grammar => config.grammar;
 
   /// Checks if this component matches a configuration reference ID.
+  bool matchesReference2(String referenceId) {
+    // 1. Module Key Check
+    if (module != null && module!.key == referenceId) return true;
+
+    // 2. Exact Match
+    if (id == referenceId) return true;
+
+    // 3. Segment Match (Robust Shorthand)
+    // We split both IDs by '.' to compare architectural layers safely.
+    // e.g. ID: 'data.source.implementation'
+    //     Ref: 'source.implementation'
+    final idSegments = id.split('.');
+    final refSegments = referenceId.split('.');
+
+    if (refSegments.length > idSegments.length) return false;
+
+    // Check if refSegments appear contiguously within idSegments
+    // This covers Prefix (parent), Suffix (child), and Middle (slice) matches.
+    for (var i = 0; i <= idSegments.length - refSegments.length; i++) {
+      var match = true;
+      for (var j = 0; j < refSegments.length; j++) {
+        if (idSegments[i + j] != refSegments[j]) {
+          match = false;
+          break;
+        }
+      }
+
+      if (match) return true;
+    }
+
+    return false;
+  }
+
+
+  /// Checks if this component matches a configuration reference ID.
   ///
   /// Supports:
   /// 1. Exact Match: id 'data.repo' == ref 'data.repo'
@@ -42,14 +77,18 @@ class ComponentContext {
     // 1. Exact Match
     if (id == referenceId) return true;
 
-    // 2. Parent Check (e.g. ref 'data', id 'data.source')
+    // 2. Parent Check (Prefix)
+    // id: data.source.impl, ref: data.source
     if (id.startsWith('$referenceId.')) return true;
 
-    // 3. Suffix Check (e.g. ref 'source', id 'data.source')
+    // 3. Suffix Check
+    // id: data.source.impl, ref: source.impl
+    // We check for '.ref' to ensure we match a full segment boundary
     if (id.endsWith('.$referenceId')) return true;
 
-    // 4. Middle Segment Check (e.g. ref 'source', id 'data.source.interface')
-    // We check for dots on both sides to avoid partial matches (e.g. 'resource' vs 'source')
+    // 4. Middle Segment Check
+    // id: data.source.impl, ref: source
+    // Must be surrounded by dots to avoid partial word match (e.g. 'resource' matching 'source')
     if (id.contains('.$referenceId.')) return true;
 
     // 5. Module Key Check

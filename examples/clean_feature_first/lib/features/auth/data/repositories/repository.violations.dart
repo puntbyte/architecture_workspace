@@ -1,7 +1,5 @@
 // example/lib/features/auth/data/repositories/repository.violations.dart
 
-import 'dart:ui';
-
 import 'package:clean_feature_first/core/error/exceptions.dart';
 import 'package:clean_feature_first/core/error/failures.dart';
 import 'package:clean_feature_first/core/utils/types.dart';
@@ -16,23 +14,23 @@ import 'package:fpdart/fpdart.dart';
 // REASON: Data layer should not import Presentation layer.
 import 'package:clean_feature_first/features/auth/presentation/pages/home_page.dart'; // <-- LINT WARNING HERE
 
-// LINT: [2] enforce_annotations (Required)
-// REASON: Repositories must be annotated with `@LazySingleton` or `@Singleton`.
-
-// LINT: [3] enforce_naming_pattern
+// LINT: [3] arch_naming_pattern
 // REASON: Name `AuthService` does not match pattern `{{kind}}{{name}}Repository`.
-class AuthService implements AuthPort { // <-- LINT WARNING HERE (Missing Annotation & Bad Name)
+// ignore: arch_naming_pattern, arch_type_missing_base, arch_annot_missing
+class AuthService implements AuthPort { //! <-- LINT WARNING HERE (Missing Annotation & Bad Name)
 
-  // LINT: [4] enforce_abstract_data_source_dependency
+  // LINT: [4] arch_member_forbidden
   // REASON: Must depend on `AuthSource` (Interface), not `Default...` (Concrete).
-  final DefaultAuthSource concreteSource; // <-- LINT WARNING HERE
+  final DefaultAuthSource concreteSource; //! <-- LINT WARNING HERE
 
-  // LINT: [5] disallow_dependency_instantiation
+  // LINT: [5] arch_usage_instantiation
   // REASON: Dependencies must be injected, not created internally.
-  final _internalSource = DefaultAuthSource(); // <-- LINT WARNING HERE
+  final _internalSource = DefaultAuthSource(); //! <-- LINT WARNING HERE
 
+  // LINT: arch_member_forbidden
   AuthService(this.concreteSource);
 
+  // LINT: arch_exception_missing
   @override
   FutureEither<UserModel> login(String u, String p) async {
     // LINT: [6] enforce_try_catch_in_repository
@@ -44,8 +42,12 @@ class AuthService implements AuthPort { // <-- LINT WARNING HERE (Missing Annota
     return Right(model); // <-- LINT WARNING HERE
   }
 
+  // LINT: arch_exception_missing
   @override
-  FutureEither<void> logout() => throw UnimplementedError();
+  FutureEither<void> logout() {
+    // LINT: arch_debug_exception
+    throw UnimplementedError();
+  }
 
 }
 
@@ -56,10 +58,11 @@ class RogueRepository { // <-- LINT WARNING HERE
   void doSomething() {}
 }
 
-// ignore: enforce_annotations
+// LINT: arch_annot_missing
 class BadErrorHandlingRepository implements AuthPort {
   final AuthSource _source;
 
+  // LINT: arch_member_forbidden
   const BadErrorHandlingRepository(this._source);
 
   @override

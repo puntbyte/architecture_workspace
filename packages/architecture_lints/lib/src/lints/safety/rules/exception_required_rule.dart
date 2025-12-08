@@ -1,3 +1,5 @@
+// lib/src/lints/safety/rules/exception_required_rule.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';

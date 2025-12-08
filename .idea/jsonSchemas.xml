@@ -3,6 +3,23 @@
   <component name="JsonSchemaMappingsProjectConfiguration">
     <state>
       <map>
+        <entry key="architecture.schema">
+          <value>
+            <SchemaInfo>
+              <option name="generatedName" value="New Schema" />
+              <option name="name" value="architecture.schema" />
+              <option name="relativePathToSchema" value="architecture.schema.json" />
+              <option name="schemaVersion" value="JSON Schema 202,012" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="path" value="examples/clean_feature_first/architecture.yaml" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
         <entry key="melos.yaml.schema">
           <value>
             <SchemaInfo>
@@ -10,6 +27,13 @@
               <option name="name" value="melos.yaml.schema" />
               <option name="relativePathToSchema" value="https://raw.githubusercontent.com/blaugold/melos-code/main/melos.yaml.schema.json" />
               <option name="schemaVersion" value="JSON Schema 7" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="path" value="melos.yaml" />
+                  </Item>
+                </list>
+              </option>
             </SchemaInfo>
           </value>
         </entry>

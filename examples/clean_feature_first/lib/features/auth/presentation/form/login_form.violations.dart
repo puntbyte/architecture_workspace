@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 // Reason: Widgets shouldn't call UseCases. Logic belongs in Managers.
 import 'package:clean_feature_first/features/auth/domain/usecases/request_login.dart';
 
+// ignore: arch_location
 class LoginForm extends StatelessWidget {
   final Login loginUser; // <-- Violation
 

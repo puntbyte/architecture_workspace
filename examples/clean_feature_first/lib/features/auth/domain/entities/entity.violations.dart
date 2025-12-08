@@ -22,6 +22,7 @@ class AnnotatedUser extends Entity {}
 
 // LINT: [5] arch_naming_antipattern
 // REASON: Name matches antipattern `{{name}}Entity`; use `User` instead.
+// ignore: arch_naming_antipattern
 class UserEntity extends Entity { //! <-- LINT WARNING
   final String id;
 

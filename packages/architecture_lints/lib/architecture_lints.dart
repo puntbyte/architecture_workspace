@@ -5,6 +5,7 @@ import 'package:architecture_lints/src/lints/boundaries/rules/external_dependenc
 import 'package:architecture_lints/src/lints/boundaries/rules/module_dependency_rule.dart';
 import 'package:architecture_lints/src/lints/consistency/rules/orphan_file_rule.dart';
 import 'package:architecture_lints/src/lints/consistency/rules/parity_missing_rule.dart';
+import 'package:architecture_lints/src/lints/debug_component_identity.dart';
 import 'package:architecture_lints/src/lints/identity/rules/inheritance_allowed_rule.dart';
 import 'package:architecture_lints/src/lints/identity/rules/inheritance_forbidden_rule.dart';
 import 'package:architecture_lints/src/lints/identity/rules/inheritance_required_rule.dart';
@@ -35,11 +36,13 @@ class _ArchitectureLintsPlugin extends PluginBase {
   @override
   List<LintRule> getLintRules(CustomLintConfigs configs) {
     return [
+      const DebugComponentIdentity(),
+
       const OrphanFileRule(),
 
       const NamingPatternRule(),
       const NamingAntipatternRule(),
-      GrammarRule(),
+      const GrammarRule(),
       const MisplacedComponentRule(),
 
       const ComponentDependencyRule(),

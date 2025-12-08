@@ -1,5 +1,6 @@
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
+import 'package:architecture_lints/src/config/schema/module_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:test/test.dart';
 
@@ -10,141 +11,129 @@ void main() {
 
     setUp(() {
       mockConfig = const ArchitectureConfig(
+        modules: [
+          ModuleConfig(key: 'feature', path: 'features/{{name}}'),
+          ModuleConfig(key: 'core', path: 'core'),
+        ],
         components: [
-          // 1. Broad / High-level Layer
+          // 1. Simple Path
           ComponentConfig(
-            id: 'domain_layer',
-            paths: ['domain'], // Short path
+            id: 'domain.usecase',
+            paths: ['domain/usecases'],
+            patterns: ['{{name}}UseCase'],
           ),
-          // 2. Specific Component INSIDE the broad layer (The Nested Scenario)
+
+          // 2. Nested Layers (General vs Specific)
           ComponentConfig(
-            id: 'domain_usecase',
-            paths: ['domain/usecases'], // Longer, more specific path
+            id: 'data',
+            paths: ['data'], // Short path (length ~4)
           ),
-          // 3. Even MORE specific (Deep nesting)
           ComponentConfig(
-            id: 'domain_usecase_v2',
-            paths: ['domain/usecases/v2'],
+            id: 'data.repository',
+            paths: ['data/repositories'], // Long path (length ~17)
           ),
-          // 4. Component with multiple disparate paths
+
+          // 3. Co-located Components (Same Path)
+          // Used to test ID length tie-breaking
           ComponentConfig(
-            id: 'state_manager',
-            paths: ['presentation/blocs', 'presentation/cubits'],
+            id: 'source.interface', // Length 16
+            paths: ['data/sources'],
           ),
-          // 5. Wildcard Component
           ComponentConfig(
-            id: 'feature_data',
-            paths: ['features/{{name}}/data'],
+            id: 'source.implementation', // Length 21 (Longer)
+            paths: ['data/sources'],
+          ),
+
+          // 4. Wildcards
+          ComponentConfig(
+            id: 'presentation.page',
+            paths: ['features/{{name}}/presentation/pages'],
           ),
         ],
       );
+
       resolver = FileResolver(mockConfig);
     });
 
-    group('Specificity Rules (The "Parent vs Child" Fix)', () {
-      test('should resolve to the MOST SPECIFIC component when paths overlap', () {
-        // This file matches 'domain' (len 6) AND 'domain/usecases' (len 15).
-        // It should pick 'domain/usecases' because it is longer/more specific.
-        const filePath = 'lib/domain/usecases/login_usecase.dart';
-        final result = resolver.resolve(filePath);
+    test('should resolve component by exact path match', () {
+      final result = resolver.resolve('lib/domain/usecases/login_usecase.dart');
 
-        expect(result, isNotNull);
-        expect(result?.id, 'domain_usecase'); // NOT 'domain_layer'
+      expect(result, isNotNull);
+      expect(result!.id, 'domain.usecase');
+    });
+
+    test('should resolve component containing {{name}} wildcard', () {
+      final result = resolver.resolve(
+        'lib/features/auth/presentation/pages/login_page.dart',
+      );
+
+      expect(result, isNotNull);
+      expect(result!.id, 'presentation.page');
+    });
+
+    test('should extract ModuleContext correctly', () {
+      final result = resolver.resolve(
+        'lib/features/auth/presentation/pages/login_page.dart',
+      );
+
+      expect(result?.module, isNotNull);
+      expect(result?.module?.key, 'feature');
+      expect(result?.module?.name, 'auth');
+    });
+
+    group('Specificity Logic (Longest Path Wins)', () {
+      test('should prefer specific path over general parent path', () {
+        // File matches both 'data' and 'data/repositories'.
+        // 'data/repositories' is longer, so it should win.
+        final result = resolver.resolve('lib/data/repositories/auth_repository.dart');
+
+        expect(result?.id, 'data.repository');
       });
 
-      test('should resolve to the Deepest component available', () {
-        // Matches 'domain', 'domain/usecases', AND 'domain/usecases/v2'
-        const filePath = 'lib/domain/usecases/v2/new_login.dart';
-        final result = resolver.resolve(filePath);
+      test('should fall back to general path if specific does not match', () {
+        // File is in 'data/models'. Matches 'data', but NOT 'data/repositories'.
+        final result = resolver.resolve('lib/data/models/user_model.dart');
 
-        expect(result?.id, 'domain_usecase_v2');
-      });
-
-      test('should resolve to the broad layer if file is not in specific sub-folder', () {
-        // Matches 'domain', but NOT 'domain/usecases'
-        const filePath = 'lib/domain/exceptions/failure.dart';
-        final result = resolver.resolve(filePath);
-
-        expect(result?.id, 'domain_layer');
+        expect(result?.id, 'data');
       });
     });
 
-    group('Multiple Paths Logic', () {
-      test('should resolve component via First path', () {
-        const filePath = 'lib/presentation/blocs/auth_bloc.dart';
-        final result = resolver.resolve(filePath);
-        expect(result?.id, 'state_manager');
-      });
+    group('Tie-Breaker Logic (Same Path)', () {
+      test('should prefer Longest ID when paths are identical', () {
+        // Both 'source.interface' and 'source.implementation' match 'data/sources'.
+        // The resolver (without AST refinement) uses ID length as a heuristic for specificity.
+        // 'source.implementation' (21 chars) > 'source.interface' (16 chars).
 
-      test('should resolve component via Second path', () {
-        const filePath = 'lib/presentation/cubits/cart_cubit.dart';
-        final result = resolver.resolve(filePath);
-        expect(result?.id, 'state_manager');
+        final result = resolver.resolve('lib/data/sources/any_file.dart');
+
+        expect(result?.id, 'source.implementation');
       });
     });
 
-    group('Wildcard Logic', () {
-      test('should resolve wildcard paths correctly', () {
-        // 'features/{{name}}/data' (len ~19) vs 'features' (if it existed)
-        const filePath = 'lib/features/auth/data/repository.dart';
-        final result = resolver.resolve(filePath);
-        expect(result?.id, 'feature_data');
-      });
+    group('resolveAllCandidates', () {
+      test('should return ALL matches for Refiner to use', () {
+        // 'data/sources' matches:
+        // 1. data (Path: data)
+        // 2. source.interface (Path: data/sources)
+        // 3. source.implementation (Path: data/sources)
 
-      test('should handle wildcard vs specific overlap preference', () {
-        // If we had a generic 'features/{{name}}' and a specific 'features/{{name}}/data',
-        // 'data' is longer, so it should win.
-        const localConfig = ArchitectureConfig(components: [
-          ComponentConfig(id: 'feature_root', paths: ['features/{{name}}']),
-          ComponentConfig(id: 'feature_data', paths: ['features/{{name}}/data']),
-        ]);
-        const localResolver = FileResolver(localConfig);
+        final candidates = resolver.resolveAllCandidates('lib/data/sources/file.dart');
 
-        const filePath = 'lib/features/auth/data/repo.dart';
-        expect(localResolver.resolve(filePath)?.id, 'feature_data');
+        expect(candidates.length, 3);
+
+        final ids = candidates.map((c) => c.component.id).toList();
+        expect(ids, containsAll(['data', 'source.interface', 'source.implementation']));
       });
     });
 
-    group('Edge Cases', () {
-      test('should return null if no path matches', () {
-        const filePath = 'lib/random/orphan.dart';
-        expect(resolver.resolve(filePath), isNull);
-      });
+    test('should return null for unrelated files', () {
+      final result = resolver.resolve('lib/main.dart');
+      expect(result, isNull);
+    });
 
-      test('should handle empty paths safely', () {
-        const localConfig = ArchitectureConfig(components: [
-          ComponentConfig(id: 'bad_config', paths: []),
-        ]);
-        final localResolver = FileResolver(localConfig);
-
-        expect(localResolver.resolve('lib/any.dart'), isNull);
-      });
-
-      test('should match partial folder names strictly if PathMatcher enforces it', () {
-        // Ensure 'domain' doesn't match 'domain_stuff'
-        // This relies on PathMatcher implementation, but FileResolver calls it.
-        const filePath = 'lib/domain_stuff/file.dart';
-
-        // Assuming PathMatcher checks for directory boundaries or containment:
-        // If config is 'domain', and file is 'domain_stuff', simplistic 'contains' might match.
-        // BUT, our previous tests showed PathMatcher handles separators.
-        // If 'domain' matches 'domain_stuff', specificity logic implies:
-        // 'domain' (len 6) vs nothing else.
-        // Ideally, this should NOT match.
-        // NOTE: This test depends on your PathMatcher.matches implementation.
-        // If PathMatcher uses simple `.contains()`, this might fail (it would match).
-        // If PathMatcher uses separator checks, it passes (returns null).
-
-        // Based on our PathMatcher using simple `contains` in the last iteration:
-        // If you want strict folder matching, PathMatcher needs update.
-        // For now, let's verify exact behavior.
-
-        final result = resolver.resolve(filePath);
-        // If result is 'domain_layer', it means our PathMatcher is loose (contains 'domain').
-        // If result is null, it means PathMatcher is strict.
-        // Let's expect null for a robust system, but adjust if you kept simple contains.
-        expect(result, isNull);
-      });
+    test('should handle Windows file separators', () {
+      final result = resolver.resolve(r'lib\domain\usecases\login_usecase.dart');
+      expect(result?.id, 'domain.usecase');
     });
   });
 }

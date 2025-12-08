@@ -72,8 +72,8 @@ excludes:
 # [a.1] path
 # The root directory for this module.
 # SUPPORTED WILDCARDS:
-# - `{{name}}`: Indicates this is a "Feature" module. The folder name at this position
-# becomes the feature name (e.g. 'features/auth' -> feature name is 'auth').
+# - `{{name}}`: Indicates this is a "Feature" module. The folder name at this position becomes the
+#               feature name (e.g. 'features/auth' -> feature name is 'auth').
 # - `*`: Standard glob wildcard (less semantic than {{name}}).
 # TYPE: String
 #
@@ -91,25 +91,29 @@ modules:
 
 # --------------------------------------------------------------------------------------------------
 # [2.2] components
-# Maps the file system structure to architectural components and defines their naming identity.
+# Maps the file system structure to architectural components and defines their structural identity.
 #
 # DEFINITION STYLE:
-# Uses flattened dot-notation keys (e.g., 'data.source.interface') to define the hierarchy.
-# Child components implicitly inherit the file path of their parents unless a new 'path' is provided.
+# Supports both hierarchical nesting (using dot prefix `.`) and flat keys.
+# 1. Hierarchical: `.domain` -> `.entity` results in component ID `domain.entity`.
+# 2. Flat: `shared.widget` results in component ID `shared.widget`.
+# 3. Module Scoping: `core` -> `.util` results in component ID `core.util`.
 #
-# REFERENCES (Shorthand vs Full):
-# When referencing these components in other rules (like [dependencies] or [type_safety]),
-# you can use two styles:
-# 1. Full Reference: `presentation.manager.event.interface` (Explicit and safest).
-# 2. Shorthand: `event.interface` (Matches the suffix).
-# RESOLUTION LOGIC: The linter attempts to match the suffix against defined keys.
-# - Unique Match: If `event.interface` matches only one definition, it is used.
-# - Ambiguous Match: If multiple definitions match (e.g. `a.b.c` and `x.b.c`), it defaults to
-#   the **FIRST** definition found in this list.
+# INHERITANCE:
+# Child components implicitly inherit the following properties from their parents unless overridden:
+# 1. `path`: The file system directory.
+# 2. `module`: The module scope.
+#
+# RESOLUTION LOGIC:
+# The linter resolves a file to a component based on:
+# 1. Path Specificity: Deeper path matches win.
+# 2. Inheritance: If a class extends a type associated with a component, that component is
+#    preferred.
+# 3. Naming Specificity: Longer, more specific regex patterns win over generic ones.
 #
 # STRUCTURE:
 # [a] <component_key>
-# The unique dot-notated identifier (e.g., 'domain', 'data.source.interface').
+# The identifier. Starts with `.` for children, or is a root key (e.g., `domain`, `.entity`).
 # TYPE: Map
 #
 # [a.1] name
@@ -122,17 +126,35 @@ modules:
 # If omitted, the component is considered "Co-located" (lives in the parent's directory).
 # TYPE: String | List<String>
 #
-# [a.3] pattern
+# [a.3] mode
+# Defines how the component relates to files.
+# TYPE: Enumeration ->> String
+# OPTIONS:
+# - 'file': (Default) The component owns the file (1-to-1 mapping).
+# - 'part': The component is a symbol defined inside another file (e.g., private classes).
+# - 'namespace': The component is a logical folder/container, not a concrete code unit.
+#
+# [a.4] kind
+# Enforces the specific Dart declaration type.
+# TYPE: Enumeration ->> String | List<String>
+# OPTIONS: 'class', 'enum', 'mixin', 'extension', 'typedef'.
+#
+# [a.5] modifier
+# Enforces specific Dart keywords on the declaration.
+# TYPE: Enumeration ->> String | List<String>
+# OPTIONS: 'abstract', 'sealed', 'base', 'interface', 'final', 'mixin'.
+#
+# [a.6] pattern
 # Syntactic naming pattern (Regex-like).
 # TYPE: String | List<String>
-# PLACEHOLDERS:
+# TOKENS:
 # - {{name}}: The core domain name in PascalCase (e.g. 'User').
 # - {{affix}}: Flexible prefixes or suffixes (e.g. 'Default', 'Impl').
 #
-# [a.4] antipattern
+# [a.6] antipattern
 # Forbidden naming pattern. Used to guide users away from bad naming habits.
+# TOKENS: {{name}}, {{affix}}.
 # TYPE: String | List<String>
-# PLACEHOLDERS: {{name}}, {{affix}}.
 #
 # [a.5] grammar
 # Semantic naming pattern (Parts of Speech).
@@ -147,11 +169,13 @@ components:
   .domain:
     name: 'Domain'
     path: 'domain'
+    mode: namespace # Domain is a layer, not a file
 
     # Entities are objects. They must be Noun Phrases (e.g., "User", "PaymentMethod").
     .entity:
       name: 'Entity'
       path: 'entities'
+      kind: class
       pattern: '{{name}}'
       antipattern: '{{name}}Entity'
       grammar: '{{noun.phrase}}'
@@ -160,6 +184,8 @@ components:
     .port:
       name: 'Port (aka Repository Interface)'
       path: 'ports'
+      kind: class
+      modifier: [ abstract, interface ]
       pattern: '{{name}}Port'
       antipattern: '{{name}}(Interface|Repository)'
       grammar: '{{noun.phrase}}Port'
@@ -167,14 +193,18 @@ components:
     # UseCases are actions. They must start with a Verb and end with a Noun (e.g., "GetUser").
     .usecase:
       name: 'Usecase (aka Interactor)'
+      kind: class
       path: 'usecases'
       pattern: '{{name}}'
       antipattern: '{{name}}Use(C|c)ase'
       grammar: '{{verb.present}}{{noun.phrase}}'
 
-    # Parameters are data. They must be Noun Phrases (e.g., "_userIdParam").
+    # Parameters are private data structures defined inside the UseCase file. They must be Noun
+    # Phrases (e.g., "_userIdParam").
     .usecase.parameter:
       name: 'Usecase Parameter'
+      mode: part
+      kind: typedef
       pattern: '_{{name}}Param'
       grammar: '_{{noun.phrase}}Param'
 
@@ -182,27 +212,33 @@ components:
   .data:
     name: 'Data Source'
     path: 'data'
+    mode: namespace
 
     # Models are data objects. Noun Phrases (e.g., "UserModel").
     .model:
       name: 'Model'
       path: 'models'
+      kind: class
       pattern: '{{name}}Model'
       grammar: '{{noun.phrase}}Model'
 
     .source:
       name: 'Data Source'
       path: 'sources'
+      mode: namespace
 
       # Source Interfaces are objects. Noun Phrases (e.g., "AuthSource").
       .interface:
         name: 'Data Source (Interface)'
+        kind: class
+        modifier: abstract
         pattern: '{{name}}Source'
         grammar: '{{noun.phrase}}Source'
 
       # Source Implementations are concrete objects. Noun Phrases (e.g., "RemoteAuthSource").
       .implementation:
         name: 'Data Source (Implementation)'
+        kind: class
         pattern: '{{affix}}{{name}}Source'
         grammar: '{{noun.phrase}}Source'
 
@@ -210,6 +246,7 @@ components:
     .repository:
       name: 'Repository (Implementation)'
       path: 'repositories'
+      kind: class
       pattern: '{{affix}}{{name}}Repository'
       grammar: '{{noun.phrase}}Repository'
 
@@ -217,47 +254,75 @@ components:
   .presentation:
     name: 'Presentation'
     path: 'presentation'
+    mode: namespace
 
     # Managers are objects. Noun Phrases (e.g., "AuthBloc", "UserCubit").
     .manager:
       name: 'State Manager'
       path: [ 'managers', 'bloc', 'cubit' ]
-      pattern: '{{name}}(Bloc|Cubit|Manager)'
-      grammar: '{{noun.phrase}}(Bloc|Cubit|Manager)'
+      kind: namespace
+
+      .logic:
+        name: 'Business Logic (Bloc/Cubit)'
+        kind: class
+        pattern: '{{name}}(Bloc|Cubit)'
+        grammar: '{{noun.phrase}}(Bloc|Cubit)'
 
       # Event Interfaces are objects/categories. Noun Phrases (e.g., "AuthEvent").
-      .event.interface:
-        name: 'Bloc/Cubit Event (Interface)'
+      .event:
+        name: 'Manager Event'
+        mode: file
         pattern: '{{name}}Event'
-        grammar: '{{noun.phrase}}Event'
 
-      # Concrete Events represent something that HAPPENED.
-      # Grammar: Subject + Past Tense Verb (e.g., "UserLoggedIn", "DataLoaded", "ErrorOccurred").
-      .event.implementation:
-        name: 'Bloc/Cubit Event (Implementation)'
-        pattern: '{{name}}'
-        grammar: '{{noun.phrase}}{{verb.past}}'
+        .interface:
+          name: 'Event Interface'
+          mode: part
+          kind: class
+          modifier: [ sealed, abstract ]
+          pattern: '{{name}}Event'
+          grammar: '{{noun.phrase}}Event'
+
+        # Concrete Events represent something that HAPPENED.
+        # Grammar: Subject + Past Tense Verb (e.g., "UserLoggedIn", "DataLoaded", "ErrorOccurred").
+        .implementation:
+          name: 'Event Implementation'
+          mode: part
+          kind: class
+          pattern: '{{name}}'
+          grammar: '{{noun.phrase}}{{verb.past}}'
 
       # State Interfaces are objects/categories. Noun Phrases (e.g., "AuthState").
-      .state.interface:
-        name: 'Bloc/Cubit State (Interface)'
+      .state:
+        name: 'Manager State'
+        mode: file
         pattern: '{{name}}State'
-        grammar: '{{noun.singular}}State'
 
-      # Concrete States represent a STATUS.
-      # Grammar: Subject + Adjective OR Gerund (e.g., "AuthInitial", "AuthLoading", "AuthSuccess").
-      .state.implementation:
-        name: 'Bloc/Cubit State (Implementation)'
-        pattern: '{{name}}'
-        grammar:
-          - '{{noun.phrase}}{{adjective}}'     # AuthInitial, AuthLoading
-          - '{{noun.phrase}}{{verb.gerund}}'   # AuthLoading (alternative)
-          - '{{noun.phrase}}{{verb.past}}'     # AuthLoaded
+        .interface:
+          name: 'State Interface'
+          mode: part
+          kind: class
+          modifier: [sealed, abstract]
+          pattern: '{{name}}State'
+          grammar: '{{noun.singular}}State'
+
+        # Concrete States represent a STATUS.
+        # Grammar: Subject + Adjective OR Gerund (e.g., "AuthInitial", "AuthLoading",
+        # "AuthSuccess").
+        .implementation:
+          name: 'State Implementation'
+          mode: part
+          kind: class
+          pattern: '{{name}}'
+          grammar:
+            - '{{noun.phrase}}{{adjective}}'     # AuthInitial, AuthLoading
+            - '{{noun.phrase}}{{verb.gerund}}'   # AuthLoading (alternative)
+            - '{{noun.phrase}}{{verb.past}}'     # AuthLoaded
 
     # Widgets are objects. Noun Phrases (e.g., "UserList").
     .widget:
       name: 'Widget'
       path: 'widgets'
+      kind: class
       pattern: '{{name}}(Panel|Section|Widget)'
       grammar: '{{noun.phrase}}(Panel|Section|Widget)'
 
@@ -265,6 +330,7 @@ components:
     .form:
       name: 'Form'
       path: 'forms'
+      kind: class
       pattern: '{{name}}Form'
       grammar: '{{noun.phrase}}Form'
 
@@ -272,6 +338,7 @@ components:
     .page:
       name: 'Page'
       path: 'pages'
+      kind: class
       pattern: '{{name}}Page'
       antipattern: '{{name}}Screen'
       grammar: '{{noun.phrase}}Page'
@@ -282,23 +349,27 @@ components:
       module: 'core'
       name: 'Failure'
       path: 'error'
+      kind: class
       pattern: '{{name}}Failure'
 
     .exception:
       module: 'core'
       name: 'Exception'
       path: 'error'
+      kind: class
       pattern: '{{name}}Exception'
 
     .util:
       module: 'core'
       name: 'Utility'
       path: 'utils'
+      kind: [class, extension, mixin]
 
   # --- SHARED COMPONENTS (Explicitly assigned to 'shared' module) ---
   shared.widget:
     module: 'shared'
     path: 'widgets'
+    kind: class
     pattern: '{{name}}' # Shared widgets might have looser naming rules
     grammar: '{{noun.phrase}}'
 
@@ -404,6 +475,7 @@ definitions:
     .base:
       type: 'Failure'
       import: 'package:clean_feature_first/core/error/failures.dart'
+
     .server: 'ServerFailure'
     .cache: 'CacheFailure'
 
@@ -413,6 +485,7 @@ definitions:
     .base:
       type: 'CustomException'
       import: 'package:clean_feature_first/core/error/exceptions.dart'
+
     .server: 'ServerException'
     .cache: 'CacheException'
 
@@ -445,6 +518,26 @@ definitions:
       type: 'GoRouter'
       import: 'package:go_router/go_router.dart'
       identifier: [ 'router', 'goRouter' ]
+
+  # --- Presentation Types ---
+  flutter:
+    .widget:
+      type: 'Widget'
+      import: 'package:flutter/src/widgets/framework.dart'
+    .stateless:
+      type: 'StatelessWidget'
+      import: 'package:flutter/src/widgets/framework.dart'
+    .stateful:
+      type: 'StatefulWidget'
+      import: 'package:flutter/src/widgets/framework.dart'
+    .hook:
+      type: 'HookWidget'
+      import: 'package:flutter_hooks/flutter_hooks.dart'
+
+    bloc:
+      .base:
+        type: [ 'Bloc', 'Cubit' ]
+        import: 'package:bloc/bloc.dart'
 
 # --------------------------------------------------------------------------------------------------
 # [3.2] services
@@ -548,22 +641,23 @@ inheritances:
       component: 'port'
 
   # --- Presentation (Outer Circle) ---
-  # State Managers cab be Bloc or Cubit.
-  - on: manager
-    allowed:
-      type: [ 'Bloc', 'Cubit' ]
-      import: 'package:bloc/bloc.dart'
+  # Rule: Managers must be standard Bloc/Cubit classes
+  - on: manager.logic
+    required:
+      definition: 'bloc.base'
 
-  # Widgets could use Hooks for cleaner UI logic.
-  - on: widget
-    allowed:
-      type: 'HookWidget'
-      import: 'package:flutter_hooks/flutter_hooks.dart'
-
-  # Pages should not be StatefulWidgets (state belongs in the Manager).
+  # Rule: Pages must be Stateless or Hook widgets.
+  # State should be handled by the Manager, not the Widget itself.
   - on: page
+    required:
+      definition: [ 'flutter.stateless', 'flutter.hook' ]
     forbidden:
-      type: 'StatefulWidget'
+      definition: 'flutter.stateful'
+
+  # Rule: Reusable Widgets can be anything, but we prefer Stateless/Hook
+  - on: widget
+    required:
+      definition: 'flutter.widget'
 
 
 # ==================================================================================================
@@ -642,16 +736,33 @@ dependencies:
 
   # --- Presentation (Outer Circle) ---
   # State management consumes Domain logic.
-  - on: [ 'manager', 'event', 'state' ]
-    allowed: [ 'usecase', 'entity' ]
+  # 1. State Managers (Blocs):
+  # - Can see: Domain (UseCases, Entities), Core.
+  # - Cannot see: UI (Widgets, Pages), Data (Repositories).
+  - on: manager
+    allowed: [ 'domain', 'core', 'shared', 'config' ]
+    forbidden:
+      component: [ 'presentation.widget', 'presentation.page', 'data' ]
+      # Logic should not depend on UI implementation details
+      import: [ 'package:flutter/material.dart', 'package:flutter/cupertino.dart' ]
 
   # Widgets display state.
+  # 3. Widgets (Components):
+  # - Can see: Managers (for binding), Domain.
+  # - Cannot see: Pages (Circular dependency prevention).
   - on: widget
-    allowed: [ 'widget', 'page', 'manager', 'entity' ]
+    allowed: [ 'presentation.manager', 'presentation.widget', 'domain', 'shared', 'core' ]
+    forbidden:
+      component: [ 'presentation.page', 'data' ]
 
   # Pages are top-level widgets.
-  - on: page
-    allowed: [ 'page', 'widget', 'manager', 'entity' ]
+  # 2. Pages (Screens):
+  # - Can see: Managers, Domain (Entities), Shared Widgets.
+  # - Cannot see: Data Layer directly.
+  - on: presentation.page
+    allowed: [ 'presentation.manager', 'presentation.widget', 'domain', 'shared', 'core', 'config' ]
+    forbidden:
+      component: [ 'data' ]
 
 
 # ==================================================================================================
@@ -710,7 +821,7 @@ type_safeties:
       definition: 'result.future'
 
   # Data Sources must return Raw Futures.
-  - on: source
+  - on: source.implementation
     # Must return Future<T>
     allowed:
       kind: 'return'
@@ -755,10 +866,11 @@ type_safeties:
 # (1) 'producer': Originates errors (e.g. Data Source).
 # (2) 'boundary': Catches and converts errors (e.g. Repository).
 # (3) 'consumer': Handles errors for UI (e.g. Presentation).
+# (4) 'propagator': Propagates errors (e.g. Usecase)
 #
 # [c] required | forbidden
 # Rules defining control flow constraints.
-# TYPE: List<Map>
+# TYPE: Map | List<Map>
 #
 # [c.1] operation
 # The control flow action.
@@ -780,44 +892,80 @@ type_safeties:
 #
 # [d] conversions
 # Enforces mapping specific exceptions to specific failures (used in 'boundary' role).
-# TYPE: List<Map>
+# TYPE: Map | List<Map>
 #
-# [d.1] from_definition
+# [d.1] from
 # The exception type caught (reference to [types]).
 # TYPE: String
 #
-# [d.2] to_definition
+# [d.2] to
 # The failure type returned (reference to [types]).
 # TYPE: String
+#
 # --------------------------------------------------------------------------------------------------
 exceptions:
+  # --- Entities & Models ---
+  - on: [ 'entity', 'model' ]
+    role: producer
+    # Generally, data classes shouldn't have logic.
+    # Exception: We allow 'throw' for validation constraints in constructors
+    # or parsing errors in factories (if your linter supports method filtering,
+    # you'd ideally restrict this to 'fromJson' or factories).
+    forbidden:
+      operation: [ 'try_return', 'catch_return', 'rethrow' ]
+
+  # --- Usecases: Handle App-Level Exceptions ---
+  - on: usecase
+    role: propagator
+    forbidden:
+      # Usecases shouldn't need to catch anything if Repositories do their job.
+      # They definitely shouldn't be throwing raw exceptions.
+      - operation: [ 'throw', 'rethrow', 'catch_throw' ]
+        definition: 'exception.raw'
+
   # --- Sources: Throw Exceptions ---
   - on: source.implementation
-    role: 'producer'
+    role: producer
+
     # Sources must try/catch but eventually THROW specific exceptions.
     required:
-      # Must have a try block which returns
+      # 1. API calls must be wrapped
       - operation: 'try_return'
-      # Must have a catch block which throws a subtype of CustomException
+
+      # 2. External errors must be caught and re-wrapped
       - operation: 'catch_throw'
-        definition: 'exception.base'
+        definition: 'exception.base' # Must throw app-specific exception
+
     forbidden:
-      # Never throw a raw Dart Exception directly.
-      operation: 'throw'
-      definition: 'exception.raw'
+      # Never let a raw exception escape to the Repository
+      - operation: 'throw'
+        definition: 'exception.raw'
+
+      # Never return a Failure (that's the Repository's job)
+      - operation: 'catch_return'
+        definition: 'failure.base'
 
   # --- Repositories: Catch Exceptions -> Return Failures ---
   - on: repository
-    role: 'boundary'
+    role: boundary
     # Repositories must catch exceptions and RETURN Failures (Left).
     required:
+      # 1. Happy Path
       - operation: 'try_return'
-        definition: 'result.success'
+        definition: 'result.success' # Right(data)
+
+      # 2. Sad Path (Must catch Exceptions)
       - operation: 'catch_return'
-        definition: 'result.failure'
-    # Repositories must NEVER throw.
+        definition: 'result.failure' # Left(failure)
+
     forbidden:
-      operation: [ 'throw', 'rethrow' ]
+      # The buck stops here. No throwing.
+      - operation: [ 'throw', 'rethrow' ]
+
+      # Don't catch generic "Object e", catch specific Exceptions defined in sources
+      # (Optional strictness)
+      # - operation: 'catch_return'
+      #   definition: 'exception.raw'
 
     # Define strict mapping from Data Exception to Domain Failure.
     conversions:
@@ -825,16 +973,17 @@ exceptions:
         to_definition: 'failure.server'
       - from_definition: 'exception.cache'
         to_definition: 'failure.cache'
+      # Fallback
       - from_definition: 'exception.base'
         to_definition: 'failure.base'
 
   # --- Presentation: Never Crash ---
-  - on: presentation
-    role: 'consumer'
-    # UI must never throw raw exceptions.
+  - on: [ 'manager', 'widget', 'page' ]
+    role: consumer
     forbidden:
-      operation: [ 'throw', 'rethrow' ]
-      definition: 'exception.raw'
+      # UI logic should never crash the app.
+      # It should handle Failures mapped from the Either state, not catch Exceptions.
+      - operation: [ 'throw', 'rethrow' ]
 
 
 # ==================================================================================================
@@ -961,7 +1110,7 @@ members:
 # --------------------------------------------------------------------------------------------------
 usages:
   # Global Service Locator Ban.
-  - on: [ domain, presentation, repository ]
+  - on: [ domain, source.implementation, repository, presentation ]
     # Prevents usage like `GetIt.I.get()` or `sl()`
     forbidden:
       kind: 'access'

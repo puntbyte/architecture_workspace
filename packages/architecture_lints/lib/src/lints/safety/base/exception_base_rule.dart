@@ -1,3 +1,5 @@
+// lib/src/lints/safety/base/exception_base_rule.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';

@@ -74,8 +74,10 @@ class _ComponentKeys {
   String get default$ => 'default';
   String get pattern => 'pattern';
   String get antipattern => 'antipattern';
-  String get grammar => 'grammar'; // New
-
+  String get grammar => 'grammar';
+  String get kind => 'kind';
+  String get modifier => 'modifier';
+  String get mode => 'mode';
 }
 
 class _TypeDefinitionKeys {

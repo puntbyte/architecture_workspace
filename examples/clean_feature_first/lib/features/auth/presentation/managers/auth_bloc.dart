@@ -5,7 +5,7 @@ import 'package:clean_feature_first/features/auth/domain/usecases/request_login.
 import 'package:bloc/bloc.dart';
 
 class AuthBloc extends Cubit<void> {
-  final Login _loginUser;
+  final RequestLogin _loginUser;
 
   // CORRECT: Depends on UseCase.
   AuthBloc(this._loginUser) : super(null);

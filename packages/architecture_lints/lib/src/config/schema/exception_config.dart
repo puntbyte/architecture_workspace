@@ -1,3 +1,5 @@
+// lib/src/config/schema/exception_config.dart
+
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/config/schema/exception_constraint.dart';
 import 'package:architecture_lints/src/config/schema/exception_conversion.dart';

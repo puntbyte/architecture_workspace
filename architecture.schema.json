@@ -1,8 +1,8 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:acme:schemas:architecture",
   "title": "architecture.yaml",
-  "description": "JSON Schema for clean_feature_first/architecture.yaml used by the architecture linter",
+  "description": "Yaml shema used by the architecture_linter for Dart/Flutter project",
   "type": "object",
   "additionalProperties": false,
   "properties": {
