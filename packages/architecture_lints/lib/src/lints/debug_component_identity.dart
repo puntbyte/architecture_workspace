@@ -1,8 +1,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-// Hide LintCode to avoid conflict with custom_lint_builder
+// Hide LintCode to avoid conflict
 import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
@@ -30,13 +29,12 @@ class DebugComponentIdentity extends ArchitectureLintRule {
     required FileResolver fileResolver,
     ComponentContext? component,
   }) {
-    // Helper to report on any node with optional Type info
     void reportOn({
-      required Object nodeOrToken, // AstNode or Token
-      required String typeLabel, // "Class", "Return Value", "Invocation"
-      required String name, // "User", "Future<void>"
-      DartType? dartType, // Optional: The static type being analyzed
-      AstNode? astNode, // Optional: The node itself for structural inspection
+      required Object nodeOrToken,
+      required String typeLabel,
+      required String name,
+      DartType? dartType,
+      AstNode? astNode,
     }) {
       final message = _generateDebugReport(
         typeLabel: typeLabel,
@@ -55,6 +53,21 @@ class DebugComponentIdentity extends ArchitectureLintRule {
       }
     }
 
+    // --- 0. FILE HEADER (Guaranteed Visibility) ---
+    context.registry.addCompilationUnit((node) {
+      // Try to find the first directive (import/export/part)
+      final firstNode = node.directives.firstOrNull ??
+          node.declarations.firstOrNull; // Or first class
+
+      if (firstNode != null) {
+        reportOn(
+          nodeOrToken: firstNode,
+          typeLabel: 'FILE RESOLUTION',
+          name: resolver.path.split('/').last,
+        );
+      }
+    });
+
     // --- 1. DEFINITIONS ---
 
     context.registry.addClassDeclaration((node) {
@@ -62,7 +75,7 @@ class DebugComponentIdentity extends ArchitectureLintRule {
         nodeOrToken: node.name,
         typeLabel: 'Class Definition',
         name: node.name.lexeme,
-        astNode: node, // Pass node to inspect modifiers/extends
+        astNode: node,
       );
     });
 
@@ -84,20 +97,27 @@ class DebugComponentIdentity extends ArchitectureLintRule {
       );
     });
 
-    context.registry.addFormalParameter((node) {
-      final name = node.name?.lexeme ?? '<unnamed>';
-      final type = node.declaredFragment?.element.type;
+    // Highlight Type Aliases (typedefs)
+    context.registry.addGenericTypeAlias((node) {
       reportOn(
-        nodeOrToken: node,
-        typeLabel: 'Parameter',
-        name: name,
-        dartType: type,
+        nodeOrToken: node.name,
+        typeLabel: 'Typedef',
+        name: node.name.lexeme,
+        astNode: node,
+      );
+    });
+
+    context.registry.addFunctionTypeAlias((node) {
+      reportOn(
+        nodeOrToken: node.name,
+        typeLabel: 'Typedef (Legacy)',
+        name: node.name.lexeme,
+        astNode: node,
       );
     });
 
     // --- 2. EXPRESSIONS & FLOW ---
 
-    // Returns
     context.registry.addReturnStatement((node) {
       final expression = node.expression;
       if (expression != null) {
@@ -112,7 +132,6 @@ class DebugComponentIdentity extends ArchitectureLintRule {
       }
     });
 
-    // Throws
     context.registry.addThrowExpression((node) {
       final type = node.expression.staticType;
       reportOn(
@@ -123,7 +142,6 @@ class DebugComponentIdentity extends ArchitectureLintRule {
       );
     });
 
-    // Method Invocations
     context.registry.addMethodInvocation((node) {
       reportOn(
         nodeOrToken: node.methodName,
@@ -133,7 +151,6 @@ class DebugComponentIdentity extends ArchitectureLintRule {
       );
     });
 
-    // Instantiations
     context.registry.addInstanceCreationExpression((node) {
       reportOn(
         nodeOrToken: node.constructorName,
@@ -168,12 +185,12 @@ class DebugComponentIdentity extends ArchitectureLintRule {
       sb.writeln('❌ RESOLVED: <NULL> (Orphan)');
     }
 
-    // 2. SCORING LOG (Crucial for debugging Refiner logic)
+    // 2. SCORING LOG
     if (component?.debugScoreLog != null) {
-      sb.writeln('\n🧮 SCORING LOG (Why was this chosen?):');
+      sb.writeln('\n🧮 SCORING LOG:');
       sb.writeln(component!.debugScoreLog!.trimRight());
     } else {
-      // Fallback if no log exists (e.g. refiner wasn't run)
+      // Fallback
       final candidates = fileResolver.resolveAllCandidates(path);
       sb.writeln('\n📊 COMPETITION (Raw Path Match):');
       if (candidates.isEmpty) {
@@ -186,7 +203,7 @@ class DebugComponentIdentity extends ArchitectureLintRule {
       }
     }
 
-    // 3. STRUCTURE ANALYSIS (If highlighting a class)
+    // 3. STRUCTURE ANALYSIS
     if (astNode is ClassDeclaration) {
       sb.writeln('\n🏗️ CLASS STRUCTURE:');
       final element = astNode.declaredFragment?.element;
@@ -194,28 +211,11 @@ class DebugComponentIdentity extends ArchitectureLintRule {
         sb.writeln('   • Name: "${element.name}"');
         sb.writeln('   • Abstract? ${element.isAbstract}');
         sb.writeln('   • Interface? ${element.isInterface}');
-        sb.writeln('   • Mixin Class? ${element.isMixinClass}');
-
         final supertypes = element.allSupertypes
             .map((t) => t.element.name)
             .where((n) => n != 'Object')
             .join(', ');
         sb.writeln('   • Hierarchy: [ $supertypes ]');
-      }
-    }
-
-    // 4. TYPE ANALYSIS (If available)
-    if (dartType != null) {
-      sb.writeln('\n🔬 TYPE DETAILS:');
-      sb.writeln('   • Display: "${dartType.getDisplayString()}"');
-      final element = dartType.element;
-      if (element != null) {
-        sb.writeln('   • Element: ${element.name} (${element.kind.displayName})');
-        final uri = element.library?.firstFragment.source.uri.toString();
-        sb.writeln('   • Import:  $uri');
-      }
-      if (dartType.alias != null) {
-        sb.writeln('   • Alias:   ${dartType.alias!.element.name}');
       }
     }
 

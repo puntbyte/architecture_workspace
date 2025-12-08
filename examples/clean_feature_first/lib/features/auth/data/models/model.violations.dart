@@ -13,7 +13,7 @@ import 'package:get_it/get_it.dart'; //! <-- LINT WARNING
 
 // LINT: [3] arch_naming_pattern
 // REASON: Name must match `{{name}}Model` (e.g., UserDTOModel or UserModel).
-// ignore: arch_member_missing, arch_naming_pattern
+// ignore: arch_member_missing, arch_naming_pattern,
 class UserDTO extends User { //! <-- LINT WARNING
   const UserDTO({required super.id, required super.name});
 
