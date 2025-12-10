@@ -64,7 +64,7 @@ class EnforceAbstractRepositoryDependency extends ArchitectureLintRule {
         // 4. UX: Try to find the Port (Interface) it implements to suggest a fix
         final abstractSupertype = element.allSupertypes.firstWhereOrNull(
           (supertype) {
-            final superElement = supertype.element;
+            final superElement = supertype.kind;
             final superSource = superElement.library.firstFragment.source;
 
             final superComp = layerResolver.getComponent(
@@ -78,7 +78,7 @@ class EnforceAbstractRepositoryDependency extends ArchitectureLintRule {
         );
 
         final correction = abstractSupertype != null
-            ? 'Depend on the `${abstractSupertype.element.name}` interface instead.'
+            ? 'Depend on the `${abstractSupertype.kind.name}` interface instead.'
             : 'Depend on the abstract repository interface (Port).';
 
         // Report with dynamic correction message

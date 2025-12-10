@@ -4,9 +4,10 @@ import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/core/generation/template_engine.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:architecture_lints/src/lints/consistency/logic/relationship_logic.dart';
+import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-class CreateMissingComponentFix extends DartFix with RelationshipLogic {
+class CreateMissingComponentFix extends DartFix with NamingLogic, RelationshipLogic  {
   @override
   void run(
     CustomLintResolver resolver,
@@ -48,7 +49,7 @@ class CreateMissingComponentFix extends DartFix with RelationshipLogic {
       final template = config.templates[target.templateId];
       if (template == null) return;
 
-      final content = TemplateEngine.render(template, target.coreName);
+      final content = TemplateEngine.render(template.toString(), target.coreName);
 
       final changeBuilder =
           reporter.createChangeBuilder(

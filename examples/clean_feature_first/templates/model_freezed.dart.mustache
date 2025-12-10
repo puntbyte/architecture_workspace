@@ -1,0 +1,36 @@
+{{#imports}}
+    import '{{.}}';
+{{/imports}}
+
+part '{{fileName}}.freezed.dart';
+part '{{fileName}}.g.dart';
+
+@freezed
+class {{className}} with _${{className}} {
+const {{className}}._();
+
+const factory {{className}}({
+{{#fields}}
+    required {{type}} {{name}},
+{{/fields}}
+}) = _{{className}};
+
+factory {{className}}.fromJson(Map<String, dynamic> json) =>
+_${{className}}FromJson(json);
+
+factory {{className}}.fromEntity({{entityName}} entity) {
+return {{className}}(
+{{#fields}}
+    {{name}}: entity.{{name}},
+{{/fields}}
+);
+}
+
+{{entityName}} toEntity() {
+return {{entityName}}(
+{{#fields}}
+    {{name}}: {{name}},
+{{/fields}}
+);
+}
+}

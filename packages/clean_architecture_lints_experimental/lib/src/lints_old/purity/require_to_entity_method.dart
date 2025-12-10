@@ -55,7 +55,7 @@ class RequireToEntityMethod extends ArchitectureLintRule {
       final returnType = toEntityMethod.returnType?.type;
 
       // We check if the return type matches the expected entity supertype
-      if (returnType?.element != entitySupertypeElement) {
+      if (returnType?.kind != entitySupertypeElement) {
         if (toEntityMethod.returnType != null) {
           reporter.atNode(toEntityMethod.returnType!, _code, arguments: [node.name.lexeme]);
         } else {

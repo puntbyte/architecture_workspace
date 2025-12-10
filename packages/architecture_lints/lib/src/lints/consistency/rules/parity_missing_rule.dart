@@ -1,29 +1,32 @@
 import 'dart:io';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
+// Hide LintCode to avoid conflict with custom_lint_builder
+import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
+import 'package:architecture_lints/src/actions/architecture_fix.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
-import 'package:architecture_lints/src/lints/consistency/fixes/create_missing_component_fix.dart';
 import 'package:architecture_lints/src/lints/consistency/logic/relationship_logic.dart';
+import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart'; // Import NamingLogic
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-class ParityMissingRule extends ArchitectureLintRule with RelationshipLogic {
-  static const _code = LintCode(
-    name: 'arch_parity_missing',
-    problemMessage: 'Missing companion component: "{0}" expected "{1}".',
-    correctionMessage: 'Create the missing file to maintain architectural parity.',
-    errorSeverity: DiagnosticSeverity.WARNING,
+// Mixin NamingLogic first, then RelationshipLogic
+class ParityMissingRule extends ArchitectureLintRule with NamingLogic, RelationshipLogic {
+  static const _debugCode = LintCode(
+    name: 'arch_debug_parity',
+    problemMessage: '{0}',
+    errorSeverity: DiagnosticSeverity.INFO,
   );
 
-  const ParityMissingRule() : super(code: _code);
+  const ParityMissingRule() : super(code: _debugCode);
 
   @override
   List<Fix> getFixes() => [
-    CreateMissingComponentFix(),
+    ArchitectureFix(),
   ];
 
   @override
@@ -37,53 +40,55 @@ class ParityMissingRule extends ArchitectureLintRule with RelationshipLogic {
   }) {
     if (component == null) return;
 
+    // Optional: Only run on ports for less noise during debug
+    // if (!component.id.contains('port')) return;
+
+    void check(AstNode node, Token nameToken) {
+      final sb = StringBuffer();
+      sb.writeln('[DEBUG PARITY] "${nameToken.lexeme}"');
+      sb.writeln('--------------------------------------------------');
+
+      final target = findMissingTarget(
+        node: node,
+        config: config,
+        currentComponent: component,
+        fileResolver: fileResolver,
+        currentFilePath: resolver.path,
+      );
+
+      if (target != null) {
+        final file = File(target.path);
+        final exists = file.existsSync();
+
+        sb.writeln('✅ Target Calculated:');
+        sb.writeln('   • Core Name:   "${target.coreName}"');
+        sb.writeln('   • Target Class: "${target.targetClassName}"');
+        sb.writeln('   • Target Path:  "${target.path}"');
+        sb.writeln('\n📂 File Status: ${exists ? "EXISTS (No Warning)" : "MISSING (Warning)"}');
+      } else {
+        sb.writeln('❌ No Target Calculated.');
+        sb.writeln('   Possible reasons:');
+        sb.writeln('   1. No "relationships" rule in architecture.yaml for "${component.id}".');
+        sb.writeln('   2. Node name did not match expected pattern for extraction.');
+        sb.writeln('   3. Could not find relative path to target component.');
+      }
+
+      sb.writeln('--------------------------------------------------');
+
+      // Always report for debugging
+      reporter.atToken(
+        nameToken,
+        _debugCode,
+        arguments: [sb.toString()],
+      );
+    }
+
     context.registry.addClassDeclaration((node) {
-      _checkNode(node, config, component, resolver.path, fileResolver, reporter);
+      check(node, node.name);
     });
 
     context.registry.addMethodDeclaration((node) {
-      _checkNode(node, config, component, resolver.path, fileResolver, reporter);
+      check(node, node.name);
     });
-  }
-
-  void _checkNode(
-      AstNode node,
-      ArchitectureConfig config,
-      ComponentContext component,
-      String currentFilePath,
-      FileResolver fileResolver,
-      DiagnosticReporter reporter,
-      ) {
-    final target = findMissingTarget(
-      node: node,
-      config: config,
-      currentComponent: component,
-      fileResolver: fileResolver,
-      currentFilePath: currentFilePath,
-    );
-
-    if (target != null) {
-      final file = File(target.path);
-      if (!file.existsSync()) {
-
-        Token? nameToken;
-        if (node is ClassDeclaration) {
-          nameToken = node.name;
-        } else if (node is MethodDeclaration) {
-          nameToken = node.name;
-        }
-
-        if (nameToken != null) {
-          reporter.atToken(
-            nameToken,
-            _code,
-            arguments: [
-              target.sourceComponent.displayName,
-              target.targetClassName,
-            ],
-          );
-        }
-      }
-    }
   }
 }

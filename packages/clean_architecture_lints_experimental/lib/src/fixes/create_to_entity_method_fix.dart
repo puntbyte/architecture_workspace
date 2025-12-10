@@ -41,11 +41,11 @@ class CreateToEntityMethodFix extends DartFix {
 
       // Find the Entity supertype
       final entitySupertype = classElement.allSupertypes.firstWhereOrNull((st) {
-        final source = st.element.library.firstFragment.source;
+        final source = st.kind.library.firstFragment.source;
         return layerResolver.getComponent(source.fullName) == ArchComponent.entity;
       });
 
-      final entityElement = entitySupertype?.element;
+      final entityElement = entitySupertype?.kind;
       if (entityElement is! InterfaceElement) return;
 
       final entityName = entityElement.name; // Analyzer 8.0.0: name is simple String (or null)

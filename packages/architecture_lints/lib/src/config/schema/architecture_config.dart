@@ -1,6 +1,7 @@
 // lib/src/config/schema/architecture_config.dart
 
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
+import 'package:architecture_lints/src/config/schema/action_config.dart';
 import 'package:architecture_lints/src/config/schema/annotation_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/config/schema/definition.dart';
@@ -10,6 +11,7 @@ import 'package:architecture_lints/src/config/schema/inheritance_config.dart';
 import 'package:architecture_lints/src/config/schema/member_config.dart';
 import 'package:architecture_lints/src/config/schema/module_config.dart';
 import 'package:architecture_lints/src/config/schema/relationship_config.dart';
+import 'package:architecture_lints/src/config/schema/template_definition.dart';
 import 'package:architecture_lints/src/config/schema/type_safety_config.dart';
 import 'package:architecture_lints/src/config/schema/usage_config.dart';
 import 'package:architecture_lints/src/config/schema/vocabulary_config.dart';
@@ -28,9 +30,10 @@ class ArchitectureConfig {
   final List<UsageConfig> usages;
   final List<AnnotationConfig> annotations;
   final List<RelationshipConfig> relationships;
-  final Map<String, String> templates;
   final List<String> excludes;
   final VocabularyConfig vocabulary;
+  final List<ActionConfig> actions;
+  final Map<String, TemplateDefinition> templates;
 
   const ArchitectureConfig({
     required this.components,
@@ -43,10 +46,11 @@ class ArchitectureConfig {
     this.usages = const [],
     this.annotations = const [],
     this.relationships = const [],
-    this.templates = const {},
     this.excludes = const [],
     this.definitions = const {},
     this.vocabulary = const VocabularyConfig(),
+    this.actions = const [],
+    this.templates = const {},
   });
 
   factory ArchitectureConfig.empty() => const ArchitectureConfig(components: []);
@@ -90,16 +94,23 @@ class ArchitectureConfig {
         yaml.mustGetMapList(ConfigKeys.root.relationships),
       ),
 
-      // Templates are simple String maps, no schema needed
-      templates: yaml.mustGetMap(ConfigKeys.root.templates).map((key, value) {
-        if (value is! String) throw FormatException("Template '$key' must be a String.");
+      // NEW: Parse Actions
+      actions: ActionConfig.parseMap(yaml.mustGetMap('actions')),
 
-        return MapEntry(key, value);
+      // NEW: Parse Templates (Map of String/Object to TemplateDefinition)
+      templates: yaml.mustGetMap(ConfigKeys.root.templates).map((key, value) {
+        return MapEntry(key, TemplateDefinition.fromDynamic(value));
       }),
+
 
       excludes: yaml.mustGetStringList(ConfigKeys.root.excludes),
       vocabulary: vocabulary,
 
     );
+  }
+
+  /// Helper to find actions for a specific error code
+  List<ActionConfig> getActionsForError(String errorCode) {
+    return actions.where((a) => a.trigger.errorCode == errorCode).toList();
   }
 }

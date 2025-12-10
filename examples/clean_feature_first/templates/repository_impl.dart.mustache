@@ -1,0 +1,21 @@
+{{#imports}}
+    import '{{.}}';
+{{/imports}}
+
+@LazySingleton(as: {{interfaceName}})
+class {{className}} implements {{interfaceName}} {
+final {{source.name}}Source _source;
+
+const {{className}}(this._source);
+
+{{#methods}}
+    @override
+    {{returnType}} {{name}}({{#parameters}}{{type}} {{name}}{{^last}}, {{/last}}{{/parameters}}) {
+    return _source.{{name}}(
+    {{#parameters}}
+        {{name}},
+    {{/parameters}}
+    ).then((model) => model.toEntity());
+    }
+{{/methods}}
+}

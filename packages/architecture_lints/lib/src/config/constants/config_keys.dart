@@ -20,6 +20,7 @@ abstract class ConfigKeys {
   static const annotation = _AnnotationKeys(); // New
   static const relationship = _RelationshipKeys(); // New
   static const vocabulary = _VocabularyKeys();
+  static const template = _TemplateDefinitionKeys();
 
   static const placeholder = _PlaceholderKeys();
 }
@@ -87,6 +88,13 @@ class _TypeDefinitionKeys {
   String get name => 'name'; // Alias for type in some contexts
   String get argument => 'argument'; // New: Recursive definition
   String get definition => 'definition'; // Reference to another key
+}
+class _TemplateDefinitionKeys {
+  const _TemplateDefinitionKeys();
+
+  String get content => 'content';
+  String get file => 'file';
+  String get description => 'description';
 }
 
 class _DefinitionKeys {
@@ -214,9 +222,10 @@ class _RelationshipKeys {
   const _RelationshipKeys();
 
   String get on => 'on';
-  String get element => 'kind'; // 'class' | 'method'
+  String get kind => 'kind'; // 'class' | 'method'
   String get visibility => 'visibility';
   String get required => 'required'; // Map
+  String get operation => 'operation';
 
   // Inside required map
   String get component => 'component';

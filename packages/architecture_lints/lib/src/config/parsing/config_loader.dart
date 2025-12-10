@@ -2,16 +2,15 @@ import 'dart:io';
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/config/parsing/yaml_merger.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 class ConfigLoader {
   static final Map<String, _CachedEntry> _cache = {};
 
   static Future<ArchitectureConfig?> loadFromContext(String sourceFile) async {
-    final normalizedPath = sourceFile.replaceAll(r'\', '/');
-
-    // Find Root
-    final root = _findProjectRoot(normalizedPath);
+    // 1. Find Root
+    final root = findRootPath(sourceFile);
     if (root == null) return null;
 
     final configFilePath = p.join(root, ConfigKeys.configFilename);
@@ -29,7 +28,6 @@ class ConfigLoader {
     }
 
     try {
-      // FIX: Pass projectRoot for package resolution
       final mergedMap = await YamlMerger.loadMergedYaml(
         configFilePath,
         projectRoot: root,
@@ -42,6 +40,12 @@ class ConfigLoader {
     } catch (e) {
       return null;
     }
+  }
+
+  /// Exposed helper to find the directory containing architecture.yaml
+  static String? findRootPath(String filePath) {
+    final normalizedPath = filePath.replaceAll(r'\', '/');
+    return _findProjectRoot(normalizedPath);
   }
 
   static String? _findProjectRoot(String path) {
@@ -57,6 +61,7 @@ class ConfigLoader {
     return null;
   }
 
+  @visibleForTesting
   static void resetCache() {
     _cache.clear();
   }

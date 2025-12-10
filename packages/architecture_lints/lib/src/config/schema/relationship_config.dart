@@ -11,6 +11,7 @@ class RelationshipConfig {
   final RelationshipElement element;
 
   final String? visibility;
+  final String? operation;
   final String targetComponent;
   final String? action;
 
@@ -18,7 +19,8 @@ class RelationshipConfig {
     required this.onIds,
     required this.element,
     required this.targetComponent,
-    this.visibility,
+    this.operation,
+    this.visibility = 'public',
     this.action,
   });
 
@@ -26,14 +28,16 @@ class RelationshipConfig {
     final requiredMap = map.getMap(ConfigKeys.relationship.required);
 
     // Parse enum from string
-    final elementKey = map.getString(ConfigKeys.relationship.element, fallback: 'class');
+    final elementKey = map.getString(ConfigKeys.relationship.kind, fallback: 'class');
     final element = RelationshipElement.fromKey(elementKey) ?? RelationshipElement.classElement;
 
     return RelationshipConfig(
       onIds: map.getStringList(ConfigKeys.relationship.on),
       element: element,
-      visibility: map.tryGetString(ConfigKeys.relationship.visibility),
-      targetComponent: requiredMap.getString(ConfigKeys.relationship.component),
+      visibility: map.getString(ConfigKeys.relationship.visibility, fallback: 'public'),
+      operation: map.tryGetString(ConfigKeys.relationship.operation),
+
+      targetComponent: requiredMap.mustGetString(ConfigKeys.relationship.component),
       action: requiredMap.tryGetString(ConfigKeys.relationship.action),
     );
   }

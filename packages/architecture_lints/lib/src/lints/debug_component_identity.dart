@@ -1,17 +1,21 @@
+// lib/src/lints/debug_component_identity.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-// Hide LintCode to avoid conflict
 import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
+/// Debugging lint that emits structured debug messages for many AST locations.
+/// Implementation is split: the public rule is a small adapter, the heavy lifting
+/// is performed by DebugRuleRunner and DebugReportGenerator.
 class DebugComponentIdentity extends ArchitectureLintRule {
   static const _code = LintCode(
     name: 'debug_component_identity',
@@ -30,293 +34,379 @@ class DebugComponentIdentity extends ArchitectureLintRule {
     required FileResolver fileResolver,
     ComponentContext? component,
   }) {
-    void reportOn({
-      required Object nodeOrToken,
-      required String typeLabel,
-      required String name,
-      DartType? dartType,
-      Element? element,
-      AstNode? astNode,
-      String? extraInfo,
-    }) {
-      final message = _generateDebugReport(
-        typeLabel: typeLabel,
-        name: name,
-        path: resolver.path,
-        component: component,
-        dartType: dartType,
-        element: element,
-        astNode: astNode,
-        extraInfo: extraInfo,
-        fileResolver: fileResolver,
-      );
+    DebugRuleRunner(
+      context: context,
+      reporter: reporter,
+      resolver: resolver,
+      config: config,
+      fileResolver: fileResolver,
+      component: component,
+    ).register();
+  }
+}
 
-      if (nodeOrToken is AstNode) {
-        reporter.atNode(nodeOrToken, _code, arguments: [message]);
-      } else if (nodeOrToken is Token) {
-        reporter.atToken(nodeOrToken, _code, arguments: [message]);
-      }
-    }
+/// The runner sets up registry callbacks and uses small helpers to keep handlers tiny.
+class DebugRuleRunner {
+  final CustomLintContext context;
+  final DiagnosticReporter reporter;
+  final CustomLintResolver resolver;
+  final ArchitectureConfig config;
+  final FileResolver fileResolver;
+  final ComponentContext? component;
 
-    // =========================================================================
-    // 1. FILE CONTEXT (Header)
-    // =========================================================================
-    context.registry.addCompilationUnit((node) {
-      final target = node.directives.firstOrNull ??
-          node.declarations.firstOrNull;
+  late final ReporterHelper _reporter;
+  late final DebugReportGenerator _generator;
 
-      if (target != null) {
-        // Find a token to hang the file report on
-        final token = target is AnnotatedNode
-            ? target.firstTokenAfterCommentAndMetadata
-            : target.beginToken;
-
-        reportOn(
-          nodeOrToken: token,
-          typeLabel: 'FILE CONTEXT',
-          name: resolver.path.split('/').last,
-        );
-      }
-    });
-
-    // =========================================================================
-    // 2. DIRECTIVES (Imports/Exports)
-    // =========================================================================
-    context.registry.addImportDirective((node) {
-      final libImport = node.libraryImport;
-      final importedLib = libImport?.importedLibrary;
-
-      var info = '';
-      if (importedLib != null) {
-        info = 'Source: ${importedLib.firstFragment.source.fullName}';
-      }
-
-      reportOn(
-        nodeOrToken: node.uri,
-        typeLabel: 'Import',
-        name: node.uri.stringValue ?? '???',
-        element: null, // LibraryImport is not an Element we want to display as "Element: ..."
-        extraInfo: info,
-      );
-    });
-
-    context.registry.addExportDirective((node) {
-      reportOn(
-        nodeOrToken: node.uri,
-        typeLabel: 'Export',
-        name: node.uri.stringValue ?? '???',
-      );
-    });
-
-    context.registry.addAnnotation((node) {
-      reportOn(
-        nodeOrToken: node.name,
-        typeLabel: 'Annotation',
-        name: node.name.name,
-        element: node.element,
-      );
-    });
-
-    // =========================================================================
-    // 3. DEFINITIONS (Classes, Methods, Vars)
-    // =========================================================================
-
-    context.registry.addClassDeclaration((node) {
-      reportOn(
-        nodeOrToken: node.name,
-        typeLabel: 'Class Def',
-        name: node.name.lexeme,
-        astNode: node, // Pass node for Structure analysis
-        element: node.declaredFragment?.element,
-      );
-    });
-
-    context.registry.addMixinDeclaration((node) {
-      reportOn(
-        nodeOrToken: node.name,
-        typeLabel: 'Mixin Def',
-        name: node.name.lexeme,
-        element: node.declaredFragment?.element,
-      );
-    });
-
-    context.registry.addEnumDeclaration((node) {
-      reportOn(
-        nodeOrToken: node.name,
-        typeLabel: 'Enum Def',
-        name: node.name.lexeme,
-        element: node.declaredFragment?.element,
-      );
-    });
-
-    context.registry.addExtensionDeclaration((node) {
-      reportOn(
-        nodeOrToken: node.name ?? node.firstTokenAfterCommentAndMetadata,
-        typeLabel: 'Extension Def',
-        name: node.name?.lexeme ?? '<unnamed>',
-        element: node.declaredFragment?.element,
-      );
-    });
-
-    context.registry.addConstructorDeclaration((node) {
-      reportOn(
-        nodeOrToken: node.name ?? node.returnType,
-        typeLabel: 'Constructor',
-        name: node.name?.lexeme ?? node.returnType.name,
-        element: node.declaredFragment?.element,
-      );
-    });
-
-    context.registry.addFieldDeclaration((node) {
-      for (final variable in node.fields.variables) {
-        reportOn(
-          nodeOrToken: variable.name,
-          typeLabel: 'Field',
-          name: variable.name.lexeme,
-          dartType: variable.declaredElement?.type,
-          element: variable.declaredElement,
-        );
-      }
-    });
-
-    context.registry.addMethodDeclaration((node) {
-      reportOn(
-        nodeOrToken: node.name,
-        typeLabel: 'Method',
-        name: node.name.lexeme,
-        dartType: node.returnType?.type,
-        element: node.declaredFragment?.element,
-      );
-    });
-
-    context.registry.addVariableDeclaration((node) {
-      // Local variables (exclude fields which are handled above)
-      if (node.parent?.parent is! FieldDeclaration) {
-        reportOn(
-          nodeOrToken: node.name,
-          typeLabel: 'Variable',
-          name: node.name.lexeme,
-          dartType: node.declaredElement?.type,
-        );
-      }
-    });
-
-    context.registry.addFormalParameter((node) {
-      final name = node.name?.lexeme ?? '<unnamed>';
-      final type = node.declaredFragment?.element.type;
-      reportOn(
-        nodeOrToken: node.name ?? node,
-        typeLabel: 'Parameter',
-        name: name,
-        dartType: type,
-      );
-    });
-
-    // =========================================================================
-    // 4. TYPE REFERENCES (Inheritance & Usage)
-    // =========================================================================
-
-    context.registry.addNamedType((node) {
-      // Avoid highlighting definitions themselves
-      if (node.parent is ClassDeclaration ||
-          node.parent is ConstructorDeclaration ||
-          node.parent is MethodDeclaration) {
-        // Note: We DO want Extends/Implements/With to be highlighted for debugging inheritance
-        return;
-      }
-
-      reportOn(
-        nodeOrToken: node.name2,
-        typeLabel: 'Type Ref',
-        name: node.name2.lexeme,
-        dartType: node.type,
-        element: node.element,
-      );
-    });
-
-    // =========================================================================
-    // 5. FLOW & LOGIC
-    // =========================================================================
-
-    context.registry.addReturnStatement((node) {
-      final expression = node.expression;
-      if (expression != null) {
-        var source = expression.toSource();
-        if (source.length > 30) source = '${source.substring(0, 27)}...';
-        reportOn(
-          nodeOrToken: expression,
-          typeLabel: 'Return',
-          name: source,
-          dartType: expression.staticType,
-        );
-      }
-    });
-
-    context.registry.addThrowExpression((node) {
-      final type = node.expression.staticType;
-      reportOn(
-        nodeOrToken: node,
-        typeLabel: 'Throw',
-        name: type?.getDisplayString() ?? 'dynamic',
-        dartType: type,
-      );
-    });
-
-    context.registry.addMethodInvocation((node) {
-      reportOn(
-        nodeOrToken: node.methodName,
-        typeLabel: 'Invocation',
-        name: node.methodName.name,
-        dartType: node.staticType,
-        element: node.methodName.element,
-      );
-    });
-
-    context.registry.addInstanceCreationExpression((node) {
-      // Correct way to get element for ConstructorName
-      final cName = node.constructorName;
-      final element = cName.name?.element; // For named constructors .from()
-      // Fallback for unnamed could be harder to reach via element directly on name,
-      // usually staticElement on ConstructorName worked but is deprecated.
-      // We rely on staticType for basic info.
-
-      reportOn(
-        nodeOrToken: cName,
-        typeLabel: 'Instantiation',
-        name: cName.toSource(),
-        dartType: node.staticType,
-        element: element,
-      );
-    });
+  DebugRuleRunner({
+    required this.context,
+    required this.reporter,
+    required this.resolver,
+    required this.config,
+    required this.fileResolver,
+    required this.component,
+  }) {
+    _reporter = ReporterHelper(reporter, DebugComponentIdentity._code);
+    _generator = DebugReportGenerator(fileResolver: fileResolver, component: component);
   }
 
-  String _generateDebugReport({
+  void register() {
+    // 1) File context header
+    context.registry.addCompilationUnit(_onCompilationUnit);
+
+    // 2) Directives
+    context.registry.addImportDirective(_onImportDirective);
+    context.registry.addExportDirective(_onExportDirective);
+    context.registry.addAnnotation(_onAnnotation);
+
+    // 3) Definitions
+    context.registry.addClassDeclaration(_onClassDeclaration);
+    context.registry.addMixinDeclaration(_onMixinDeclaration);
+    context.registry.addEnumDeclaration(_onEnumDeclaration);
+    context.registry.addExtensionDeclaration(_onExtensionDeclaration);
+    context.registry.addConstructorDeclaration(_onConstructorDeclaration);
+    context.registry.addFieldDeclaration(_onFieldDeclaration);
+    // problem with usecase
+    //context.registry.addMethodDeclaration(_onMethodDeclaration);
+    //context.registry.addVariableDeclaration(_onVariableDeclaration);
+    //context.registry.addFormalParameter(_onFormalParameter);
+
+    // 4) Type references
+    // problem with usecase
+    //context.registry.addNamedType(_onNamedType);
+
+    // 5) Flow & logic
+    context.registry.addReturnStatement(_onReturnStatement);
+    context.registry.addThrowExpression(_onThrowExpression);
+    //context.registry.addMethodInvocation(_onMethodInvocation);
+    //context.registry.addInstanceCreationExpression(_onInstanceCreation);
+  }
+
+  // ----------------------------
+  // Handlers (very small, single-responsibility)
+  // ----------------------------
+
+  void _onCompilationUnit(CompilationUnit node) {
+    final target = node.directives.firstOrNull ?? node.declarations.firstOrNull;
+    if (target == null) return;
+
+    // Use a token so the message is attached to a physical spot in file header
+    final token = target.firstTokenAfterCommentAndMetadata;
+    final message = _generator.generateHeaderReport(resolver.path);
+    _reporter.reportOnToken(token, message);
+  }
+
+  void _onImportDirective(ImportDirective node) {
+    final libImport = node.libraryImport;
+    final importedLib = libImport?.importedLibrary;
+
+    var info = '';
+    if (importedLib != null) {
+      info = 'Source: ${importedLib.firstFragment.source.fullName}';
+    }
+
+    final message = _generator.generate(
+      typeLabel: 'Import',
+      name: node.uri.stringValue ?? '???',
+      path: resolver.path,
+      dartType: null,
+      element: null,
+      astNode: null,
+      extraInfo: info,
+    );
+
+    _reporter.reportOnNode(node.uri, message);
+  }
+
+  void _onExportDirective(ExportDirective node) {
+    final message = _generator.generate(
+      typeLabel: 'Export',
+      name: node.uri.stringValue ?? '???',
+      path: resolver.path,
+    );
+    _reporter.reportOnNode(node.uri, message);
+  }
+
+  void _onAnnotation(Annotation node) {
+    final message = _generator.generate(
+      typeLabel: 'Annotation',
+      name: node.name.name,
+      path: resolver.path,
+      element: node.element,
+    );
+    _reporter.reportOnNode(node.name, message);
+  }
+
+  void _onClassDeclaration(ClassDeclaration node) {
+    final message = _generator.generate(
+      typeLabel: 'Class Def',
+      name: node.name.lexeme,
+      path: resolver.path,
+      element: node.declaredFragment?.element,
+      astNode: node,
+    );
+    _reporter.reportOnToken(node.name, message);
+  }
+
+  void _onMixinDeclaration(MixinDeclaration node) {
+    final message = _generator.generate(
+      typeLabel: 'Mixin Def',
+      name: node.name.lexeme,
+      path: resolver.path,
+      element: node.declaredFragment?.element,
+    );
+    _reporter.reportOnToken(node.name, message);
+  }
+
+  void _onEnumDeclaration(EnumDeclaration node) {
+    final message = _generator.generate(
+      typeLabel: 'Enum Def',
+      name: node.name.lexeme,
+      path: resolver.path,
+      element: node.declaredFragment?.element,
+    );
+    _reporter.reportOnToken(node.name, message);
+  }
+
+  void _onExtensionDeclaration(ExtensionDeclaration node) {
+    final targetToken = node.name ?? node.firstTokenAfterCommentAndMetadata;
+    final message = _generator.generate(
+      typeLabel: 'Extension Def',
+      name: node.name?.lexeme ?? '<unnamed>',
+      path: resolver.path,
+      element: node.declaredFragment?.element,
+    );
+    _reporter.reportOnToken(targetToken, message);
+  }
+
+  void _onConstructorDeclaration(ConstructorDeclaration node) {
+    final target = node.name ?? node.returnType;
+    final message = _generator.generate(
+      typeLabel: 'Constructor',
+      name: node.name?.lexeme ?? node.returnType.name,
+      path: resolver.path,
+      element: node.declaredFragment?.element,
+    );
+    _reporter.reportOnEntity(target, message);
+  }
+
+  void _onFieldDeclaration(FieldDeclaration node) {
+    for (final variable in node.fields.variables) {
+      final message = _generator.generate(
+        typeLabel: 'Field',
+        name: variable.name.lexeme,
+        path: resolver.path,
+        dartType: variable.declaredElement?.type,
+        element: variable.declaredElement,
+      );
+      _reporter.reportOnToken(variable.name, message);
+    }
+  }
+
+  void _onMethodDeclaration(MethodDeclaration node) {
+    final message = _generator.generate(
+      typeLabel: 'Method',
+      name: node.name.lexeme,
+      path: resolver.path,
+      dartType: node.returnType?.type,
+      element: node.declaredFragment?.element,
+    );
+    _reporter.reportOnToken(node.name, message);
+  }
+
+  void _onVariableDeclaration(VariableDeclaration node) {
+    // Skip fields (they're handled by _onFieldDeclaration)
+    if (node.parent?.parent is FieldDeclaration) return;
+
+    final message = _generator.generate(
+      typeLabel: 'Variable',
+      name: node.name.lexeme,
+      path: resolver.path,
+      dartType: node.declaredElement?.type,
+      element: node.declaredElement,
+    );
+    _reporter.reportOnToken(node.name, message);
+  }
+
+  void _onFormalParameter(FormalParameter node) {
+    final name = node.name?.lexeme ?? '<unnamed>';
+    final type = node.declaredFragment?.element.type;
+    final message = _generator.generate(
+      typeLabel: 'Parameter',
+      name: name,
+      path: resolver.path,
+      dartType: type,
+    );
+    _reporter.reportOnEntity(node.name ?? node, message);
+  }
+
+  void _onNamedType(NamedType node) {
+    // Avoid highlighting definitions themselves; keep inheritance highlights if desired
+    if (node.parent is ClassDeclaration ||
+        node.parent is ConstructorDeclaration ||
+        node.parent is MethodDeclaration) {
+      return;
+    }
+
+    final message = _generator.generate(
+      typeLabel: 'Type Ref',
+      name: node.name.lexeme,
+      path: resolver.path,
+      dartType: node.type,
+      element: node.element,
+    );
+    _reporter.reportOnToken(node.name, message);
+  }
+
+  void _onReturnStatement(ReturnStatement node) {
+    final expression = node.expression;
+    if (expression == null) return;
+
+    var source = expression.toSource();
+    if (source.length > 30) source = '${source.substring(0, 27)}...';
+
+    final message = _generator.generate(
+      typeLabel: 'Return',
+      name: source,
+      path: resolver.path,
+      dartType: expression.staticType,
+    );
+    _reporter.reportOnNode(expression, message);
+  }
+
+  void _onThrowExpression(ThrowExpression node) {
+    final type = node.expression.staticType;
+    final message = _generator.generate(
+      typeLabel: 'Throw',
+      name: type?.getDisplayString() ?? 'dynamic',
+      path: resolver.path,
+      dartType: type,
+    );
+    _reporter.reportOnNode(node, message);
+  }
+
+  void _onMethodInvocation(MethodInvocation node) {
+    final message = _generator.generate(
+      typeLabel: 'Invocation',
+      name: node.methodName.name,
+      path: resolver.path,
+      dartType: node.staticType,
+      element: node.methodName.element,
+    );
+    _reporter.reportOnNode(node.methodName, message);
+  }
+
+  void _onInstanceCreation(InstanceCreationExpression node) {
+    // For constructor expressions, prefer showing the ConstructorName token
+    final cName = node.constructorName;
+    final element = cName.name?.element; // named constructors may have a name token
+    final message = _generator.generate(
+      typeLabel: 'Instantiation',
+      name: cName.toSource(),
+      path: resolver.path,
+      dartType: node.staticType,
+      element: element,
+    );
+
+    _reporter.reportOnNode(cName, message);
+  }
+}
+
+/// Thin helper that adapts reporter to AstNode/Token objects.
+class ReporterHelper {
+  final DiagnosticReporter _reporter;
+  final LintCode _code;
+
+  ReporterHelper(this._reporter, this._code);
+
+  void reportOnNode(AstNode node, String message) {
+    _reporter.atNode(node, _code, arguments: [message]);
+  }
+
+  void reportOnToken(Token token, String message) {
+    _reporter.atToken(token, _code, arguments: [message]);
+  }
+
+  void reportOnEntity(SyntacticEntity entity, String message) {
+    _reporter.atEntity(entity, _code, arguments: [message]);
+  }
+}
+
+/// Generates debug report strings; extracted from the previous monolithic method.
+class DebugReportGenerator {
+  final FileResolver fileResolver;
+  final ComponentContext? component;
+
+  DebugReportGenerator({
+    required this.fileResolver,
+    required this.component,
+  });
+
+  /// Generates a short file-header style report used by compilation-unit handler.
+  String generateHeaderReport(String path) {
+    final sb = StringBuffer()
+      ..writeln('[DEBUG: FILE CONTEXT] "${path.split('/').last}"')
+      ..writeln('==================================================');
+
+    if (component != null) {
+      sb.writeln('✅ RESOLVED: "${component!.id}"');
+      if (component!.module != null) {
+        sb.writeln('📦 Module:   "${component!.module!.key}"');
+      }
+      sb.writeln('📂 Mode:     ${component!.config.mode.name}');
+    } else {
+      sb.writeln('❌ RESOLVED: <NULL> (Orphan File)');
+    }
+
+    sb.writeln('==================================================');
+    return sb.toString();
+  }
+
+  /// General generator used by most node handlers.
+  String generate({
     required String typeLabel,
     required String name,
     required String path,
-    required ComponentContext? component,
-    required FileResolver fileResolver,
     DartType? dartType,
     Element? element,
     AstNode? astNode,
     String? extraInfo,
   }) {
-    final sb = StringBuffer();
-    sb.writeln('[DEBUG: $typeLabel] "$name"');
-    sb.writeln('==================================================');
+    final sb = StringBuffer()
+      ..writeln('[DEBUG: $typeLabel] "$name"')
+      ..writeln('==================================================');
 
-    // 1. RESOLUTION RESULT
+    // Resolution result (component context)
     if (component != null) {
-      sb.writeln('✅ RESOLVED: "${component.id}"');
-      if (component.module != null) {
-        sb.writeln('📦 Module:   "${component.module!.key}"');
+      sb.writeln('✅ RESOLVED: "${component!.id}"');
+      if (component!.module != null) {
+        sb.writeln('📦 Module:   "${component!.module!.key}"');
       }
-      sb.writeln('📂 Mode:     ${component.config.mode.name}');
+      sb.writeln('📂 Mode:     ${component!.config.mode.name}');
     } else {
       sb.writeln('❌ RESOLVED: <NULL> (Orphan File)');
     }
 
-    // 2. ELEMENT & TYPE ANALYSIS
+    // Element & Type analysis
     if (dartType != null || element != null || extraInfo != null) {
       sb.writeln('\n🔬 ANALYSIS:');
       if (dartType != null) {
@@ -340,13 +430,14 @@ class DebugComponentIdentity extends ArchitectureLintRule {
       }
     }
 
-    // 3. STRUCTURAL ANALYSIS (For Classes/Mixins)
+    // Structural analysis for classes/mixins
     if (astNode is ClassDeclaration) {
       sb.writeln('\n🏗️ STRUCTURE:');
       final el = astNode.declaredFragment?.element;
       if (el != null) {
-        sb.writeln('   • Abstract? ${el.isAbstract}');
-        sb.writeln('   • Interface? ${el.isInterface}');
+        sb
+          ..writeln('   • Abstract? ${el.isAbstract}')
+          ..writeln('   • Interface? ${el.isInterface}');
 
         final supertypes = el.allSupertypes
             .map((t) => t.element.name)
@@ -358,10 +449,11 @@ class DebugComponentIdentity extends ArchitectureLintRule {
       }
     }
 
-    // 4. SCORING LOG
+    // Scoring log
     if (component?.debugScoreLog != null) {
-      sb.writeln('\n🧮 SCORING LOG:');
-      sb.write(component!.debugScoreLog!.trimRight());
+      sb
+        ..writeln('\n🧮 SCORING LOG:')
+        ..write(component!.debugScoreLog!.trimRight());
     }
 
     sb.writeln('\n==================================================');

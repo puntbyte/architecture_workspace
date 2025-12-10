@@ -1233,14 +1233,14 @@ relationships:
       action: 'model_template'
 
   # For every public method in a Port, there must be a corresponding Usecase file.
-  - on: port
+  - on: domain.port
     kind: 'method'
     visibility: 'public'
     operation: 'iteration'
     required:
       component: 'usecase'
       # A builtin quick fix to create a Usecase file based on Port method.
-      action: 'usecase_template'
+      action: 'create_usecase'
 
 vocabulary:
   nouns:
@@ -1292,208 +1292,126 @@ vocabulary:
 # Standard Mustache template string.
 # --------------------------------------------------------------------------------------------------
 actions:
+
   # ------------------------------------------------------------------------------------------------
-  # Action ID: create_model_from_entity
+  # Action: Create UseCase
+  # Triggered when a method in a Port (Repository Interface) exists, but the UseCase file is missing.
   # ------------------------------------------------------------------------------------------------
-  create_model_from_entity:
-    description: 'Scaffold a Data Model implementation for an Entity'
+  create_usecase:
+    description: 'Generate Functional UseCase'
     trigger:
-      component: entity
-      element: class
-      visibility: public
+      # This connects to the ParityMissingRule
+      error_code: 'arch_parity_missing'
+      # Optional extra check
+      component: 'domain.port'
+
     target:
-      component: model
-      scope: file
-      filename: '{{source.class.name | snakeCase}}_model.dart'
-      exists: skip
-    write:
-      policy: merge
-      merge_strategy:
-        add_missing_imports: true
+      directory: '../usecases'
+      filename: '${source.name.snakeCase}.dart'
 
     variables:
-      ClassName: '{{source.class.name}}Model'
-      EntityName: '{{source.class.name}}'
-      FieldList: '{{source.class.fields}}'
-      Annotation:
-        - if: '{{architecture.style == "clean"}}'
-          value: '@freezed'
-        - value: '@JsonSerializable()'
-      Extends: '{{types.model.base}}'
+      # 1. Logic: Select Base Class (Unary vs Nullary)
+      baseDef: >
+        source.parameters.isEmpty 
+        ? definitions['usecase.nullary'] 
+        : definitions['usecase.unary']
 
-    imports:
-      - strategy: 'relative'
-        path: '{{source.path}}'
-      - strategy: 'package'
-        uri: 'package:freezed_annotation/freezed_annotation.dart'
-        condition: '{{Annotation}} == "@freezed"'
-      - strategy: 'package'
-        uri: 'package:json_annotation/json_annotation.dart'
-        condition: '{{Annotation}} == "@JsonSerializable()"'
+      baseClassName: baseDef.type
 
-    # Link to Section [9]
-    template_id: 'model_implementation'
+      # 2. Names
+      usecaseName: source.name.pascalCase
+      repoName: source.parent.name
+      repoVar: '_${source.parent.name.camelCase}'
+      paramsClassName: '_${source.name.pascalCase}Params'
+
+      # 3. Dynamic Imports
+      imports:
+        kind: import
+        sources:
+          - source.file.path         # The Port file
+          - source.returnType        # Return types
+          - source.parameters        # Param types
+          - baseDef.import           # Base class import
+          - 'package:injectable/injectable.dart'
+
+      # 4. Required Annotations (from [7] Annotations config)
+      requiredAnnotations: config.annotationsFor('domain.usecase').required
+
+      # 5. Parameters Logic (The "Rich Data" Object)
+      params:
+        .hasMany: source.parameters.length > 1
+        .isSingle: source.parameters.length == 1
+        .isEmpty: source.parameters.isEmpty
+
+        # Helper for the 'call' method signature
+        .type: >
+          source.parameters.isEmpty ? '' : 
+          (source.parameters.length == 1 ? source.parameters.first.type : '_${source.name.pascalCase}Params')
+
+        .argument: >
+          source.parameters.isEmpty ? '' : 
+          (source.parameters.length == 1 ? '${source.parameters.first.type} ${source.parameters.first.name}' : '_${source.name.pascalCase}Params params')
+
+        .list:
+          kind: list
+          source: source.parameters
+          map:
+            name: item.name
+            type: item.type
+            isNamed: item.isNamed
+
+    template_id: 'usecase_functional'
 
 
   # ------------------------------------------------------------------------------------------------
-  # Action ID: create_usecase_from_method
+  # Action: Create Model
+  # Triggered when an Entity exists but the Model is missing.
   # ------------------------------------------------------------------------------------------------
-  create_usecase_from_method:
-    description: 'Generate a UseCase class from a Port method'
+  create_model:
+    description: 'Generate Data Model (Freezed)'
     trigger:
-      component: port
-      element: method
-      visibility: public
-    extract:
-      method_signature: true
+      error_code: 'arch_parity_missing'
+      component: 'domain.entity'
+
     target:
-      component: usecase
-      scope: 'file'
-      element: 'class'
-      filename: '{{source.method.name | snakeCase}}.dart'
-    write:
-      policy: skip_if_exists
-      on_conflict: prompt
+      directory: '../../data/models'
+      filename: '${source.name.snakeCase}_model.dart'
 
     variables:
-      # Strings
-      MethodName: '{{source.method.name}}'
-      ClassName: '{{MethodName | pascalCase}}'
-      RepoVar: 'repository'
-      RepoClass: '{{source.class.name}}'
-      ReturnType: '{{source.method.returnType | extractGeneric(index=1) }}'
+      className: '${source.name}Model'
+      entityName: source.name
+      fileName: '${source.name.snakeCase}_model'
 
-      # Lists
-      ParameterList: '{{source.method.parameters}}'
+      imports:
+        kind: import
+        sources:
+          - source.file.path
+          - 'package:freezed_annotation/freezed_annotation.dart'
+          # Add JSON annotation if needed
 
-      # Booleans
-      HasNoParams: '{{ParameterList | isEmpty}}'
-      HasParams: '{{ParameterList | isNotEmpty}}'
-      HasSingleParam: '{{ParameterList | length == 1}}'
-      HasManyParams: '{{ParameterList | length > 1}}'
+      # Extract fields from Entity to generate Model fields
+      fields:
+        kind: list
+        source: source.fields
+        map:
+          name: item.name
+          type: item.type
 
-      # Single Param Helpers
-      SingleParamName: '{{ParameterList.first.name}}'
-      SingleParamIsNamed: '{{ParameterList.first.isNamed}}'
-
-      # Logic
-      TypedefName: '_{{ClassName}}Params'
-      UsecaseClass:
-        - if: '{{HasNoParams}}'
-          value: 'NullaryUsecase'
-        - value: 'UnaryUsecase'
-      ParamType:
-        - if: '{{HasNoParams}}'
-          value: 'void'
-        - if: '{{HasSingleParam}}'
-          value: '{{ParameterList.first.type}}'
-        - value: '{{TypedefName}}'
-
-    imports:
-      - strategy: 'relative'
-        path: '{{source.path}}'
-      - strategy: 'auto_resolve'
-        types: '{{source.method.types}}'
-      - strategy: 'package'
-        uri: 'package:injectable/injectable.dart'
-      - strategy: 'type'
-        key: 'usecase.unary'
-        condition: '{{UsecaseClass}} == "UnaryUsecase"'
-      - strategy: 'type'
-        key: 'usecase.nullary'
-        condition: '{{UsecaseClass}} == "NullaryUsecase"'
-      - strategy: 'type'
-        key: 'result.wrapper'
-
-    # Link to Section [9]
-    template_id: 'usecase_implementation'
-
+    template_id: 'model_freezed'
 
 # ==================================================================================================
 # [9] TEMPLATES (The View)
 # Reusable Mustache templates.
 # ==================================================================================================
-
 templates:
 
-  # ------------------------------------------------------------------------------------------------
-  # Template ID: model_implementation
-  # Context: create_model_from_entity
-  # ------------------------------------------------------------------------------------------------
-  model_implementation: |
-    {{#imports}}import '{{uri}}';
-    {{/imports}}
+  usecase_functional:
+    file: 'templates/usecase_functional.dart.mustache'
+    description: 'Generates a UseCase class implementing UnaryUsecase/NullaryUsecase'
 
-    {{#parts}}part '{{.}}';
-    {{/parts}}
+  model_freezed:
+    file: 'templates/model_freezed.dart.mustache'
+    description: 'Generates a Freezed model with fromEntity/toEntity mappers'
 
-    {{Annotation}}
-    class {{ClassName}} extends {{EntityName}} {
-      const factory {{ClassName}}({
-        {{#FieldList}}
-        required {{type}} {{name}},
-        {{/FieldList}}
-      }) = _{{ClassName}};
-
-      factory {{ClassName}}.fromJson(Map<String, dynamic> json) =>
-          _${{ClassName}}FromJson(json);
-
-      factory {{ClassName}}.fromEntity({{EntityName}} entity) {
-        return {{ClassName}}(
-          {{#FieldList}}
-          {{name}}: entity.{{name}},
-          {{/FieldList}}
-        );
-      }
-    }
-
-  # ------------------------------------------------------------------------------------------------
-  # Template ID: usecase_implementation
-  # Context: create_usecase_from_method
-  # ------------------------------------------------------------------------------------------------
-  usecase_implementation: |
-    {{#imports}}import '{{uri}}';
-    {{/imports}}
-
-    {{#HasManyParams}}
-    typedef {{TypedefName}} = ({
-      {{#ParameterList}}{{type}} {{name}}, {{/ParameterList}}
-    });
-    {{/HasManyParams}}
-
-    @Injectable()
-    {{#HasNoParams}}
-    final class {{ClassName}} implements {{UsecaseClass}}<{{ReturnType}}> {
-    {{/HasNoParams}}
-    {{#HasParams}}
-    final class {{ClassName}} implements {{UsecaseClass}}<{{ReturnType}}, {{ParamType}}> {
-    {{/HasParams}}
-      @override
-      final {{RepoClass}} {{RepoVar}};
-
-      const {{ClassName}}(this.{{RepoVar}});
-
-      @override
-      {{#HasNoParams}}
-      FutureEither<{{ReturnType}}> call() => {{RepoVar}}.{{MethodName}}();
-      {{/HasNoParams}}
-      {{#HasParams}}
-      FutureEither<{{ReturnType}}> call({{ParamType}} parameter) {
-        return {{RepoVar}}.{{MethodName}}(
-          {{#HasSingleParam}}
-            {{#SingleParamIsNamed}}
-            {{SingleParamName}}: parameter
-            {{/SingleParamIsNamed}}
-            {{^SingleParamIsNamed}}
-            parameter
-            {{/SingleParamIsNamed}}
-          {{/HasSingleParam}}
-          {{#HasManyParams}}
-            {{#ParameterList}}
-            {{name}}: parameter.{{name}},
-            {{/ParameterList}}
-          {{/HasManyParams}}
-        );
-      }
-      {{/HasParams}}
-    }
+  repository_impl:
+    file: 'templates/repository_impl.dart.mustache'

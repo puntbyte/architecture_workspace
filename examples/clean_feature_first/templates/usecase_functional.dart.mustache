@@ -1,0 +1,38 @@
+{{#imports}}
+    import '{{.}}';
+{{/imports}}
+
+{{! --- Params Definition --- }}
+{{#params.hasMany}}
+    typedef {{paramsClassName}} = ({
+    {{#params.list}}
+        {{type}} {{name}},
+    {{/params.list}}
+    });
+{{/params.hasMany}}
+
+{{! --- Class Definition --- }}
+{{#requiredAnnotations}}
+@{{type}}()
+{{/requiredAnnotations}}
+class {{usecaseName}}UseCase implements {{baseClassName}}<{{source.returnTypeInner}}, {{paramsType}}> {
+    final {{repoName}} {{repoVar}};
+
+    const {{usecaseName}}UseCase(this.{{repoVar}});
+
+    @override
+    Future<{{source.returnTypeInner}}> call({{paramsArgument}}) {
+        return {{repoVar}}.{{source.name}}(
+            {{! Argument Passing Logic }}
+            {{#params.isSingle}}
+                {{#params.list}}{{name}}{{/params.list}}
+            {{/params.isSingle}}
+
+            {{#params.hasMany}}
+                {{#params.list}}
+                    {{#isNamed}}{{name}}: {{/isNamed}}params.{{name}},
+                {{/params.list}}
+            {{/params.hasMany}}
+        );
+    }
+}

@@ -14,25 +14,48 @@ mixin NamingLogic {
   static final Map<String, RegExp> _regexCache = {};
 
   bool validateName(String className, String pattern) {
-    // Optimization: Direct equality check for simple patterns
     if (pattern == _placeholderName) {
       return RegExp('^$_regexPascalCaseGroup\$').hasMatch(className);
     }
-
-    final regex = _regexCache.putIfAbsent(pattern, () => _buildRegex(pattern));
+    final regex = _getRegex(pattern);
     return regex.hasMatch(className);
   }
 
+  /// Extracts the value of {{name}} from a class name based on the pattern.
+  /// Returns null if the class name doesn't match the pattern.
+  String? extractCoreNameFromPattern(String className, String pattern) {
+    final regex = _getRegex(pattern);
+    final match = regex.firstMatch(className);
+
+    if (match != null && match.groupCount >= 1) {
+      // Since {{name}} is the only capturing group we explicitly define with (),
+      // match.group(1) is the core name.
+      // {{affix}} becomes .* which is non-capturing in standard regex unless wrapped.
+      return match.group(1);
+    }
+    return null;
+  }
+
+  RegExp _getRegex(String pattern) {
+    return _regexCache.putIfAbsent(pattern, () => _buildRegex(pattern));
+  }
+
   RegExp _buildRegex(String pattern) {
-    // FIX: Do NOT use RegExp.escape(pattern).
-    // The configuration supports Regex syntax (like '(C|c)'), so we must preserve it.
-    // We only replace the specific placeholders.
+    // 1. Escape the pattern to treat literals (like 'Use') as literals
+    // Note: We don't use RegExp.escape() on the whole string because the user
+    // might use regex syntax (e.g. (Bloc|Cubit)).
+    // Ideally, we assume pattern is trusted or we manually handle placeholders.
 
-    final regexString = pattern
-        .replaceAll(_placeholderName, _regexPascalCaseGroup)
-        .replaceAll(_placeholderAffix, _regexWildcard);
+    // For this implementation, we assume simple replacement:
+    var regexStr = pattern;
 
-    return RegExp('^$regexString\$');
+    // Replace {{name}} with Capturing Group
+    regexStr = regexStr.replaceAll(_placeholderName, _regexPascalCaseGroup);
+
+    // Replace {{affix}} with Non-Capturing Wildcard
+    regexStr = regexStr.replaceAll(_placeholderAffix, _regexWildcard);
+
+    return RegExp('^$regexStr\$');
   }
 
   String generateExample(String pattern) {
