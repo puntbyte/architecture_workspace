@@ -30,16 +30,27 @@ class Definition {
 
   String? get import => imports.isNotEmpty ? imports.first : null;
 
+  /// Converts the definition to a Map for templates and expressions.
+  Map<String, dynamic> toMap() {
+    return {
+      'type': type, // Expose 'type' so baseDef.type works
+      'types': types,
+      'import': import,
+      'imports': imports,
+      'ref': ref,
+      'component': component,
+      'isWildcard': isWildcard,
+    };
+  }
+
   factory Definition.fromDynamic(dynamic value) {
     if (value == null) return const Definition();
 
-    // 1. Shorthand String -> Single Type in List
     if (value is String) {
       if (value == '*') return const Definition(isWildcard: true);
       return Definition(types: [value]);
     }
 
-    // 2. Map
     if (value is Map) {
       final map = Map<String, dynamic>.from(value);
 
@@ -49,18 +60,15 @@ class Definition {
       final refKey = map.tryGetString(ConfigKeys.definition.definition);
       if (refKey != null) return Definition(ref: refKey);
 
-      // Parse Types: Handles both "type: 'String'" and "type: ['A', 'B']"
+      final typeName = map.tryGetString(ConfigKeys.definition.type);
+      if (typeName == '*') return const Definition(isWildcard: true);
+
       final typesList = map.getStringList(ConfigKeys.definition.type);
       if (typesList.contains('*')) return const Definition(isWildcard: true);
 
-      // Parse Imports
       final importsList = map.getStringList(ConfigKeys.definition.import);
-
-      // Parse Identifiers
-      // Note: ConfigKeys.definition.identifier should map to 'identifier'
       final ids = map.getStringList(ConfigKeys.definition.identifier);
 
-      // Parse Arguments
       final rawArgs = map[ConfigKeys.definition.argument];
       final args = <Definition>[];
       if (rawArgs != null) {
@@ -102,42 +110,26 @@ class Definition {
     );
   }
 
-  /// Generates a human-readable description of this definition.
-  ///
-  /// [registry]: Optional map to resolve `ref` pointers recursively.
+  /// Generates a human-readable description.
   String describe([Map<String, Definition>? registry]) {
-    // 1. Wildcard
     if (isWildcard) return 'Any';
-
-    // 2. Component Reference
     if (component != null) return 'Component($component)';
-
-    // 3. Definition Reference (Recursive Lookup)
     if (ref != null) {
       if (registry != null) {
         final resolved = registry[ref];
         if (resolved != null) return resolved.describe(registry);
       }
-      // Fallback if registry missing or key not found
       return 'Ref($ref)';
     }
-
-    // 4. Identifiers (e.g. for Services)
     if (identifiers.isNotEmpty) return identifiers.join('|');
-
-    // 5. Types (e.g. for Classes)
     if (types.isNotEmpty) {
       final baseName = types.join('|');
-
-      // Handle Generics (e.g. Future<Either<L, R>>)
       if (arguments.isNotEmpty) {
         final argsDescription = arguments.map((arg) => arg.describe(registry)).join(', ');
         return '$baseName<$argsDescription>';
       }
-
       return baseName;
     }
-
     return 'Unknown Definition';
   }
 

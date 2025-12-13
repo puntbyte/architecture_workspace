@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:architecture_lints/src/core/resolver/path_matcher.dart';
 
-mixin ExternalDependencyLogic {
+mixin PackageLogic {
   /// Checks if the [uri] is an external package (not dart: and not the current project).
   bool isExternalUri(String uri, String currentProjectName) {
     if (uri.startsWith('dart:')) return true;
@@ -14,9 +14,7 @@ mixin ExternalDependencyLogic {
   /// Checks if [uri] matches any pattern in [patterns].
   bool matchesAnyPattern(String uri, List<String> patterns) {
     for (final pattern in patterns) {
-      if (PathMatcher.matches(uri, pattern)) {
-        return true;
-      }
+      if (PathMatcher.matches(uri, pattern)) return true;
     }
     return false;
   }

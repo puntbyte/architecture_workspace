@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/ast/ast.dart';
+/*import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/core/generation/template_engine.dart';
@@ -60,4 +60,4 @@ class CreateMissingComponentFix extends DartFix with NamingLogic, RelationshipLo
           }, customPath: target.path);
     });
   }
-}
+}*/

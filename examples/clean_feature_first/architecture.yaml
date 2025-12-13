@@ -176,9 +176,9 @@ components:
       name: 'Entity'
       path: 'entities'
       kind: class
-      pattern: '{{name}}'
-      antipattern: '{{name}}Entity'
-      grammar: '{{noun.phrase}}'
+      pattern: '${name}'
+      antipattern: '${name}Entity'
+      grammar: '${noun.phrase}'
 
     # Ports are interfaces. They are Noun Phrases (e.g., "AuthPort").
     .port:
@@ -186,18 +186,18 @@ components:
       path: 'ports'
       kind: class
       modifier: [ abstract, interface ]
-      pattern: '{{name}}Port'
-      antipattern: '{{name}}(Interface|Repository)'
-      grammar: '{{noun.phrase}}Port'
+      pattern: '${name}Port'
+      antipattern: '${name}(Interface|Repository)'
+      grammar: '${noun.phrase}Port'
 
     # UseCases are actions. They must start with a Verb and end with a Noun (e.g., "GetUser").
     .usecase:
       name: 'Usecase (aka Interactor)'
       kind: class
       path: 'usecases'
-      pattern: '{{name}}'
-      antipattern: '{{name}}Use(C|c)ase'
-      grammar: '{{verb.present}}{{noun.phrase}}'
+      pattern: '${name}'
+      antipattern: '${name}Use(C|c)ase'
+      grammar: '${verb.present}${noun.phrase}'
 
     # Parameters are private data structures defined inside the UseCase file. They must be Noun
     # Phrases (e.g., "_userIdParam").
@@ -205,8 +205,8 @@ components:
       name: 'Usecase Parameter'
       mode: part
       kind: typedef
-      pattern: '_{{name}}Param'
-      grammar: '_{{noun.phrase}}Param'
+      pattern: '_${name}Param'
+      grammar: '_${noun.phrase}Param'
 
   # ---- Data (Adapter) ---
   .data:
@@ -219,8 +219,8 @@ components:
       name: 'Model'
       path: 'models'
       kind: class
-      pattern: '{{name}}Model'
-      grammar: '{{noun.phrase}}Model'
+      pattern: '${name}Model'
+      grammar: '${noun.phrase}Model'
 
     .source:
       name: 'Data Source'
@@ -232,23 +232,23 @@ components:
         name: 'Data Source (Interface)'
         kind: class
         modifier: abstract
-        pattern: '{{name}}Source'
-        grammar: '{{noun.phrase}}Source'
+        pattern: '${name}Source'
+        grammar: '${noun.phrase}Source'
 
       # Source Implementations are concrete objects. Noun Phrases (e.g., "RemoteAuthSource").
       .implementation:
         name: 'Data Source (Implementation)'
         kind: class
-        pattern: '{{affix}}{{name}}Source'
-        grammar: '{{noun.phrase}}Source'
+        pattern: '${affix}${name}Source'
+        grammar: '${noun.phrase}Source'
 
     # Repositories are objects. Noun Phrases (e.g., "AuthRepository").
     .repository:
       name: 'Repository (Implementation)'
       path: 'repositories'
       kind: class
-      pattern: '{{affix}}{{name}}Repository'
-      grammar: '{{noun.phrase}}Repository'
+      pattern: '${affix}${name}Repository'
+      grammar: '${noun.phrase}Repository'
 
   # --- Presentation (Outer Circle) ---
   .presentation:
@@ -265,22 +265,22 @@ components:
       .logic:
         name: 'Business Logic (Bloc/Cubit)'
         kind: class
-        pattern: '{{name}}(Bloc|Cubit)'
-        grammar: '{{noun.phrase}}(Bloc|Cubit)'
+        pattern: '${name}(Bloc|Cubit)'
+        grammar: '${noun.phrase}(Bloc|Cubit)'
 
       # Event Interfaces are objects/categories. Noun Phrases (e.g., "AuthEvent").
       .event:
         name: 'Manager Event'
         mode: file
-        pattern: '{{name}}Event'
+        pattern: '${name}Event'
 
         .interface:
           name: 'Event Interface'
           mode: part
           kind: class
           modifier: [ abstract ]
-          pattern: '{{name}}Event'
-          grammar: '{{noun.phrase}}Event'
+          pattern: '${name}Event'
+          grammar: '${noun.phrase}Event'
 
         # Concrete Events represent something that HAPPENED.
         # Grammar: Subject + Past Tense Verb (e.g., "UserLoggedIn", "DataLoaded", "ErrorOccurred").
@@ -288,22 +288,22 @@ components:
           name: 'Event Implementation'
           mode: part
           kind: class
-          pattern: '{{name}}'
-          grammar: '{{noun.phrase}}{{verb.past}}'
+          pattern: '${name}'
+          grammar: '${noun.phrase}${verb.past}'
 
       # State Interfaces are objects/categories. Noun Phrases (e.g., "AuthState").
       .state:
         name: 'Manager State'
         mode: file
-        pattern: '{{name}}State'
+        pattern: '${name}State'
 
         .interface:
           name: 'State Interface'
           mode: part
           kind: class
           modifier: [sealed, abstract]
-          pattern: '{{name}}State'
-          grammar: '{{noun.singular}}State'
+          pattern: '${name}State'
+          grammar: '${noun.singular}State'
 
         # Concrete States represent a STATUS.
         # Grammar: Subject + Adjective OR Gerund (e.g., "AuthInitial", "AuthLoading",
@@ -312,36 +312,36 @@ components:
           name: 'State Implementation'
           mode: part
           kind: class
-          pattern: '{{name}}'
+          pattern: '${name}'
           grammar:
-            - '{{noun.phrase}}{{adjective}}'     # AuthInitial, AuthLoading
-            - '{{noun.phrase}}{{verb.gerund}}'   # AuthLoading (alternative)
-            - '{{noun.phrase}}{{verb.past}}'     # AuthLoaded
+            - '${noun.phrase}${adjective}'     # AuthInitial, AuthLoading
+            - '${noun.phrase}${verb.gerund}'   # AuthLoading (alternative)
+            - '${noun.phrase}${verb.past}'     # AuthLoaded
 
     # Widgets are objects. Noun Phrases (e.g., "UserList").
     .widget:
       name: 'Widget'
       path: 'widgets'
       kind: class
-      pattern: '{{name}}(Panel|Section|Widget)'
-      grammar: '{{noun.phrase}}(Panel|Section|Widget)'
+      pattern: '${name}(Panel|Section|Widget)'
+      grammar: '${noun.phrase}(Panel|Section|Widget)'
 
     # Forms are objects. Noun Phrases (e.g., "LoginForm", "UserForm").
     .form:
       name: 'Form'
       path: 'forms'
       kind: class
-      pattern: '{{name}}Form'
-      grammar: '{{noun.phrase}}Form'
+      pattern: '${name}Form'
+      grammar: '${noun.phrase}Form'
 
     # Pages are objects. Noun Phrases (e.g., "LoginPage").
     .page:
       name: 'Page'
       path: 'pages'
       kind: class
-      pattern: '{{name}}Page'
-      antipattern: '{{name}}Screen'
-      grammar: '{{noun.phrase}}Page'
+      pattern: '${name}Page'
+      antipattern: '${name}Screen'
+      grammar: '${noun.phrase}Page'
 
   # --- CORE COMPONENTS (Explicitly assigned to 'core' module) ---
   core:
@@ -350,14 +350,14 @@ components:
       name: 'Failure'
       path: 'error'
       kind: class
-      pattern: '{{name}}Failure'
+      pattern: '${name}Failure'
 
     .exception:
       module: 'core'
       name: 'Exception'
       path: 'error'
       kind: class
-      pattern: '{{name}}Exception'
+      pattern: '${name}Exception'
 
     .util:
       module: 'core'
@@ -370,8 +370,8 @@ components:
     module: 'shared'
     path: 'widgets'
     kind: class
-    pattern: '{{name}}' # Shared widgets might have looser naming rules
-    grammar: '{{noun.phrase}}'
+    pattern: '${name}' # Shared widgets might have looser naming rules
+    grammar: '${noun.phrase}'
 
 
 # ==================================================================================================
@@ -1238,7 +1238,7 @@ relationships:
     visibility: 'public'
     operation: 'iteration'
     required:
-      component: 'usecase'
+      component: domain.usecase
       # A builtin quick fix to create a Usecase file based on Port method.
       action: 'create_usecase'
 
@@ -1299,6 +1299,7 @@ actions:
   # ------------------------------------------------------------------------------------------------
   create_usecase:
     description: 'Generate Functional UseCase'
+    debug: true
     trigger:
       # This connects to the ParityMissingRule
       error_code: 'arch_parity_missing'
@@ -1309,58 +1310,98 @@ actions:
       directory: '../usecases'
       filename: '${source.name.snakeCase}.dart'
 
+    template_id: 'usecase_functional'
+
     variables:
-      # 1. Logic: Select Base Class (Unary vs Nullary)
-      baseDef: >
-        source.parameters.isEmpty 
-        ? definitions['usecase.nullary'] 
-        : definitions['usecase.unary']
+      # 1. Base Class Selection
+      baseDef:
+        type: dynamic
+        select:
+          - if: source.parameters.isEmpty
+            value: config.definitionFor('usecase.nullary')
+          - else: config.definitionFor('usecase.unary')
 
-      baseClassName: baseDef.type
+      baseClassName: '${baseDef.type}'
 
-      # 2. Names
-      usecaseName: source.name.pascalCase
-      repoName: source.parent.name
+      # 2. Return Type Logic
+      methodReturnType: '${source.returnType.name}'
+      usecaseGenericType: '${source.returnType.unwrapped}'
+
+      # 3. Naming
+      usecaseName: '${source.name.pascalCase}'
+      repoName: '${source.parent.name}'
       repoVar: '_${source.parent.name.camelCase}'
       paramsClassName: '_${source.name.pascalCase}Params'
 
-      # 3. Dynamic Imports
+      # 4. Imports
       imports:
-        kind: import
-        sources:
-          - source.file.path         # The Port file
-          - source.returnType        # Return types
-          - source.parameters        # Param types
-          - baseDef.import           # Base class import
+        type: set
+        values:
+          - source.file.path
+          - source.returnType
+          - source.parameters
+          - baseDef.import
           - 'package:injectable/injectable.dart'
+          - config.annotationsFor('domain.usecase').required
 
-      # 4. Required Annotations (from [7] Annotations config)
-      requiredAnnotations: config.annotationsFor('domain.usecase').required
+      # 5. Required Annotations
+      requiredAnnotations:
+        type: list
+        from: config.annotationsFor('domain.usecase').required
+        map:
+          .type: item.type
+          .import: item.import
 
-      # 5. Parameters Logic (The "Rich Data" Object)
+      # 6. Parameters Logic
       params:
+        type: map
         .hasMany: source.parameters.length > 1
         .isSingle: source.parameters.length == 1
         .isEmpty: source.parameters.isEmpty
 
+        # Helper for the 'call' method argument type
+        .type:
+          type: string
+          select:
+            - if: source.parameters.isEmpty
+              value: "'void'"
+            - if: source.parameters.length == 1
+              # FIX: Access .name to get string "IntId" instead of TypeWrapper object
+              value: source.parameters.first.type.name
+            - else: '_${source.name.pascalCase}Params'
+
         # Helper for the 'call' method signature
-        .type: >
-          source.parameters.isEmpty ? '' : 
-          (source.parameters.length == 1 ? source.parameters.first.type : '_${source.name.pascalCase}Params')
+        .argument:
+          type: string
+          select:
+            - if: source.parameters.isEmpty
+              value: "''"
+            - if: source.parameters.length == 1
+              # FIX: Access .name
+              value: '${source.parameters.first.type.name} ${source.parameters.first.name}'
+            - else: '_${source.name.pascalCase}Params params'
 
-        .argument: >
-          source.parameters.isEmpty ? '' : 
-          (source.parameters.length == 1 ? '${source.parameters.first.type} ${source.parameters.first.name}' : '_${source.name.pascalCase}Params params')
-
-        .list:
-          kind: list
-          source: source.parameters
+        .data:
+          type: list
+          from: source.parameters
           map:
-            name: item.name
-            type: item.type
-            isNamed: item.isNamed
+            .name: item.name
+            .type: item.type.unwrapped
+            .isNamed: item.isNamed
 
-    template_id: 'usecase_functional'
+      # 7. Class Generics Construction (NEW)
+      # Handles the difference between Nullary<T> and Unary<T, P>
+      classGenerics:
+        type: string
+        select:
+          - if: source.parameters.isEmpty
+            # Nullary: Just the return type (or <T, void> if your base class requires 2)
+            # Assuming NullaryUsecase<T>
+            value: '${usecaseGenericType}'
+            # If your NullaryUsecase requires 2 args, use: '${usecaseGenericType}, void'
+          - else:
+            # Unary: <T, Params>
+            value: '${usecaseGenericType}, ${params.type}'
 
 
   # ------------------------------------------------------------------------------------------------
@@ -1369,6 +1410,7 @@ actions:
   # ------------------------------------------------------------------------------------------------
   create_model:
     description: 'Generate Data Model (Freezed)'
+    debug: true
     trigger:
       error_code: 'arch_parity_missing'
       component: 'domain.entity'

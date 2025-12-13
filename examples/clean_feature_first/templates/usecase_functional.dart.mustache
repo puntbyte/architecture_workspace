@@ -1,38 +1,33 @@
-{{#imports}}
-    import '{{.}}';
-{{/imports}}
+{{#imports.items}}
+import '{{.}}';
+{{/imports.items}}
 
-{{! --- Params Definition --- }}
 {{#params.hasMany}}
-    typedef {{paramsClassName}} = ({
-    {{#params.list}}
-        {{type}} {{name}},
-    {{/params.list}}
-    });
+typedef {{paramsClassName}} = ({
+  {{#params.data.items}}
+  {{type}} {{name}},
+  {{/params.data.items}}
+});
 {{/params.hasMany}}
 
-{{! --- Class Definition --- }}
-{{#requiredAnnotations}}
+{{#requiredAnnotations.items}}
 @{{type}}()
-{{/requiredAnnotations}}
-class {{usecaseName}}UseCase implements {{baseClassName}}<{{source.returnTypeInner}}, {{paramsType}}> {
-    final {{repoName}} {{repoVar}};
+{{/requiredAnnotations.items}}
+class {{usecaseName}}UseCase implements {{baseClassName}}<{{classGenerics}}> {
+  final {{repoName}} {{repoVar}};
 
-    const {{usecaseName}}UseCase(this.{{repoVar}});
+  const {{usecaseName}}UseCase(this.{{repoVar}});
 
-    @override
-    Future<{{source.returnTypeInner}}> call({{paramsArgument}}) {
-        return {{repoVar}}.{{source.name}}(
-            {{! Argument Passing Logic }}
-            {{#params.isSingle}}
-                {{#params.list}}{{name}}{{/params.list}}
-            {{/params.isSingle}}
+  @override
+  {{methodReturnType}} call({{params.argument}}) {
+    return {{repoVar}}.{{source.name}}(
+      {{#params.isSingle}}{{#params.data.items}}
+      {{#isNamed}}{{name}}: {{/isNamed}}{{name}}
+      {{/params.data.items}}{{/params.isSingle}}
 
-            {{#params.hasMany}}
-                {{#params.list}}
-                    {{#isNamed}}{{name}}: {{/isNamed}}params.{{name}},
-                {{/params.list}}
-            {{/params.hasMany}}
-        );
-    }
+      {{#params.hasMany}}{{#params.data.items}}
+      {{#isNamed}}{{name}}: {{/isNamed}}params.{{name}},
+      {{/params.data.items}}{{/params.hasMany}}
+    );
+  }
 }

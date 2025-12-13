@@ -7,7 +7,7 @@ abstract class ConfigKeys {
 
   static const root = _RootKeys();
   static const typeDef = _TypeDefinitionKeys();
-  static const module = _ModuleKeys(); // New
+  static const module = _ModuleKeys();
   static const component = _ComponentKeys();
   static const definition = _DefinitionKeys();
   static const dependency = _DependencyKeys();
@@ -15,12 +15,13 @@ abstract class ConfigKeys {
   static const typeSafety = _TypeSafetyKeys();
   static const exception = _ExceptionKeys();
   static const member = _MemberKeys();
-  static const service = _ServiceKeys(); // New
-  static const usage = _UsageKeys(); // New
-  static const annotation = _AnnotationKeys(); // New
-  static const relationship = _RelationshipKeys(); // New
+  static const service = _ServiceKeys();
+  static const usage = _UsageKeys();
+  static const annotation = _AnnotationKeys();
+  static const relationship = _RelationshipKeys();
   static const vocabulary = _VocabularyKeys();
   static const template = _TemplateDefinitionKeys();
+  static const regex = _RegexKeys();
 
   static const placeholder = _PlaceholderKeys();
 }
@@ -36,11 +37,11 @@ class _RootKeys {
   String get inheritances => 'inheritances';
   String get typeSafeties => 'type_safeties';
   String get exceptions => 'exceptions';
-  String get members => 'members'; // New
-  String get services => 'services'; // New
-  String get usages => 'usages'; // New
-  String get annotations => 'annotations'; // New
-  String get relationships => 'relationships'; // New
+  String get members => 'members';
+  String get services => 'services';
+  String get usages => 'usages';
+  String get annotations => 'annotations';
+  String get relationships => 'relationships';
   String get templates => 'templates';
   String get vocabulary => 'vocabulary';
 
@@ -243,6 +244,13 @@ class _VocabularyKeys {
 class _PlaceholderKeys {
   const _PlaceholderKeys();
 
-  String get name => '{{name}}';
-  String get affix => '{{affix}}';
+  String get name => r'${name}';
+  String get affix => r'${affix}';
+}
+
+class _RegexKeys {
+  const _RegexKeys();
+
+  String get pascalCaseGroup => '([A-Z][a-zA-Z0-9]*)';
+  String get wildcard => '.*';
 }

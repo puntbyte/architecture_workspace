@@ -1,5 +1,7 @@
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
-import 'package:architecture_lints/src/config/enums/relationship_element.dart'; // Import Enum
+import 'package:architecture_lints/src/config/enums/relationship_kind.dart';
+import 'package:architecture_lints/src/config/enums/relationship_operation.dart';
+import 'package:architecture_lints/src/config/enums/relationship_visibility.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
 import 'package:meta/meta.dart';
 
@@ -7,42 +9,45 @@ import 'package:meta/meta.dart';
 class RelationshipConfig {
   final List<String> onIds;
 
-  // Renamed from 'kind' and typed as Enum
-  final RelationshipElement element;
+  /// The type of AST node to match (class or method).
+  final RelationshipKind? kind;
 
-  final String? visibility;
-  final String? operation;
+  final RelationshipVisibility visibility;
+  final RelationshipOperation? operation;
+
   final String targetComponent;
   final String? action;
 
   const RelationshipConfig({
     required this.onIds,
-    required this.element,
     required this.targetComponent,
+    this.kind,
+    this.visibility = RelationshipVisibility.public,
     this.operation,
-    this.visibility = 'public',
     this.action,
   });
 
   factory RelationshipConfig.fromMap(Map<dynamic, dynamic> map) {
-    final requiredMap = map.getMap(ConfigKeys.relationship.required);
-
-    // Parse enum from string
-    final elementKey = map.getString(ConfigKeys.relationship.kind, fallback: 'class');
-    final element = RelationshipElement.fromKey(elementKey) ?? RelationshipElement.classElement;
+    final reqMap = map.mustGetMap(ConfigKeys.relationship.required);
 
     return RelationshipConfig(
       onIds: map.getStringList(ConfigKeys.relationship.on),
-      element: element,
-      visibility: map.getString(ConfigKeys.relationship.visibility, fallback: 'public'),
-      operation: map.tryGetString(ConfigKeys.relationship.operation),
 
-      targetComponent: requiredMap.mustGetString(ConfigKeys.relationship.component),
-      action: requiredMap.tryGetString(ConfigKeys.relationship.action),
+      // Rename 'element' to 'kind'
+      kind: RelationshipKind.fromKey(map.tryGetString(ConfigKeys.relationship.kind)),
+
+      // Use Enhanced Enum with default
+      visibility: RelationshipVisibility.fromKey(
+        map.tryGetString(ConfigKeys.relationship.visibility),
+      ) ?? RelationshipVisibility.public,
+
+      operation: RelationshipOperation.fromKey(map.tryGetString(ConfigKeys.relationship.operation)),
+
+      targetComponent: reqMap.mustGetString(ConfigKeys.relationship.component),
+      action: reqMap.tryGetString(ConfigKeys.relationship.action),
     );
   }
 
-  /// Parses the 'relationships' list.
   static List<RelationshipConfig> parseList(List<Map<String, dynamic>> list) {
     return list.map(RelationshipConfig.fromMap).toList();
   }

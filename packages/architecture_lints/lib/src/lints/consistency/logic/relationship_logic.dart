@@ -1,11 +1,23 @@
+// lib/src/lints/consistency/logic/relationship_logic.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/config/enums/relationship_element.dart';
+import 'package:architecture_lints/src/config/constants/config_keys.dart';
+import 'package:architecture_lints/src/config/enums/relationship_kind.dart';
+import 'package:architecture_lints/src/config/enums/relationship_visibility.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart';
 import 'package:path/path.dart' as p;
+
+class ParityResult {
+  final ParityTarget? target;
+  final String? failureReason;
+
+  ParityResult.success(this.target) : failureReason = null;
+  ParityResult.failure(this.failureReason) : target = null;
+}
 
 mixin RelationshipLogic on NamingLogic {
 
@@ -22,8 +34,8 @@ mixin RelationshipLogic on NamingLogic {
     if (targetConfig.patterns.isEmpty) return coreName;
     final pattern = targetConfig.patterns.first;
     return pattern
-        .replaceAll('{{name}}', coreName)
-        .replaceAll('{{affix}}', '');
+        .replaceAll(ConfigKeys.placeholder.name, coreName)
+        .replaceAll(ConfigKeys.placeholder.affix, '');
   }
 
   String toSnakeCase(String input) {
@@ -32,75 +44,55 @@ mixin RelationshipLogic on NamingLogic {
         .toLowerCase();
   }
 
-  ParityTarget? findMissingTarget({
+  ParityResult findMissingTarget({
     required AstNode node,
     required ArchitectureConfig config,
     required ComponentContext currentComponent,
     required FileResolver fileResolver,
     required String currentFilePath,
-    bool debug = false, // Enable via ParityMissingRule
   }) {
     String? name;
-    RelationshipElement? type;
+    RelationshipKind? kind;
     String? methodName;
 
     if (node is ClassDeclaration) {
       name = node.name.lexeme;
-      type = RelationshipElement.classElement;
+      kind = RelationshipKind.class$; // Updated enum name
     } else if (node is MethodDeclaration) {
       methodName = node.name.lexeme;
       name = methodName.isEmpty ? '' : '${methodName[0].toUpperCase()}${methodName.substring(1)}';
-      type = RelationshipElement.methodElement;
+      kind = RelationshipKind.method;
     }
 
-    if (name == null || type == null) return null;
-
-    if (debug) {
-      print('DEBUG RELATIONSHIP:');
-      print('  Node: "$name" ($type)');
-      print('  Current Component: "${currentComponent.id}"');
-      print('  Total Rules Loaded: ${config.relationships.length}');
+    if (name == null || kind == null) {
+      return ParityResult.failure('Node is not a Class or Method');
     }
 
-    // Filter rules
     final rules = config.relationships.where((rule) {
-      // DEBUG LOGGING FOR FILTERING
-      final matchesElement = rule.element == type;
-      final matchesId = currentComponent.matchesAny(rule.onIds);
+      if (rule.kind != kind) return false;
 
-      if (debug) {
-        print('  - Rule [on: ${rule.onIds}, kind: ${rule.element?.yamlKey}]:');
-        print('    -> Matches Kind? $matchesElement');
-        print('    -> Matches ID?   $matchesId');
-      }
-
-      if (!matchesElement) return false;
-
-      // Visibility Check
       if (node is MethodDeclaration) {
         final element = node.declaredFragment?.element;
-        if (element != null && rule.visibility == 'public' && element.isPrivate) {
-          if (debug) print('    -> Failed Visibility (Private)');
+        if (element != null &&
+            rule.visibility == RelationshipVisibility.public &&
+            element.isPrivate) {
           return false;
         }
       }
 
-      return matchesId;
+      return currentComponent.matchesAny(rule.onIds);
     }).toList();
 
     if (rules.isEmpty) {
-      if (debug) print('  => NO MATCHING RULES FOUND.');
-      return null;
+      return ParityResult.failure('No matching rules found');
     }
 
+    // ... (Rest of logic remains the same) ...
     for (final rule in rules) {
-      if (debug) print('  => Applying Rule: Target="${rule.targetComponent}"');
-
       ComponentConfig? targetComponent;
       try {
         targetComponent = config.components.firstWhere((c) => c.id == rule.targetComponent);
       } catch (e) {
-        if (debug) print('     Error: Target component "${rule.targetComponent}" not defined in config.');
         continue;
       }
 
@@ -108,16 +100,10 @@ mixin RelationshipLogic on NamingLogic {
       if (node is ClassDeclaration) {
         coreName = extractCoreName(name!, currentComponent);
       }
-
-      if (coreName == null) {
-        if (debug) print('     Error: Could not extract core name from "$name" using pattern.');
-        continue;
-      }
+      if (coreName == null) continue;
 
       final targetClassName = generateTargetClassName(coreName, targetComponent);
       final targetFileName = '${toSnakeCase(targetClassName)}.dart';
-
-      if (debug) print('     Calculating path for: $targetFileName ($targetClassName)');
 
       final targetPath = findTargetFilePath(
         currentFilePath: currentFilePath,
@@ -127,18 +113,17 @@ mixin RelationshipLogic on NamingLogic {
       );
 
       if (targetPath != null) {
-        return ParityTarget(
+        return ParityResult.success(ParityTarget(
           path: targetPath,
           coreName: coreName,
           targetClassName: targetClassName,
           templateId: rule.action,
           sourceComponent: currentComponent.config,
-        );
-      } else if (debug) {
-        print('     Error: Path calculation failed. Check if "${targetComponent.paths}" aligns with current file structure.');
+        ));
       }
     }
-    return null;
+
+    return ParityResult.failure('Path resolution failed for all rules');
   }
 
   String? findTargetFilePath({
@@ -152,11 +137,8 @@ mixin RelationshipLogic on NamingLogic {
     for (final path in currentComponent.paths) {
       final configPath = path.replaceAll('/', p.separator);
 
-      // Check for path suffix match
       if (currentDir.endsWith(configPath) || currentDir.endsWith(p.separator + configPath)) {
-
         final moduleRoot = currentDir.substring(0, currentDir.lastIndexOf(configPath));
-
         if (targetComponent.paths.isNotEmpty) {
           final targetRelative = targetComponent.paths.first.replaceAll('/', p.separator);
           final targetDir = p.join(moduleRoot, targetRelative);

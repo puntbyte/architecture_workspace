@@ -1,9 +1,10 @@
+// lib/src/lints/consistency/rules/parity_missing_rule.dart
+
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-// Hide LintCode to avoid conflict with custom_lint_builder
-import 'package:analyzer/error/error.dart' hide LintCode;
+import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/actions/architecture_fix.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
@@ -11,18 +12,18 @@ import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
 import 'package:architecture_lints/src/lints/consistency/logic/relationship_logic.dart';
-import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart'; // Import NamingLogic
+import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-// Mixin NamingLogic first, then RelationshipLogic
 class ParityMissingRule extends ArchitectureLintRule with NamingLogic, RelationshipLogic {
-  static const _debugCode = LintCode(
-    name: 'arch_debug_parity',
-    problemMessage: '{0}',
-    errorSeverity: DiagnosticSeverity.INFO,
+  static const _code = LintCode(
+    name: 'arch_parity_missing', // Matches YAML trigger
+    problemMessage: 'Missing companion component: "{0}" expected "{1}".',
+    correctionMessage: 'Create the missing file to maintain architectural parity.',
+    errorSeverity: DiagnosticSeverity.WARNING,
   );
 
-  const ParityMissingRule() : super(code: _debugCode);
+  const ParityMissingRule() : super(code: _code);
 
   @override
   List<Fix> getFixes() => [
@@ -40,15 +41,8 @@ class ParityMissingRule extends ArchitectureLintRule with NamingLogic, Relations
   }) {
     if (component == null) return;
 
-    // Optional: Only run on ports for less noise during debug
-    // if (!component.id.contains('port')) return;
-
-    void check(AstNode node, Token nameToken) {
-      final sb = StringBuffer();
-      sb.writeln('[DEBUG PARITY] "${nameToken.lexeme}"');
-      sb.writeln('--------------------------------------------------');
-
-      final target = findMissingTarget(
+    void checkNode(AstNode node, Token nameToken) {
+      final result = findMissingTarget(
         node: node,
         config: config,
         currentComponent: component,
@@ -56,39 +50,30 @@ class ParityMissingRule extends ArchitectureLintRule with NamingLogic, Relations
         currentFilePath: resolver.path,
       );
 
-      if (target != null) {
+      // Only report if a target was calculated AND the file is missing
+      if (result.target != null) {
+        final target = result.target!;
         final file = File(target.path);
-        final exists = file.existsSync();
 
-        sb.writeln('✅ Target Calculated:');
-        sb.writeln('   • Core Name:   "${target.coreName}"');
-        sb.writeln('   • Target Class: "${target.targetClassName}"');
-        sb.writeln('   • Target Path:  "${target.path}"');
-        sb.writeln('\n📂 File Status: ${exists ? "EXISTS (No Warning)" : "MISSING (Warning)"}');
-      } else {
-        sb.writeln('❌ No Target Calculated.');
-        sb.writeln('   Possible reasons:');
-        sb.writeln('   1. No "relationships" rule in architecture.yaml for "${component.id}".');
-        sb.writeln('   2. Node name did not match expected pattern for extraction.');
-        sb.writeln('   3. Could not find relative path to target component.');
+        if (!file.existsSync()) {
+          reporter.atToken(
+            nameToken,
+            _code,
+            arguments: [
+              target.sourceComponent.displayName,
+              target.targetClassName,
+            ],
+          );
+        }
       }
-
-      sb.writeln('--------------------------------------------------');
-
-      // Always report for debugging
-      reporter.atToken(
-        nameToken,
-        _debugCode,
-        arguments: [sb.toString()],
-      );
     }
 
     context.registry.addClassDeclaration((node) {
-      check(node, node.name);
+      checkNode(node, node.name);
     });
 
     context.registry.addMethodDeclaration((node) {
-      check(node, node.name);
+      checkNode(node, node.name);
     });
   }
 }

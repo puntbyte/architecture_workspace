@@ -6,10 +6,10 @@ import 'package:architecture_lints/src/config/schema/dependency_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/boundaries/base/boundary_base_rule.dart';
-import 'package:architecture_lints/src/lints/boundaries/logic/external_dependency_logic.dart';
+import 'package:architecture_lints/src/lints/boundaries/logic/package_logic.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-class ExternalDependencyRule extends BoundaryBaseRule with ExternalDependencyLogic {
+class ExternalDependencyRule extends BoundaryBaseRule with PackageLogic {
   static const _code = LintCode(
     name: 'arch_dep_external',
     problemMessage: 'External dependency violation: {0} cannot depend on "{1}".',

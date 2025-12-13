@@ -14,3 +14,11 @@ abstract interface class NullaryUsecase<ReturnType> extends Usecase {
 abstract interface class UnaryUsecase<ReturnType, ParameterType> extends Usecase {
   FutureEither<ReturnType> call(ParameterType parameter);
 }
+
+abstract interface class NullaryStreamUsecase<ReturnType> extends Usecase {
+  StreamEither<ReturnType> call();
+}
+
+abstract interface class UnaryStreamUsecase<ReturnType, ParameterType> extends Usecase {
+  StreamEither<ReturnType> call(ParameterType parameter);
+}
