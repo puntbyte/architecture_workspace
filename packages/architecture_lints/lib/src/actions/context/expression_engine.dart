@@ -84,7 +84,7 @@ class ExpressionEngine {
 
     if (value is Iterable && value is! Map) return value.map(unwrap).toList();
 
-    if (value is Map) return value.map((k, v) => MapEntry(k.toString(), unwrap(v)));
+    if (value is Map) return value.map((key, value) => MapEntry(key.toString(), unwrap(value)));
 
     return value.toString();
   }

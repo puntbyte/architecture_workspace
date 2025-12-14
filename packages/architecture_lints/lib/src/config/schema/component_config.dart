@@ -122,15 +122,14 @@ class ComponentConfig {
   }
 
   @override
-  int get hashCode {
-    return id.hashCode ^
-        name.hashCode ^
-        isDefault.hashCode ^
-        mode.hashCode ^
-        const ListEquality<String>().hash(paths) ^
-        const ListEquality<String>().hash(patterns) ^
-        const ListEquality<String>().hash(antipatterns) ^
-        const ListEquality<ComponentKind>().hash(kinds) ^
-        const ListEquality<ComponentModifier>().hash(modifiers);
-  }
+  int get hashCode =>
+      id.hashCode ^
+      name.hashCode ^
+      isDefault.hashCode ^
+      mode.hashCode ^
+      const ListEquality<String>().hash(paths) ^
+      const ListEquality<String>().hash(patterns) ^
+      const ListEquality<String>().hash(antipatterns) ^
+      const ListEquality<ComponentKind>().hash(kinds) ^
+      const ListEquality<ComponentModifier>().hash(modifiers);
 }

@@ -22,6 +22,7 @@ class TemplateDefinition {
         description: map.tryGetString(ConfigKeys.template.description),
       );
     }
+
     return const TemplateDefinition();
   }
 }

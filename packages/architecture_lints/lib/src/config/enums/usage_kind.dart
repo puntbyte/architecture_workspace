@@ -14,7 +14,6 @@ enum UsageKind {
 
   const UsageKind(this.yamlKey);
 
-  static UsageKind? fromKey(String? key) {
-    return UsageKind.values.firstWhereOrNull((e) => e.yamlKey == key);
-  }
+  static UsageKind? fromKey(String? key) =>
+      UsageKind.values.firstWhereOrNull((kind) => kind.yamlKey == key);
 }

@@ -6,7 +6,7 @@ import 'package:architecture_lints/src/core/resolver/refinement/refinement_strat
 import 'package:architecture_lints/src/core/resolver/refinement/score_log.dart';
 import 'package:architecture_lints/src/core/resolver/refinement/score_weight.dart';
 
-class ModeStrategy implements RefinementStrategy {
+class ModeStrategy22 implements RefinementStrategy {
   @override
   void evaluate({
     required ScoreLog log,

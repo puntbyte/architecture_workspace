@@ -104,7 +104,7 @@ class Definition {
 
   /// Converts the definition to a Map for templates and expressions.
   Map<String, dynamic> toMap() => {
-    'type': type, // Expose 'type' so baseDef.type works
+    'type': type,
     'types': types,
     'import': import,
     'imports': imports,

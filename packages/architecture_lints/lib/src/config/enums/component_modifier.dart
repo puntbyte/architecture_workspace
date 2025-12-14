@@ -16,5 +16,5 @@ enum ComponentModifier {
   const ComponentModifier(this.yamlKey);
 
   static ComponentModifier? fromKey(String? key) =>
-      ComponentModifier.values.firstWhereOrNull((e) => e.yamlKey == key);
+      ComponentModifier.values.firstWhereOrNull((modifier) => modifier.yamlKey == key);
 }

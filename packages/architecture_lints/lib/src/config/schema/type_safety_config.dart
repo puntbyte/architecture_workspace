@@ -17,16 +17,13 @@ class TypeSafetyConfig {
     required this.forbidden,
   });
 
-  factory TypeSafetyConfig.fromMap(Map<dynamic, dynamic> map) {
-    return TypeSafetyConfig(
-      onIds: map.getStringList(ConfigKeys.typeSafety.on),
-      allowed: TypeSafetyConstraint.listFromDynamic(map[ConfigKeys.typeSafety.allowed]),
-      forbidden: TypeSafetyConstraint.listFromDynamic(map[ConfigKeys.typeSafety.forbidden]),
-    );
-  }
+  factory TypeSafetyConfig.fromMap(Map<dynamic, dynamic> map) => TypeSafetyConfig(
+    onIds: map.getStringList(ConfigKeys.typeSafety.on),
+    allowed: TypeSafetyConstraint.listFromDynamic(map[ConfigKeys.typeSafety.allowed]),
+    forbidden: TypeSafetyConstraint.listFromDynamic(map[ConfigKeys.typeSafety.forbidden]),
+  );
 
   /// Parses the 'type_safeties' list.
-  static List<TypeSafetyConfig> parseList(List<Map<String, dynamic>> list) {
-    return list.map(TypeSafetyConfig.fromMap).toList();
-  }
+  static List<TypeSafetyConfig> parseList(List<Map<String, dynamic>> list) =>
+      list.map(TypeSafetyConfig.fromMap).toList();
 }

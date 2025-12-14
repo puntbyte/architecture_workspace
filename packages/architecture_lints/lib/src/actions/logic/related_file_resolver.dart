@@ -10,7 +10,7 @@ import 'package:path/path.dart' as p;
 class RelatedFileResolver with NamingLogic, RelationshipLogic {
   final ArchitectureConfig config;
 
-  RelatedFileResolver(this.config);
+  const RelatedFileResolver(this.config);
 
   /// Finds and resolves the AST of a related file.
   Future<ResolvedUnitResult?> resolveRelated({

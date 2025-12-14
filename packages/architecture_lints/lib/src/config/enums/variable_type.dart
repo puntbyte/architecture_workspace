@@ -14,7 +14,6 @@ enum VariableType {
 
   const VariableType(this.yamlKey);
 
-  static VariableType fromKey(String? key) {
-    return VariableType.values.firstWhereOrNull((e) => e.yamlKey == key) ?? VariableType.dynamic;
-  }
+  static VariableType fromKey(String? key) =>
+      VariableType.values.firstWhereOrNull((type) => type.yamlKey == key) ?? VariableType.dynamic;
 }

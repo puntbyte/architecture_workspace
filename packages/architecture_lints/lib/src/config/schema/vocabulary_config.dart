@@ -14,13 +14,11 @@ class VocabularyConfig {
     this.adjectives = const {},
   });
 
-  factory VocabularyConfig.fromMap(Map<dynamic, dynamic> map) {
-    return VocabularyConfig(
-      nouns: _parseSet(map, ConfigKeys.vocabulary.nouns),
-      verbs: _parseSet(map, ConfigKeys.vocabulary.verbs),
-      adjectives: _parseSet(map, ConfigKeys.vocabulary.adjectives),
-    );
-  }
+  factory VocabularyConfig.fromMap(Map<dynamic, dynamic> map) => VocabularyConfig(
+    nouns: _parseSet(map, ConfigKeys.vocabulary.nouns),
+    verbs: _parseSet(map, ConfigKeys.vocabulary.verbs),
+    adjectives: _parseSet(map, ConfigKeys.vocabulary.adjectives),
+  );
 
   static Set<String> _parseSet(Map<dynamic, dynamic> map, String key) {
     final list = map.getStringList(key);

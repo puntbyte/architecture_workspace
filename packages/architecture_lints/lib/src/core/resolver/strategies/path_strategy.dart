@@ -4,7 +4,7 @@ import 'package:architecture_lints/src/core/resolver/refinement/refinement_conte
 import 'package:architecture_lints/src/core/resolver/refinement/refinement_strategy.dart';
 import 'package:architecture_lints/src/core/resolver/refinement/score_log.dart';
 
-class PathStrategy implements RefinementStrategy {
+class PathStrategy22 implements RefinementStrategy {
   @override
   void evaluate({
     required ScoreLog log,

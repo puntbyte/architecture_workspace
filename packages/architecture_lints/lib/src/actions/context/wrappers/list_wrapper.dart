@@ -8,7 +8,7 @@ class ListWrapper<E> with IterableMixin<E> {
   const ListWrapper(this._inner);
 
   static MemberAccessor<ListWrapper> get accessor =>
-      MemberAccessor<ListWrapper>.fallback(_getMember);
+      const MemberAccessor<ListWrapper>.fallback(_getMember);
 
   static dynamic _getMember(ListWrapper obj, String name) => switch (name) {
     'hasMany' => obj.hasMany,
@@ -47,9 +47,7 @@ class ListWrapper<E> with IterableMixin<E> {
   E get last => _inner.last;
 
   E? at(int index) {
-    if (index >= 0 && index < length) {
-      return _inner[index];
-    }
+    if (index >= 0 && index < length) return _inner[index];
     return null;
   }
 

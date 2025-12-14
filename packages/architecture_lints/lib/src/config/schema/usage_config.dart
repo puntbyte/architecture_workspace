@@ -15,15 +15,12 @@ class UsageConfig {
     required this.forbidden,
   });
 
-  factory UsageConfig.fromMap(Map<dynamic, dynamic> map) {
-    return UsageConfig(
-      onIds: map.getStringList(ConfigKeys.usage.on),
-      forbidden: map.getMapList(ConfigKeys.usage.forbidden).map(UsageConstraint.fromMap).toList(),
-    );
-  }
+  factory UsageConfig.fromMap(Map<dynamic, dynamic> map) => UsageConfig(
+    onIds: map.getStringList(ConfigKeys.usage.on),
+    forbidden: map.getMapList(ConfigKeys.usage.forbidden).map(UsageConstraint.fromMap).toList(),
+  );
 
   /// Parses the 'usages' list.
-  static List<UsageConfig> parseList(List<Map<String, dynamic>> list) {
-    return list.map(UsageConfig.fromMap).toList();
-  }
+  static List<UsageConfig> parseList(List<Map<String, dynamic>> list) =>
+      list.map(UsageConfig.fromMap).toList();
 }

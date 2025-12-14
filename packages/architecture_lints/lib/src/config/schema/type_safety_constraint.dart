@@ -29,27 +29,28 @@ class TypeSafetyConstraint {
     this.component,
   });
 
-  factory TypeSafetyConstraint.fromMap(Map<dynamic, dynamic> map) {
-    return TypeSafetyConstraint(
-      kind: map.getString(ConfigKeys.typeSafety.kind, fallback: 'return'),
-      identifier: map.tryGetString(ConfigKeys.typeSafety.identifier),
-      definitions: map.getStringList(ConfigKeys.typeSafety.definition),
-      types: map.getStringList(ConfigKeys.typeSafety.type),
-      component: map.tryGetString(ConfigKeys.typeSafety.component),
-    );
-  }
+  factory TypeSafetyConstraint.fromMap(Map<dynamic, dynamic> map) => TypeSafetyConstraint(
+    kind: map.getString(ConfigKeys.typeSafety.kind, fallback: 'return'),
+    identifier: map.tryGetString(ConfigKeys.typeSafety.identifier),
+    definitions: map.getStringList(ConfigKeys.typeSafety.definition),
+    types: map.getStringList(ConfigKeys.typeSafety.type),
+    component: map.tryGetString(ConfigKeys.typeSafety.component),
+  );
 
   // Helper to allow single objects or lists in YAML
   static List<TypeSafetyConstraint> listFromDynamic(dynamic value) {
-    if (value is Map) {
-      return [TypeSafetyConstraint.fromMap(value)];
-    }
+    if (value is Map) return [TypeSafetyConstraint.fromMap(value)];
+
     if (value is List) {
-      return value.map((e) {
-        if (e is Map) return TypeSafetyConstraint.fromMap(e);
-        return null;
-      }).whereType<TypeSafetyConstraint>().toList();
+      return value
+          .map((e) {
+            if (e is Map) return TypeSafetyConstraint.fromMap(e);
+            return null;
+          })
+          .whereType<TypeSafetyConstraint>()
+          .toList();
     }
+
     return [];
   }
 }

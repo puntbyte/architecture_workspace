@@ -6,7 +6,7 @@ import 'package:architecture_lints/src/core/resolver/refinement/score_log.dart';
 import 'package:architecture_lints/src/core/resolver/refinement/score_weight.dart';
 import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart';
 
-class NamingStrategy with NamingLogic implements RefinementStrategy {
+class NamingStrategy22 with NamingLogic implements RefinementStrategy {
   @override
   void evaluate({
     required ScoreLog log,

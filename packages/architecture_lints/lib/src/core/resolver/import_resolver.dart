@@ -9,9 +9,7 @@ class ImportResolver {
   static String? resolvePath({required ImportDirective node}) {
     // 1. Ignore dart: imports
     final uriString = node.uri.stringValue;
-    if (uriString != null && uriString.startsWith('dart:')) {
-      return null;
-    }
+    if (uriString != null && uriString.startsWith('dart:')) return null;
 
     // 2. Resolve the Library Element
     final libraryImport = node.libraryImport;
@@ -27,15 +25,11 @@ class ImportResolver {
     // The Analyzer might create a Source object for a missing file
     // (to report an error). We return null in this case to avoid
     // linting against non-existent files (e.g. ungenerated code).
-    if (!source.exists()) {
-      return null;
-    }
+    if (!source.exists()) return null;
 
     // 5. Check Scheme (file: or package:)
     final uri = source.uri;
-    if (!uri.isScheme('file') && !uri.isScheme('package')) {
-      return null;
-    }
+    if (!uri.isScheme('file') && !uri.isScheme('package')) return null;
 
     return source.fullName;
   }

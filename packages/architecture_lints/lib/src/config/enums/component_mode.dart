@@ -21,5 +21,5 @@ enum ComponentMode {
   const ComponentMode(this.yamlKey);
 
   static ComponentMode fromKey(String? key) =>
-      ComponentMode.values.firstWhereOrNull((e) => e.yamlKey == key) ?? ComponentMode.file;
+      ComponentMode.values.firstWhereOrNull((mode) => mode.yamlKey == key) ?? ComponentMode.file;
 }

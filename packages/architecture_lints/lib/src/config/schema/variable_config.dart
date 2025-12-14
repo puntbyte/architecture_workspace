@@ -41,9 +41,7 @@ class VariableConfig {
 
   factory VariableConfig.fromDynamic(dynamic input) {
     // 1. Shorthand String -> Dynamic Expression
-    if (input is String) {
-      return VariableConfig(type: VariableType.dynamic, value: input);
-    }
+    if (input is String) return VariableConfig(type: VariableType.dynamic, value: input);
 
     // 2. Map Configuration
     if (input is Map) {
@@ -94,9 +92,7 @@ class VariableConfig {
   }
 
   static List<VariableSelect> _parseSelect(dynamic raw) {
-    if (raw is List) {
-      return raw.map((e) => VariableSelect.fromMap(e as Map)).toList();
-    }
+    if (raw is List) return raw.map((e) => VariableSelect.fromMap(e as Map)).toList();
     return [];
   }
 }

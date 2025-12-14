@@ -11,7 +11,6 @@ enum MemberModifier {
 
   const MemberModifier(this.yamlKey);
 
-  static MemberModifier? fromKey(String? key) {
-    return MemberModifier.values.firstWhereOrNull((e) => e.yamlKey == key);
-  }
+  static MemberModifier? fromKey(String? key) =>
+      MemberModifier.values.firstWhereOrNull((modifier) => modifier.yamlKey == key);
 }

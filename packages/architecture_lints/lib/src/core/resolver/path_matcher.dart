@@ -44,9 +44,7 @@ class PathMatcher {
     }
 
     // Check 'configPath/' (Start)
-    if (normalizedFile.startsWith('$normalizedConfig/')) {
-      return 0;
-    }
+    if (normalizedFile.startsWith('$normalizedConfig/')) return 0;
 
     // Fallback: Exact match
     if (normalizedFile == normalizedConfig) return 0;

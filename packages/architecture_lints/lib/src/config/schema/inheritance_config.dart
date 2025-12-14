@@ -19,27 +19,22 @@ class InheritanceConfig {
     required this.forbidden,
   });
 
-  factory InheritanceConfig.fromMap(Map<dynamic, dynamic> map) {
-    return InheritanceConfig(
-      onIds: map.getStringList(ConfigKeys.inheritance.on),
-      required: _parseDefinitionList(map[ConfigKeys.inheritance.required]),
-      allowed: _parseDefinitionList(map[ConfigKeys.inheritance.allowed]),
-      forbidden: _parseDefinitionList(map[ConfigKeys.inheritance.forbidden]),
-    );
-  }
+  factory InheritanceConfig.fromMap(Map<dynamic, dynamic> map) => InheritanceConfig(
+    onIds: map.getStringList(ConfigKeys.inheritance.on),
+    required: _parseDefinitionList(map[ConfigKeys.inheritance.required]),
+    allowed: _parseDefinitionList(map[ConfigKeys.inheritance.allowed]),
+    forbidden: _parseDefinitionList(map[ConfigKeys.inheritance.forbidden]),
+  );
 
   /// Parses a list of Maps into a list of InheritanceConfigs.
-  static List<InheritanceConfig> parseList(List<Map<String, dynamic>> list) {
-    return list.map(InheritanceConfig.fromMap).toList();
-  }
+  static List<InheritanceConfig> parseList(List<Map<String, dynamic>> list) =>
+      list.map(InheritanceConfig.fromMap).toList();
 
   static List<Definition> _parseDefinitionList(dynamic value) {
     if (value == null) return const [];
 
     // Case 1: Standard List (e.g. required: [ 'Entity', { type: 'Base' } ])
-    if (value is List) {
-      return value.map(Definition.fromDynamic).toList();
-    }
+    if (value is List) return value.map(Definition.fromDynamic).toList();
 
     // Case 2: Map Shorthand (e.g. required: { definition: ['usecase.unary', 'usecase.nullary'] })
     if (value is Map) {
@@ -49,9 +44,7 @@ class InheritanceConfig {
       // Since Definition.ref is singular, we must expand a list of refs
       // into multiple Definition objects.
       final defs = map[ConfigKeys.definition.definition];
-      if (defs is List) {
-        return defs.map((ref) => Definition(ref: ref.toString())).toList();
-      }
+      if (defs is List) return defs.map((ref) => Definition(ref: ref.toString())).toList();
 
       // Note: We do NOT need to expand 'type': ['A', 'B'] here,
       // because Definition.fromDynamic handles 'type' as a list internally now.

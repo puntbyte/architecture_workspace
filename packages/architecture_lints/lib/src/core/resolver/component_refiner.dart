@@ -15,16 +15,16 @@ import 'package:path/path.dart' as p;
 
 class ComponentRefiner with InheritanceLogic, NamingLogic {
   final ArchitectureConfig config;
-  final FileResolver fileResolver;
+  final FileResolver resolver;
 
-  ComponentRefiner(this.config, this.fileResolver);
+  const ComponentRefiner(this.config, this.resolver);
 
   ComponentContext? refine({
     required String filePath,
     required ResolvedUnitResult unit,
   }) {
     // 1. Get Candidates
-    var candidates = fileResolver.resolveAllCandidates(filePath);
+    var candidates = resolver.resolveAllCandidates(filePath);
     candidates = candidates.where((c) => c.component.mode != ComponentMode.namespace).toList();
 
     if (candidates.isEmpty) return null;
@@ -107,7 +107,7 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
 
         for (final rule in inheritanceRules) {
           if (rule.required.isNotEmpty) {
-            if (satisfiesRule(element, rule, config, fileResolver)) {
+            if (satisfiesRule(element, rule, config, resolver)) {
               final requiresComponent = rule.required.any((d) => d.component != null);
               log.add(requiresComponent ? 80 : 40, 'INHERIT: Requirement Met');
             } else {
@@ -226,9 +226,7 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
     for (final mod in requiredModifiers) {
       switch (mod) {
         case ComponentModifier.abstract:
-          if (!element.isAbstract && !element.isInterface && !element.isMixinClass) {
-            return false;
-          }
+          if (!element.isAbstract && !element.isInterface && !element.isMixinClass) return false;
         case ComponentModifier.sealed:
           if (!element.isSealed) return false;
         case ComponentModifier.base:
@@ -245,20 +243,17 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
   }
 
   bool _checkSiblingInheritance(
-      InterfaceElement element,
-      Candidate current,
-      List<Candidate> allCandidates,
-      ) {
+    InterfaceElement element,
+    Candidate current,
+    List<Candidate> allCandidates,
+  ) {
     final supertypes = element.allSupertypes;
     for (final supertype in supertypes) {
       final superElement = supertype.element;
       final library = superElement.library;
 
-      // FIX: Null check for library (e.g. dynamic type or SDK types in some contexts)
-      if (library == null) continue;
-
       final sourcePath = library.firstFragment.source.fullName;
-      final superComponent = fileResolver.resolve(sourcePath);
+      final superComponent = resolver.resolve(sourcePath);
 
       if (superComponent == null) continue;
 
@@ -279,7 +274,7 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
     return ComponentContext(
       filePath: filePath,
       config: config,
-      module: fileResolver.resolveModule(filePath),
+      module: resolver.resolveModule(filePath),
       debugScoreLog: log,
     );
   }

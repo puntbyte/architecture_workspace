@@ -14,5 +14,5 @@ enum ExceptionOperation {
   const ExceptionOperation(this.yamlKey, this.description);
 
   static ExceptionOperation? fromKey(String? key) =>
-      ExceptionOperation.values.firstWhereOrNull((e) => e.yamlKey == key);
+      ExceptionOperation.values.firstWhereOrNull((operation) => operation.yamlKey == key);
 }

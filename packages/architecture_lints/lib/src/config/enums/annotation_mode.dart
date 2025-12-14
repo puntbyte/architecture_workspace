@@ -12,5 +12,6 @@ enum AnnotationMode {
   const AnnotationMode(this.yamlKey);
 
   static AnnotationMode fromKey(String? key) =>
-      AnnotationMode.values.firstWhereOrNull((e) => e.yamlKey == key) ?? AnnotationMode.implicit;
+      AnnotationMode.values.firstWhereOrNull((mode) => mode.yamlKey == key) ??
+      AnnotationMode.implicit;
 }

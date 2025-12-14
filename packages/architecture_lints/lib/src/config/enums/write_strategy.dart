@@ -16,5 +16,5 @@ enum WriteStrategy {
   const WriteStrategy(this.yamlKey);
 
   static WriteStrategy? fromKey(String? key) =>
-      WriteStrategy.values.firstWhereOrNull((e) => e.yamlKey == key);
+      WriteStrategy.values.firstWhereOrNull((strategy) => strategy.yamlKey == key);
 }

@@ -40,6 +40,8 @@ class ArchitectureConfig {
   const ArchitectureConfig({
     required this.components,
     this.modules = const [],
+    this.definitions = const {},
+
     this.dependencies = const [],
     this.inheritances = const [],
     this.typeSafeties = const [],
@@ -48,34 +50,23 @@ class ArchitectureConfig {
     this.usages = const [],
     this.annotations = const [],
     this.relationships = const [],
-    this.excludes = const [],
-    this.definitions = const {},
-    this.vocabulary = const VocabularyConfig(),
+
     this.actions = const [],
     this.templates = const {},
+
+    this.excludes = const [],
+    this.vocabulary = const VocabularyConfig(),
   });
 
   factory ArchitectureConfig.empty() => const ArchitectureConfig(components: []);
 
   factory ArchitectureConfig.fromYaml(Map<dynamic, dynamic> yaml) {
-    // 1. Modules
-    final modules = ModuleConfig.parseMap(
-      yaml.mustGetMap(ConfigKeys.root.modules),
-    );
-
-    // 2. Components (Generic Parser)
-    final components = ComponentConfig.parseMap(
-      yaml.mustGetMap(ConfigKeys.root.components),
-      modules,
-    );
-
-    final vocabulary = VocabularyConfig.fromMap(
-      yaml.getMap(ConfigKeys.root.vocabulary),
-    );
+    // Modules
+    final modules = ModuleConfig.parseMap(yaml.mustGetMap(ConfigKeys.root.modules));
 
     return ArchitectureConfig(
       modules: modules,
-      components: components,
+      components: ComponentConfig.parseMap(yaml.mustGetMap(ConfigKeys.root.components), modules),
       definitions: Definition.parseRegistry(yaml.mustGetMap(ConfigKeys.root.definitions)),
 
       dependencies: DependencyConfig.parseList(yaml.mustGetMapList(ConfigKeys.root.dependencies)),
@@ -90,19 +81,18 @@ class ArchitectureConfig {
       ),
 
       actions: ActionConfig.parseMap(yaml.mustGetMap('actions')),
-      templates: yaml.mustGetMap(ConfigKeys.root.templates).map((key, value) {
-        return MapEntry(key, TemplateDefinition.fromDynamic(value));
-      }),
+      templates: yaml
+          .mustGetMap(ConfigKeys.root.templates)
+          .map((key, value) => MapEntry(key, TemplateDefinition.fromDynamic(value))),
 
       excludes: yaml.mustGetStringList(ConfigKeys.root.excludes),
-      vocabulary: vocabulary,
+      vocabulary: VocabularyConfig.fromMap(yaml.getMap(ConfigKeys.root.vocabulary)),
     );
   }
 
   /// Helper to find actions for a specific error code
-  List<ActionConfig> getActionsForError(String errorCode) {
-    return actions.where((a) => a.trigger.errorCode == errorCode).toList();
-  }
+  List<ActionConfig> getActionsForError(String errorCode) =>
+      actions.where((a) => a.trigger.errorCode == errorCode).toList();
 
   Map<String, String> get importRewrites {
     final rewrites = <String, String>{};
@@ -115,6 +105,7 @@ class ArchitectureConfig {
         }
       }
     }
+
     return rewrites;
   }
 }

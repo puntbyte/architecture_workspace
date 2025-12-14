@@ -1,12 +1,13 @@
 import 'package:collection/collection.dart';
 
 enum RelationshipOperation {
-  iteration('iteration');
+  iteration('iteration')
+  ;
 
   final String yamlKey;
+
   const RelationshipOperation(this.yamlKey);
 
-  static RelationshipOperation? fromKey(String? key) {
-    return RelationshipOperation.values.firstWhereOrNull((e) => e.yamlKey == key);
-  }
+  static RelationshipOperation? fromKey(String? key) =>
+      RelationshipOperation.values.firstWhereOrNull((operation) => operation.yamlKey == key);
 }

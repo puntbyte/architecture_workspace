@@ -9,7 +9,6 @@ enum MemberVisibility {
 
   const MemberVisibility(this.yamlKey);
 
-  static MemberVisibility? fromKey(String? key) {
-    return MemberVisibility.values.firstWhereOrNull((e) => e.yamlKey == key);
-  }
+  static MemberVisibility? fromKey(String? key) =>
+      MemberVisibility.values.firstWhereOrNull((visibility) => visibility.yamlKey == key);
 }

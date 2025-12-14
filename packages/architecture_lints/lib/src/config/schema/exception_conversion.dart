@@ -12,10 +12,8 @@ class ExceptionConversion {
     required this.toDefinition,
   });
 
-  factory ExceptionConversion.fromMap(Map<dynamic, dynamic> map) {
-    return ExceptionConversion(
-      fromDefinition: map.getString(ConfigKeys.exception.fromDefinition),
-      toDefinition: map.getString(ConfigKeys.exception.toDefinition),
-    );
-  }
+  factory ExceptionConversion.fromMap(Map<dynamic, dynamic> map) => ExceptionConversion(
+    fromDefinition: map.getString(ConfigKeys.exception.fromDefinition),
+    toDefinition: map.getString(ConfigKeys.exception.toDefinition),
+  );
 }

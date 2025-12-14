@@ -20,16 +20,13 @@ class DependencyConfig {
     required this.forbidden,
   });
 
-  factory DependencyConfig.fromMap(Map<dynamic, dynamic> map) {
-    return DependencyConfig(
-      onIds: map.getStringList(ConfigKeys.dependency.on),
-      allowed: DependencyDetail.fromDynamic(map[ConfigKeys.dependency.allowed]),
-      forbidden: DependencyDetail.fromDynamic(map[ConfigKeys.dependency.forbidden]),
-    );
-  }
+  factory DependencyConfig.fromMap(Map<dynamic, dynamic> map) => DependencyConfig(
+    onIds: map.getStringList(ConfigKeys.dependency.on),
+    allowed: DependencyDetail.fromDynamic(map[ConfigKeys.dependency.allowed]),
+    forbidden: DependencyDetail.fromDynamic(map[ConfigKeys.dependency.forbidden]),
+  );
 
   /// Parses the 'dependencies' list.
-  static List<DependencyConfig> parseList(List<Map<String, dynamic>> list) {
-    return list.map(DependencyConfig.fromMap).toList();
-  }
+  static List<DependencyConfig> parseList(List<Map<String, dynamic>> list) =>
+      list.map(DependencyConfig.fromMap).toList();
 }

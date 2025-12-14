@@ -25,19 +25,18 @@ class ConfigWrapper {
   /// Semantic helper: config.definitionFor('usecase.unary')
   /// Returns a Map representation of the definition, allowing usage like:
   /// `config.definitionFor('...').type` (via map key access).
-  Map<String, dynamic>? definitionFor(String key) {
-    return _config.definitions[key]?.toMap();
-  }
+  Map<String, dynamic>? definitionFor(String key) => _config.definitions[key]?.toMap();
 
   /// Helper to find naming configuration for a specific component ID.
   Map<String, dynamic>? namesFor(String componentId) {
-    final component = _config.components.firstWhereOrNull((c) => c.id == componentId);
+    final component = _config.components.firstWhereOrNull(
+      (component) => component.id == componentId,
+    );
 
     if (component == null) return null;
 
-    ListWrapper<StringWrapper> wrap(List<String> list) {
-      return ListWrapper(list.map(StringWrapper.new).toList());
-    }
+    ListWrapper<StringWrapper> wrap(List<String> list) =>
+        ListWrapper(list.map(StringWrapper.new).toList());
 
     return {
       'pattern': wrap(component.patterns),
@@ -51,9 +50,7 @@ class ConfigWrapper {
   Map<String, dynamic> annotationsFor(String componentId) {
     final rule = _config.annotations.firstWhereOrNull((r) {
       if (r.onIds.contains(componentId)) return true;
-      if (r.onIds.any((id) => componentId.endsWith('.$id') || componentId == id)) {
-        return true;
-      }
+      if (r.onIds.any((id) => componentId.endsWith('.$id') || componentId == id)) return true;
       return false;
     });
 
@@ -67,16 +64,13 @@ class ConfigWrapper {
 
     List<Definition> mapConstraints(List<AnnotationConstraint> constraints) {
       final defs = <Definition>[];
+
       for (final c in constraints) {
         for (final type in c.types) {
-          defs.add(
-            Definition(
-              types: [type],
-              imports: c.import != null ? [c.import!] : [],
-            ),
-          );
+          defs.add(Definition(types: [type], imports: c.import != null ? [c.import!] : []));
         }
       }
+
       return defs;
     }
 

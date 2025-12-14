@@ -22,16 +22,11 @@ class ConfigLoader {
 
     if (_cache.containsKey(configFilePath)) {
       final entry = _cache[configFilePath]!;
-      if (entry.lastModified.isAtSameMomentAs(lastModified)) {
-        return entry.config;
-      }
+      if (entry.lastModified.isAtSameMomentAs(lastModified)) return entry.config;
     }
 
     try {
-      final mergedMap = await YamlMerger.loadMergedYaml(
-        configFilePath,
-        projectRoot: root,
-      );
+      final mergedMap = await YamlMerger.loadMergedYaml(configFilePath, projectRoot: root);
 
       final config = ArchitectureConfig.fromYaml(mergedMap);
 
@@ -52,19 +47,16 @@ class ConfigLoader {
     var directory = Directory(p.dirname(path));
     for (var i = 0; i < 20; i++) {
       final configPath = p.join(directory.path, ConfigKeys.configFilename);
-      if (File(configPath).existsSync()) {
-        return directory.path;
-      }
+      if (File(configPath).existsSync()) return directory.path;
       if (directory.parent.path == directory.path) break;
       directory = directory.parent;
     }
+
     return null;
   }
 
   @visibleForTesting
-  static void resetCache() {
-    _cache.clear();
-  }
+  static void resetCache() => _cache.clear();
 }
 
 class _CachedEntry {

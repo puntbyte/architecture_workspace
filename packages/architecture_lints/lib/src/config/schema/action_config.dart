@@ -8,7 +8,6 @@ import 'package:architecture_lints/src/utils/map_extensions.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-@immutable
 class ActionConfig {
   final String id;
   final String description;
@@ -32,23 +31,20 @@ class ActionConfig {
     this.debug = false,
   });
 
-  factory ActionConfig.fromMap(String id, Map<dynamic, dynamic> map) {
-    return ActionConfig(
-      id: id,
-      description: map.getString('description', fallback: 'Fix issue'),
-      trigger: ActionTrigger.fromMap(map.getMap('trigger')),
-      source: ActionSource.fromMap(map.getMap('source')),
-      target: ActionTarget.fromMap(map.getMap('target')),
-      write: ActionWrite.fromMap(map.getMap('write')),
-      variables: _parseVariables(map['variables']),
-      templateId: map.mustGetString('template_id'),
-      debug: map.getBool('debug', fallback: false),
-    );
-  }
+  factory ActionConfig.fromMap(String id, Map<dynamic, dynamic> map) => ActionConfig(
+    id: id,
+    description: map.getString('description', fallback: 'Fix issue'),
+    trigger: ActionTrigger.fromMap(map.getMap('trigger')),
+    source: ActionSource.fromMap(map.getMap('source')),
+    target: ActionTarget.fromMap(map.getMap('target')),
+    write: ActionWrite.fromMap(map.getMap('write')),
+    variables: _parseVariables(map['variables']),
+    templateId: map.mustGetString('template_id'),
+    debug: map.getBool('debug', fallback: false),
+  );
 
-  static List<ActionConfig> parseMap(Map<String, dynamic> map) {
-    return map.entries.map((e) => ActionConfig.fromMap(e.key, e.value as Map)).toList();
-  }
+  static List<ActionConfig> parseMap(Map<String, dynamic> map) =>
+      map.entries.map((e) => ActionConfig.fromMap(e.key, e.value as Map)).toList();
 
   static Map<String, VariableConfig> _parseVariables(dynamic raw) {
     if (raw is! Map) return {};
@@ -71,13 +67,11 @@ class ActionTrigger {
 
   const ActionTrigger({this.component, this.element, this.errorCode});
 
-  factory ActionTrigger.fromMap(Map<String, dynamic> map) {
-    return ActionTrigger(
-      component: map.tryGetString('component'),
-      element: map.tryGetString('element'),
-      errorCode: map.tryGetString('error_code'),
-    );
-  }
+  factory ActionTrigger.fromMap(Map<String, dynamic> map) => ActionTrigger(
+    component: map.tryGetString('component'),
+    element: map.tryGetString('element'),
+    errorCode: map.tryGetString('error_code'),
+  );
 }
 
 @immutable
@@ -103,20 +97,18 @@ class ActionTarget {
 
   const ActionTarget({this.scope = ActionScope.related, this.component, this.element});
 
-  factory ActionTarget.fromMap(Map<String, dynamic> map) {
-    return ActionTarget(
-      scope: ActionScope.fromKey(map.tryGetString('scope')),
-      component: map.tryGetString('component'),
-      element: map.tryGetString('element'),
-    );
-  }
+  factory ActionTarget.fromMap(Map<String, dynamic> map) => ActionTarget(
+    scope: ActionScope.fromKey(map.tryGetString('scope')),
+    component: map.tryGetString('component'),
+    element: map.tryGetString('element'),
+  );
 }
 
 @immutable
 class ActionWrite {
   final WriteStrategy strategy;
   final WritePlacement placement;
-  final String? filename; // Moved here
+  final String? filename;
 
   const ActionWrite({
     this.strategy = WriteStrategy.file,
@@ -124,12 +116,9 @@ class ActionWrite {
     this.filename,
   });
 
-  factory ActionWrite.fromMap(Map<String, dynamic> map) {
-    return ActionWrite(
-      // FIX: Use null coalescing to ensure non-nullable fields
-      strategy: WriteStrategy.fromKey(map.tryGetString('strategy')) ?? WriteStrategy.file,
-      placement: WritePlacement.fromKey(map.tryGetString('placement')) ?? WritePlacement.end,
-      filename: map.tryGetString('filename'),
-    );
-  }
+  factory ActionWrite.fromMap(Map<String, dynamic> map) => ActionWrite(
+    strategy: WriteStrategy.fromKey(map.tryGetString('strategy')) ?? WriteStrategy.file,
+    placement: WritePlacement.fromKey(map.tryGetString('placement')) ?? WritePlacement.end,
+    filename: map.tryGetString('filename'),
+  );
 }

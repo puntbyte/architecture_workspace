@@ -7,5 +7,5 @@ enum ActionScope {
   ;
 
   static ActionScope fromKey(String? key) =>
-      ActionScope.values.firstWhere((e) => e.name == key, orElse: () => current);
+      ActionScope.values.firstWhere((scope) => scope.name == key, orElse: () => current);
 }

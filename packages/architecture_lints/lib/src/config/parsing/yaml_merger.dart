@@ -65,9 +65,7 @@ class YamlMerger {
     // 2. Parse & Merge
     final currentYaml = loadYaml(content);
     var currentMap = <dynamic, dynamic>{};
-    if (currentYaml is Map) {
-      currentMap = currentYaml;
-    }
+    if (currentYaml is Map) currentMap = currentYaml;
 
     return _deepMerge(baseConfig, currentMap);
   }

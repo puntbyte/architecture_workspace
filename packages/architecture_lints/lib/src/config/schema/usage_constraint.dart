@@ -22,11 +22,9 @@ class UsageConstraint {
     this.components = const [],
   });
 
-  factory UsageConstraint.fromMap(Map<dynamic, dynamic> map) {
-    return UsageConstraint(
-      kind: UsageKind.fromKey(map.getString(ConfigKeys.usage.kind)),
-      definition: map.tryGetString(ConfigKeys.usage.definition),
-      components: map.getStringList(ConfigKeys.usage.component),
-    );
-  }
+  factory UsageConstraint.fromMap(Map<dynamic, dynamic> map) => UsageConstraint(
+    kind: UsageKind.fromKey(map.getString(ConfigKeys.usage.kind)),
+    definition: map.tryGetString(ConfigKeys.usage.definition),
+    components: map.getStringList(ConfigKeys.usage.component),
+  );
 }

@@ -22,18 +22,15 @@ class AnnotationConfig {
     this.mode = AnnotationMode.implicit,
   });
 
-  factory AnnotationConfig.fromMap(Map<dynamic, dynamic> map) {
-    return AnnotationConfig(
-      onIds: map.getStringList(ConfigKeys.annotation.on),
-      mode: AnnotationMode.fromKey(map.tryGetString(ConfigKeys.annotation.mode)),
-      required: AnnotationConstraint.listFromDynamic(map[ConfigKeys.annotation.required]),
-      allowed: AnnotationConstraint.listFromDynamic(map[ConfigKeys.annotation.allowed]),
-      forbidden: AnnotationConstraint.listFromDynamic(map[ConfigKeys.annotation.forbidden]),
-    );
-  }
+  factory AnnotationConfig.fromMap(Map<dynamic, dynamic> map) => AnnotationConfig(
+    onIds: map.getStringList(ConfigKeys.annotation.on),
+    mode: AnnotationMode.fromKey(map.tryGetString(ConfigKeys.annotation.mode)),
+    required: AnnotationConstraint.listFromDynamic(map[ConfigKeys.annotation.required]),
+    allowed: AnnotationConstraint.listFromDynamic(map[ConfigKeys.annotation.allowed]),
+    forbidden: AnnotationConstraint.listFromDynamic(map[ConfigKeys.annotation.forbidden]),
+  );
 
   /// Parses the 'annotations' list.
-  static List<AnnotationConfig> parseList(List<Map<String, dynamic>> list) {
-    return list.map(AnnotationConfig.fromMap).toList();
-  }
+  static List<AnnotationConfig> parseList(List<Map<String, dynamic>> list) =>
+      list.map(AnnotationConfig.fromMap).toList();
 }

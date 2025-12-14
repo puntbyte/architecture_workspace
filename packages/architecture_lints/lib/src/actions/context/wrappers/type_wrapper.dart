@@ -11,7 +11,7 @@ class TypeWrapper {
   final String rawString;
   final Map<String, Definition> definitions;
 
-  TypeWrapper(
+  const TypeWrapper(
     this.type, {
     this.rawString = '',
     this.definitions = const {},
@@ -32,6 +32,7 @@ class TypeWrapper {
 
   StringWrapper get name {
     final t = type;
+
     if (t != null && t.alias != null) {
       final aliasName = t.alias!.element.name;
       var typeArgs = '';
@@ -40,8 +41,10 @@ class TypeWrapper {
         final args = aliasArgs.map((e) => e.getDisplayString()).join(', ');
         typeArgs = '<$args>';
       }
+
       return StringWrapper('$aliasName$typeArgs');
     }
+
     return StringWrapper(t?.getDisplayString() ?? rawString);
   }
 

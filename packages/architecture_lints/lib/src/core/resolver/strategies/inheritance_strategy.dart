@@ -7,7 +7,7 @@ import 'package:architecture_lints/src/core/resolver/refinement/score_log.dart';
 import 'package:architecture_lints/src/core/resolver/refinement/score_weight.dart';
 import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.dart';
 
-class InheritanceStrategy with InheritanceLogic implements RefinementStrategy {
+class InheritanceStrategy22 with InheritanceLogic implements RefinementStrategy {
   @override
   void evaluate({
     required ScoreLog log,

@@ -59,9 +59,7 @@ class ComponentDependencyRule extends BoundaryBaseRule {
     final sourcePath = library.firstFragment.source.fullName;
     final targetComponent = fileResolver.resolve(sourcePath);
 
-    if (targetComponent != null) {
-      _validate(node, component, targetComponent, config, reporter);
-    }
+    if (targetComponent != null) _validate(node, component, targetComponent, config, reporter);
   }
 
   void _validate(
@@ -73,9 +71,7 @@ class ComponentDependencyRule extends BoundaryBaseRule {
   ) {
     if (component.id == targetComponent.id) return;
 
-    final rules = config.dependencies.where((rule) {
-      return component.matchesAny(rule.onIds);
-    }).toList();
+    final rules = config.dependencies.where((rule) => component.matchesAny(rule.onIds)).toList();
 
     if (rules.isEmpty) return;
 
@@ -117,9 +113,7 @@ class ComponentDependencyRule extends BoundaryBaseRule {
     if (allAllowed.isNotEmpty) {
       final allowedDisplay = allAllowed
           .take(3)
-          .map((id) {
-            return id.split('.').map((s) => s[0].toUpperCase() + s.substring(1)).join(' ');
-          })
+          .map((id) => id.split('.').map((s) => s[0].toUpperCase() + s.substring(1)).join(' '))
           .join(', ');
       suggestion = ' Allowed dependencies: $allowedDisplay${allAllowed.length > 3 ? '...' : ''}.';
     }

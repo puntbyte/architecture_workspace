@@ -2,12 +2,13 @@ import 'package:collection/collection.dart';
 
 enum RelationshipVisibility {
   public('public'),
-  private('private');
+  private('private')
+  ;
 
   final String yamlKey;
+
   const RelationshipVisibility(this.yamlKey);
 
-  static RelationshipVisibility? fromKey(String? key) {
-    return RelationshipVisibility.values.firstWhereOrNull((e) => e.yamlKey == key);
-  }
+  static RelationshipVisibility? fromKey(String? key) =>
+      RelationshipVisibility.values.firstWhereOrNull((visibility) => visibility.yamlKey == key);
 }

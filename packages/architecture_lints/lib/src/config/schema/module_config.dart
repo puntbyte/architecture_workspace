@@ -27,7 +27,7 @@ class ModuleConfig {
       path = value;
     } else if (value is Map) {
       final map = Map<String, dynamic>.from(value);
-      // FIX: Use ConfigKeys
+
       path = map.getString(ConfigKeys.module.path);
       isDefault = map.getBool(ConfigKeys.module.default$);
 
@@ -49,7 +49,6 @@ class ModuleConfig {
     );
   }
 
-  static List<ModuleConfig> parseMap(Map<String, dynamic> map) {
-    return map.entries.map((e) => ModuleConfig.fromMap(e.key, e.value)).toList();
-  }
+  static List<ModuleConfig> parseMap(Map<String, dynamic> map) =>
+      map.entries.map((e) => ModuleConfig.fromMap(e.key, e.value)).toList();
 }

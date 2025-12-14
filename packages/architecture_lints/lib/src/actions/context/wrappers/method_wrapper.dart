@@ -21,9 +21,8 @@ class MethodWrapper extends NodeWrapper {
     _ => NodeWrapper.getMember(obj, name),
   };
 
-  TypeWrapper get returnType {
-    return TypeWrapper(method.returnType?.type, rawString: 'void', definitions: definitions);
-  }
+  TypeWrapper get returnType =>
+      TypeWrapper(method.returnType?.type, rawString: 'void', definitions: definitions);
 
   StringWrapper get returnTypeInner => returnType.innerType;
 

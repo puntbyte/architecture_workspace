@@ -12,7 +12,6 @@ enum RelationshipKind {
 
   const RelationshipKind(this.yamlKey);
 
-  static RelationshipKind? fromKey(String? key) {
-    return RelationshipKind.values.firstWhereOrNull((e) => e.yamlKey == key);
-  }
+  static RelationshipKind? fromKey(String? key) =>
+      RelationshipKind.values.firstWhereOrNull((kind) => kind.yamlKey == key);
 }

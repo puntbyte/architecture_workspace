@@ -37,9 +37,11 @@ class RelationshipConfig {
       kind: RelationshipKind.fromKey(map.tryGetString(ConfigKeys.relationship.kind)),
 
       // Use Enhanced Enum with default
-      visibility: RelationshipVisibility.fromKey(
-        map.tryGetString(ConfigKeys.relationship.visibility),
-      ) ?? RelationshipVisibility.public,
+      visibility:
+          RelationshipVisibility.fromKey(
+            map.tryGetString(ConfigKeys.relationship.visibility),
+          ) ??
+          RelationshipVisibility.public,
 
       operation: RelationshipOperation.fromKey(map.tryGetString(ConfigKeys.relationship.operation)),
 
@@ -48,7 +50,6 @@ class RelationshipConfig {
     );
   }
 
-  static List<RelationshipConfig> parseList(List<Map<String, dynamic>> list) {
-    return list.map(RelationshipConfig.fromMap).toList();
-  }
+  static List<RelationshipConfig> parseList(List<Map<String, dynamic>> list) =>
+      list.map(RelationshipConfig.fromMap).toList();
 }

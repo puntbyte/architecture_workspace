@@ -1,6 +1,7 @@
 // lib/src/naming/logic/naming_logic.dart
 
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
+import 'package:architecture_lints/src/core/resolver/path_matcher.dart';
 
 mixin NamingLogic {
   static final Map<String, RegExp> _regexCache = {};
@@ -22,18 +23,23 @@ mixin NamingLogic {
     return null;
   }
 
-  RegExp _getRegex(String pattern) {
-    return _regexCache.putIfAbsent(pattern, () => _buildRegex(pattern));
-  }
+  RegExp _getRegex(String pattern) => _regexCache.putIfAbsent(pattern, () => _buildRegex(pattern));
 
   RegExp _buildRegex(String pattern) {
-    var regexStr = pattern;
+    // 1. Escape the pattern to treat literals (like dots/brackets) safely.
+    //    We use the PathMatcher helper or RegExp.escape.
+    var regexStr = PathMatcher.escapeRegex(pattern);
 
-    // Replace ${name} -> ([A-Z]...)
-    regexStr = regexStr.replaceAll(ConfigKeys.placeholder.name, ConfigKeys.regex.pascalCaseGroup);
+    // 2. Identify the escaped placeholders.
+    //    Since we escaped the pattern, '${name}' became '\$\{name\}'.
+    //    We must look for that escaped string to replace it.
+    final escapedName = PathMatcher.escapeRegex(ConfigKeys.placeholder.name);
+    final escapedAffix = PathMatcher.escapeRegex(ConfigKeys.placeholder.affix);
 
-    // Replace ${affix} -> .*
-    regexStr = regexStr.replaceAll(ConfigKeys.placeholder.affix, ConfigKeys.regex.wildcard);
+    // 3. Inject Regex Groups
+    regexStr = regexStr
+        .replaceAll(escapedName, ConfigKeys.regex.pascalCaseGroup)
+        .replaceAll(escapedAffix, ConfigKeys.regex.wildcard);
 
     return RegExp('^$regexStr\$');
   }

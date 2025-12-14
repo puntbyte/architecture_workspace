@@ -27,7 +27,7 @@ mixin InheritanceLogic {
     // Check if ANY supertype matches ANY of the required definitions
     return supertypes.any((type) {
       return rule.required.any(
-        (reqDef) => matchesDefinition(type, reqDef, fileResolver, config.definitions),
+            (reqDef) => matchesDefinition(type, reqDef, fileResolver, config.definitions),
       );
     });
   }

@@ -23,9 +23,8 @@ class DependencyDetail {
     if (value == null) return DependencyDetail.empty();
 
     // Case 1: Shorthand List -> Components
-    if (value is List) {
-      return DependencyDetail(components: value.map((e) => e.toString()).toList());
-    }
+    if (value is List) return DependencyDetail(components: value.map((e) => e.toString()).toList());
+
 
     // Case 2: Shorthand String -> Component
     if (value is String) return DependencyDetail(components: [value]);

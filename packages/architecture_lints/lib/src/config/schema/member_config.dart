@@ -17,17 +17,14 @@ class MemberConfig {
     required this.forbidden,
   });
 
-  factory MemberConfig.fromMap(Map<dynamic, dynamic> map) {
-    return MemberConfig(
-      onIds: map.getStringList(ConfigKeys.member.on),
-      required: MemberConstraint.listFromDynamic(map[ConfigKeys.member.required]),
-      allowed: MemberConstraint.listFromDynamic(map[ConfigKeys.member.allowed]),
-      forbidden: MemberConstraint.listFromDynamic(map[ConfigKeys.member.forbidden]),
-    );
-  }
+  factory MemberConfig.fromMap(Map<dynamic, dynamic> map) => MemberConfig(
+    onIds: map.getStringList(ConfigKeys.member.on),
+    required: MemberConstraint.listFromDynamic(map[ConfigKeys.member.required]),
+    allowed: MemberConstraint.listFromDynamic(map[ConfigKeys.member.allowed]),
+    forbidden: MemberConstraint.listFromDynamic(map[ConfigKeys.member.forbidden]),
+  );
 
   /// Parses the 'members' list.
-  static List<MemberConfig> parseList(List<Map<String, dynamic>> list) {
-    return list.map(MemberConfig.fromMap).toList();
-  }
+  static List<MemberConfig> parseList(List<Map<String, dynamic>> list) =>
+      list.map(MemberConfig.fromMap).toList();
 }

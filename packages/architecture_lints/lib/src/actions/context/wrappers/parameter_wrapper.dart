@@ -27,8 +27,8 @@ class ParameterWrapper extends NodeWrapper {
   }
 
   TypeWrapper get type {
-    final t = param.declaredFragment?.element.type;
-    return TypeWrapper(t, rawString: 'dynamic', definitions: definitions);
+    final type = param.declaredFragment?.element.type;
+    return TypeWrapper(type, rawString: 'dynamic', definitions: definitions);
   }
 
   bool get isNamed => param.isNamed;

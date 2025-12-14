@@ -66,7 +66,7 @@ class ArchitectureFix extends DartFix {
 
     if (config == null || unitResult == null) return;
 
-    final errorCode = analysisError.errorCode.name;
+    final errorCode = analysisError.diagnosticCode.name;
     final actions = config.getActionsForError(errorCode);
     if (actions.isEmpty) return;
 
@@ -289,6 +289,7 @@ class ArchitectureFix extends DartFix {
           }
         }
       }
+
       if (childFound != null) {
         currentNode = childFound;
       } else {

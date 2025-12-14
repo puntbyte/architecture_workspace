@@ -33,25 +33,21 @@ class ExceptionConfig {
   }
 
   static List<ExceptionConstraint> _parseList(dynamic value) {
-    if (value is List) {
-      return value.whereType<Map>().map(ExceptionConstraint.fromMap).toList();
-    }
+    if (value is List) return value.whereType<Map>().map(ExceptionConstraint.fromMap).toList();
+
     // Handle single object shorthand
-    if (value is Map) {
-      return [ExceptionConstraint.fromMap(value)];
-    }
+    if (value is Map) return [ExceptionConstraint.fromMap(value)];
+
     return [];
   }
 
   static List<ExceptionConversion> _parseConversions(dynamic value) {
-    if (value is List) {
-      return value.whereType<Map>().map(ExceptionConversion.fromMap).toList();
-    }
+    if (value is List) return value.whereType<Map>().map(ExceptionConversion.fromMap).toList();
+
     return [];
   }
 
   /// Parses the 'exceptions' list.
-  static List<ExceptionConfig> parseList(List<Map<String, dynamic>> list) {
-    return list.map(ExceptionConfig.fromMap).toList();
-  }
+  static List<ExceptionConfig> parseList(List<Map<String, dynamic>> list) =>
+      list.map(ExceptionConfig.fromMap).toList();
 }

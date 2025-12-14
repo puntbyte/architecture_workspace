@@ -22,19 +22,19 @@ class VariableResolver {
     required ArchitectureConfig config,
     required String packageName,
   }) : _engine = ExpressionEngine(sourceNode: sourceNode, config: config),
-        _importExtractor = ImportExtractor(packageName, rewrites: config.importRewrites),
-        _conditionalHandler = ConditionalHandler(
-          ExpressionEngine(sourceNode: sourceNode, config: config),
-        ),
-        _listHandler = ListHandler(
-          ExpressionEngine(sourceNode: sourceNode, config: config),
-        ),
-        _setHandler = SetHandler(
-          ExpressionEngine(sourceNode: sourceNode, config: config),
-        ),
-        _mapHandler = MapHandler(
-          ExpressionEngine(sourceNode: sourceNode, config: config),
-        );
+       _importExtractor = ImportExtractor(packageName, rewrites: config.importRewrites),
+       _conditionalHandler = ConditionalHandler(
+         ExpressionEngine(sourceNode: sourceNode, config: config),
+       ),
+       _listHandler = ListHandler(
+         ExpressionEngine(sourceNode: sourceNode, config: config),
+       ),
+       _setHandler = SetHandler(
+         ExpressionEngine(sourceNode: sourceNode, config: config),
+       ),
+       _mapHandler = MapHandler(
+         ExpressionEngine(sourceNode: sourceNode, config: config),
+       );
 
   Map<String, dynamic> resolveMap(Map<String, dynamic> variablesConfig) {
     final result = <String, dynamic>{};
@@ -68,24 +68,13 @@ class VariableResolver {
       return null;
     }
 
-    dynamic result;
-
-    // 1. Generate Raw Data
-    switch (config.type) {
-      case VariableType.list:
-        result = _listHandler.handle(config, context, this);
-        break; // FIX: Added break
-      case VariableType.set:
-        result = _setHandler.handle(config, context, this);
-        break; // FIX: Added break
-      case VariableType.map:
-        result = _mapHandler.handle(config, context, this);
-        break; // FIX: Added break
-      default:
-        if (config.value != null) {
-          result = _engine.evaluate(config.value!, context);
-        }
-    }
+    dynamic result = switch (config.type) {
+      VariableType.list => _listHandler.handle(config, context, this),
+      VariableType.set => _setHandler.handle(config, context, this),
+      VariableType.map => _mapHandler.handle(config, context, this),
+      _ when config.value != null => _engine.evaluate(config.value!, context),
+      _ => null,
+    };
 
     // 2. Apply Transformer (e.g. 'imports')
     if (config.transformer == 'imports' && result is Iterable) {
@@ -95,9 +84,7 @@ class VariableResolver {
     }
 
     // 3. Wrap Collections with Metadata
-    if (result is Iterable && result is! Map) {
-      result = _buildCollectionMeta(result);
-    }
+    if (result is Iterable && result is! Map) result = _buildCollectionMeta(result);
 
     // 4. Handle Nested Children
     if (config.children.isNotEmpty) {
@@ -110,9 +97,9 @@ class VariableResolver {
         if (result != null) resultMap['value'] = result;
       }
 
-      config.children.forEach((childKey, childConfig) {
-        resultMap[childKey] = resolveConfig(childConfig, context);
-      });
+      config.children.forEach(
+        (childKey, childConfig) => resultMap[childKey] = resolveConfig(childConfig, context),
+      );
 
       return _engine.unwrap(resultMap);
     }
