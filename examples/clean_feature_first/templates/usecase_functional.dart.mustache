@@ -8,8 +8,8 @@ typedef {{paramsClassName}} = ({
   {{type}} {{name}},
   {{/params.data.items}}
 });
-{{/params.hasMany}}
 
+{{/params.hasMany}}
 {{#requiredAnnotations.items}}
 @{{type}}()
 {{/requiredAnnotations.items}}
@@ -21,13 +21,16 @@ class {{usecaseName}}UseCase implements {{baseClassName}}<{{classGenerics}}> {
   @override
   {{methodReturnType}} call({{params.argument}}) {
     return {{repoVar}}.{{source.name}}(
-      {{#params.isSingle}}{{#params.data.items}}
+      {{#params.isSingle}}
+      {{#params.data.items}}
       {{#isNamed}}{{name}}: {{/isNamed}}{{name}}
-      {{/params.data.items}}{{/params.isSingle}}
-
-      {{#params.hasMany}}{{#params.data.items}}
+      {{/params.data.items}}
+      {{/params.isSingle}}
+      {{#params.hasMany}}
+      {{#params.data.items}}
       {{#isNamed}}{{name}}: {{/isNamed}}params.{{name}},
-      {{/params.data.items}}{{/params.hasMany}}
+      {{/params.data.items}}
+      {{/params.hasMany}}
     );
   }
 }

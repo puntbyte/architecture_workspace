@@ -1,10 +1,10 @@
 import 'package:architecture_lints/src/actions/context/wrappers/list_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/string_wrapper.dart';
-import 'package:architecture_lints/src/config/schema/annotation_config.dart';
 import 'package:architecture_lints/src/config/schema/annotation_constraint.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/definition.dart';
 import 'package:collection/collection.dart';
+import 'package:expressions/expressions.dart';
 
 /// Wraps [ArchitectureConfig] to provide helper methods for the Action Engine.
 class ConfigWrapper {
@@ -12,30 +12,34 @@ class ConfigWrapper {
 
   const ConfigWrapper(this._config);
 
-  /// Expose definitions map directly.
-  Map<String, Definition> get definitions => _config.definitions;
+  static MemberAccessor<ConfigWrapper> get accessor =>
+      const MemberAccessor<ConfigWrapper>.fallback(_getMember);
+
+  static dynamic _getMember(ConfigWrapper obj, String name) => switch (name) {
+    'namesFor' => obj.namesFor,
+    'definitionFor' => obj.definitionFor,
+    'annotationsFor' => obj.annotationsFor,
+    _ => throw ArgumentError('Unknown ConfigWrapper property: $name'),
+  };
 
   /// Semantic helper: config.definitionFor('usecase.unary')
-  Definition? definitionFor(String key) {
-    return _config.definitions[key];
+  /// Returns a Map representation of the definition, allowing usage like:
+  /// `config.definitionFor('...').type` (via map key access).
+  Map<String, dynamic>? definitionFor(String key) {
+    return _config.definitions[key]?.toMap();
   }
 
   /// Helper to find naming configuration for a specific component ID.
-  /// Usage: config.namesFor('domain.port').pattern
-  ///
-  /// Returns a Map containing ListWrappers for patterns, antipatterns, etc.
   Map<String, dynamic>? namesFor(String componentId) {
     final component = _config.components.firstWhereOrNull((c) => c.id == componentId);
 
     if (component == null) return null;
 
-    // Helper to wrap String lists
     ListWrapper<StringWrapper> wrap(List<String> list) {
       return ListWrapper(list.map(StringWrapper.new).toList());
     }
 
     return {
-      // Map 'patterns' (plural in class) to 'pattern' (singular concept in usage)
       'pattern': wrap(component.patterns),
       'antipattern': wrap(component.antipatterns),
       'grammar': wrap(component.grammar),
@@ -47,7 +51,9 @@ class ConfigWrapper {
   Map<String, dynamic> annotationsFor(String componentId) {
     final rule = _config.annotations.firstWhereOrNull((r) {
       if (r.onIds.contains(componentId)) return true;
-      if (r.onIds.any((id) => componentId.endsWith('.$id') || componentId == id)) return true;
+      if (r.onIds.any((id) => componentId.endsWith('.$id') || componentId == id)) {
+        return true;
+      }
       return false;
     });
 
@@ -63,15 +69,21 @@ class ConfigWrapper {
       final defs = <Definition>[];
       for (final c in constraints) {
         for (final type in c.types) {
-          defs.add(Definition(
-            types: [type],
-            imports: c.import != null ? [c.import!] : [],
-          ));
+          defs.add(
+            Definition(
+              types: [type],
+              imports: c.import != null ? [c.import!] : [],
+            ),
+          );
         }
       }
       return defs;
     }
 
+    // Note: If you want these lists to support .hasMany/.isEmpty in templates,
+    // you might want to wrap these lists in ListWrapper here, or ensure
+    // Definition.toMap() is sufficient for your template needs.
+    // Currently returns List<Definition> which works for iteration.
     return {
       'required': mapConstraints(rule.required),
       'forbidden': mapConstraints(rule.forbidden),

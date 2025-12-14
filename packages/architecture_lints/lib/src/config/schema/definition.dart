@@ -10,6 +10,7 @@ class Definition {
   final List<String> types;
   final List<String> identifiers;
   final List<String> imports;
+  final List<String> rewrites;
   final String? ref;
   final String? component;
   final List<Definition> arguments;
@@ -19,29 +20,12 @@ class Definition {
     this.types = const [],
     this.identifiers = const [],
     this.imports = const [],
+    this.rewrites = const [],
     this.ref,
     this.component,
     this.arguments = const [],
     this.isWildcard = false,
   });
-
-  /// Backward compatibility getter.
-  String? get type => types.isNotEmpty ? types.first : null;
-
-  String? get import => imports.isNotEmpty ? imports.first : null;
-
-  /// Converts the definition to a Map for templates and expressions.
-  Map<String, dynamic> toMap() {
-    return {
-      'type': type, // Expose 'type' so baseDef.type works
-      'types': types,
-      'import': import,
-      'imports': imports,
-      'ref': ref,
-      'component': component,
-      'isWildcard': isWildcard,
-    };
-  }
 
   factory Definition.fromDynamic(dynamic value) {
     if (value == null) return const Definition();
@@ -69,6 +53,8 @@ class Definition {
       final importsList = map.getStringList(ConfigKeys.definition.import);
       final ids = map.getStringList(ConfigKeys.definition.identifier);
 
+      final rewritesList = map.getStringList(ConfigKeys.definition.rewrite);
+
       final rawArgs = map[ConfigKeys.definition.argument];
       final args = <Definition>[];
       if (rawArgs != null) {
@@ -83,6 +69,7 @@ class Definition {
         types: typesList,
         identifiers: ids,
         imports: importsList,
+        rewrites: rewritesList,
         arguments: args,
       );
     }
@@ -109,6 +96,23 @@ class Definition {
       },
     );
   }
+
+  /// Backward compatibility getter.
+  String? get type => types.isNotEmpty ? types.first : null;
+
+  String? get import => imports.isNotEmpty ? imports.first : null;
+
+  /// Converts the definition to a Map for templates and expressions.
+  Map<String, dynamic> toMap() => {
+    'type': type, // Expose 'type' so baseDef.type works
+    'types': types,
+    'import': import,
+    'imports': imports,
+    'rewrites': rewrites,
+    'ref': ref,
+    'component': component,
+    'isWildcard': isWildcard,
+  };
 
   /// Generates a human-readable description.
   String describe([Map<String, Definition>? registry]) {

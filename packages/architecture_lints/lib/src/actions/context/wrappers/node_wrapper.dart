@@ -3,6 +3,7 @@ import 'package:architecture_lints/src/actions/context/wrappers/method_wrapper.d
 import 'package:architecture_lints/src/actions/context/wrappers/parameter_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/string_wrapper.dart';
 import 'package:architecture_lints/src/config/schema/definition.dart';
+import 'package:expressions/expressions.dart' hide Identifier;
 
 class NodeWrapper {
   final AstNode node;
@@ -16,13 +17,22 @@ class NodeWrapper {
     return NodeWrapper(node, definitions: definitions);
   }
 
+  static MemberAccessor<NodeWrapper> get accessor =>
+      const MemberAccessor<NodeWrapper>.fallback(getMember);
+
+  static dynamic getMember(NodeWrapper obj, String name) => switch (name) {
+    'name' => obj.name,
+    'parent' => obj.parent,
+    'file' => {'path': obj.filePath},
+    'filePath' => obj.filePath,
+    _ => throw ArgumentError('Property "$name" not found on ${obj.runtimeType}'),
+  };
+
   StringWrapper get name {
     String? id;
     final n = node;
 
-    if (n is Declaration) {
-      id = n.declaredFragment?.element.name;
-    }
+    if (n is Declaration) id = n.declaredFragment?.element.name;
 
     if (id == null) {
       if (n is MethodDeclaration) id = n.name.lexeme;
@@ -48,11 +58,9 @@ class NodeWrapper {
   @override
   String toString() => name.value;
 
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'parent': parent,
-      'file': {'path': filePath},
-    };
-  }
+  Map<String, dynamic> toMap() => {
+    'name': name,
+    'parent': parent,
+    'file': {'path': filePath},
+  };
 }

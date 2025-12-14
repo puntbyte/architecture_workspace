@@ -30,10 +30,12 @@ class ArchitectureConfig {
   final List<UsageConfig> usages;
   final List<AnnotationConfig> annotations;
   final List<RelationshipConfig> relationships;
-  final List<String> excludes;
-  final VocabularyConfig vocabulary;
+
   final List<ActionConfig> actions;
   final Map<String, TemplateDefinition> templates;
+
+  final List<String> excludes;
+  final VocabularyConfig vocabulary;
 
   const ArchitectureConfig({
     required this.components,
@@ -77,40 +79,42 @@ class ArchitectureConfig {
       definitions: Definition.parseRegistry(yaml.mustGetMap(ConfigKeys.root.definitions)),
 
       dependencies: DependencyConfig.parseList(yaml.mustGetMapList(ConfigKeys.root.dependencies)),
-
       inheritances: InheritanceConfig.parseList(yaml.mustGetMapList(ConfigKeys.root.inheritances)),
-
       typeSafeties: TypeSafetyConfig.parseList(yaml.mustGetMapList(ConfigKeys.root.typeSafeties)),
-
       exceptions: ExceptionConfig.parseList(yaml.mustGetMapList(ConfigKeys.root.exceptions)),
-
       members: MemberConfig.parseList(yaml.mustGetMapList(ConfigKeys.root.members)),
-
       usages: UsageConfig.parseList(yaml.mustGetMapList(ConfigKeys.root.usages)),
-
       annotations: AnnotationConfig.parseList(yaml.mustGetMapList(ConfigKeys.root.annotations)),
-
       relationships: RelationshipConfig.parseList(
         yaml.mustGetMapList(ConfigKeys.root.relationships),
       ),
 
-      // NEW: Parse Actions
       actions: ActionConfig.parseMap(yaml.mustGetMap('actions')),
-
-      // NEW: Parse Templates (Map of String/Object to TemplateDefinition)
       templates: yaml.mustGetMap(ConfigKeys.root.templates).map((key, value) {
         return MapEntry(key, TemplateDefinition.fromDynamic(value));
       }),
 
-
       excludes: yaml.mustGetStringList(ConfigKeys.root.excludes),
       vocabulary: vocabulary,
-
     );
   }
 
   /// Helper to find actions for a specific error code
   List<ActionConfig> getActionsForError(String errorCode) {
     return actions.where((a) => a.trigger.errorCode == errorCode).toList();
+  }
+
+  Map<String, String> get importRewrites {
+    final rewrites = <String, String>{};
+
+    for (final def in definitions.values) {
+      // Only rewrite if we have a target import (the public one)
+      if (def.import != null && def.rewrites.isNotEmpty) {
+        for (final badPath in def.rewrites) {
+          rewrites[badPath] = def.import!;
+        }
+      }
+    }
+    return rewrites;
   }
 }

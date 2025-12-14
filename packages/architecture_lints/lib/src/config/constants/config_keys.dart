@@ -22,6 +22,8 @@ abstract class ConfigKeys {
   static const vocabulary = _VocabularyKeys();
   static const template = _TemplateDefinitionKeys();
   static const regex = _RegexKeys();
+  static const variable = _VariableKeys();
+  static const action = _ActionKeys();
 
   static const placeholder = _PlaceholderKeys();
 }
@@ -102,6 +104,7 @@ class _DefinitionKeys {
   const _DefinitionKeys();
   String get type => 'type';
   String get import => 'import';
+  String get rewrite => 'rewrite';
   String get definition => 'definition'; // References
   String get argument => 'argument'; // Generics
   String get component => 'component';
@@ -187,6 +190,17 @@ class _MemberKeys {
   String get modifier => 'modifier';
 }
 
+class _VariableKeys {
+  const _VariableKeys();
+
+  String get from => 'from';
+  String get value => 'value';
+  String get spread => 'spread';
+  String get select => 'select';
+
+  String get transformer => 'transformer'; // NEW
+}
+
 class _ServiceKeys {
   const _ServiceKeys();
   String get type => 'type';
@@ -253,4 +267,14 @@ class _RegexKeys {
 
   String get pascalCaseGroup => '([A-Z][a-zA-Z0-9]*)';
   String get wildcard => '.*';
+}
+
+class _ActionKeys {
+  const _ActionKeys();
+
+  String get write => 'write';
+  String get strategy => 'strategy';
+  String get placement => 'placement';
+  String get filename => 'filename';
+  String get identifier => 'identifier';
 }

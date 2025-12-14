@@ -466,6 +466,7 @@ definitions:
     .success:
       type: 'Right'
       import: 'package:fpdart/fpdart.dart'
+      rewrite: 'package:fpdart/src/'
 
     # Inherits fpdart
     .failure: 'Left'
@@ -1300,14 +1301,27 @@ actions:
   create_usecase:
     description: 'Generate Functional UseCase'
     debug: true
+    # [A] Trigger: When does this appear?
     trigger:
-      # This connects to the ParityMissingRule
       error_code: 'arch_parity_missing'
-      # Optional extra check
       component: 'domain.port'
 
+    # [B] Source: Where does data come from?
+    # We use the current Method declaration in the Port file.
+    source:
+      scope: current
+      element: method
+
+    # [C] Target: Where does the new code go?
+    # We look for the 'domain.usecase' component relative to the current file.
     target:
-      directory: '../usecases'
+      scope: related
+      component: 'domain.usecase'
+
+    # [D] Write Strategy: How to save it?
+    # Create a new file (or overwrite).
+    write:
+      strategy: file
       filename: '${source.name.snakeCase}.dart'
 
     template_id: 'usecase_functional'
@@ -1323,19 +1337,22 @@ actions:
 
       baseClassName: '${baseDef.type}'
 
+      pattern: "config.namesFor('domain.usecase').pattern.first"
+
       # 2. Return Type Logic
       methodReturnType: '${source.returnType.name}'
       usecaseGenericType: '${source.returnType.unwrapped}'
 
       # 3. Naming
-      usecaseName: '${source.name.pascalCase}'
+      usecaseName: "pattern.replace('\${name}', source.name.pascalCase)}"
       repoName: '${source.parent.name}'
       repoVar: '_${source.parent.name.camelCase}'
-      paramsClassName: '_${source.name.pascalCase}Params'
+      paramsClassName: '_${usecaseName}Params'
 
       # 4. Imports
       imports:
         type: set
+        transformer: imports
         values:
           - source.file.path
           - source.returnType
@@ -1403,6 +1420,49 @@ actions:
             # Unary: <T, Params>
             value: '${usecaseGenericType}, ${params.type}'
 
+  create_to_entity:
+    description: 'Generate toEntity() method'
+    template_id: 'model_to_entity_method'
+
+    # Triggered by MemberStructureRule (assuming it flags missing required methods)
+    trigger:
+      error_code: 'arch_member_missing'
+      component: 'data.model'
+
+    # SOURCE: We switch context to the RELATED Entity file.
+    # The 'source' variable in templates will now refer to the Entity Class, not the Model.
+    source:
+      scope: related
+      component: 'domain.entity'
+      element: class # We want the class node from that file
+
+    # TARGET: We write back to the CURRENT file (the Model)
+    target:
+      scope: current
+
+    # WRITE: Inject code into the existing class
+    write:
+      strategy: inject
+      placement: end # Insert before the closing brace '}'
+
+
+    variables:
+      # source.name is now the Entity name (e.g. "User")
+      entityName: '${source.name}'
+
+      # We assume Model naming convention matches Entity + Model
+      modelName: '${source.name}Model'
+
+      # Extract fields from the Entity to map them
+      fields:
+        type: list
+        from: source.fields # Assuming NodeWrapper supports .fields for ClassDeclaration
+        map:
+          .name: item.name
+          .type: item.type
+
+
+
 
   # ------------------------------------------------------------------------------------------------
   # Action: Create Model
@@ -1410,6 +1470,7 @@ actions:
   # ------------------------------------------------------------------------------------------------
   create_model:
     description: 'Generate Data Model (Freezed)'
+    template_id: 'model_freezed'
     debug: true
     trigger:
       error_code: 'arch_parity_missing'
@@ -1439,7 +1500,7 @@ actions:
           name: item.name
           type: item.type
 
-    template_id: 'model_freezed'
+
 
 # ==================================================================================================
 # [9] TEMPLATES (The View)
@@ -1454,6 +1515,16 @@ templates:
   model_freezed:
     file: 'templates/model_freezed.dart.mustache'
     description: 'Generates a Freezed model with fromEntity/toEntity mappers'
+
+  model_to_entity_method: |
+    @override
+    {{entityName}} toEntity() {
+      return {{entityName}}(
+        {{#fields}}
+        {{name}}: {{name}},
+        {{/fields}}
+      );
+    }
 
   repository_impl:
     file: 'templates/repository_impl.dart.mustache'

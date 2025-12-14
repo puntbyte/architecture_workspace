@@ -1,137 +1,240 @@
-import 'dart:io';
-
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:architecture_lints/src/actions/architecture_fix.dart';
-import 'package:architecture_lints/src/config/enums/variable_type.dart';
-import 'package:architecture_lints/src/config/schema/action_config.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/template_definition.dart';
-import 'package:architecture_lints/src/config/schema/variable_config.dart';
-import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
-import '../../helpers/mocks.dart' hide resolveContent;
+import '../../helpers/fakes.dart';
+import '../../helpers/mocks.dart';
 import '../../helpers/test_resolver.dart';
-
-class TestArchitectureFix extends ArchitectureFix {
-  @override
-  void run(
-    CustomLintResolver resolver,
-    ChangeReporter reporter,
-    CustomLintContext context,
-    Diagnostic analysisError,
-    List<Diagnostic> others,
-  ) => protectedRun(resolver, reporter, context, analysisError);
-}
 
 void main() {
   group('ArchitectureFix', () {
-    late Directory tempDir;
-    late MockChangeReporter mockReporter;
-    late MockChangeBuilder mockBuilder;
-    late FakeCustomLintContext fakeContext;
+    late ArchitectureFix fix;
     late MockCustomLintResolver mockResolver;
+    late MockChangeReporter mockReporter;
+    late MockChangeBuilder mockChangeBuilder;
+    late FakeCustomLintContext fakeContext;
+    late FakeDartFileEditBuilder fakeEditBuilder;
+    late MockDiagnostic mockError;
+    late MockLintCode mockLintCode;
 
     setUp(() {
-      tempDir = Directory.systemTemp.createTempSync('fix_test_');
-      mockReporter = MockChangeReporter();
-      mockBuilder = MockChangeBuilder();
-      fakeContext = FakeCustomLintContext();
+      fix = ArchitectureFix();
       mockResolver = MockCustomLintResolver();
+      mockReporter = MockChangeReporter();
+      mockChangeBuilder = MockChangeBuilder();
+      fakeContext = FakeCustomLintContext();
+      fakeEditBuilder = FakeDartFileEditBuilder();
+      mockError = MockDiagnostic();
+      mockLintCode = MockLintCode();
 
+      // Wire up mocks
+      when(() => mockError.errorCode).thenReturn(mockLintCode);
+
+      // When createChangeBuilder is called, return our mock builder
       when(
         () => mockReporter.createChangeBuilder(
           message: any(named: 'message'),
           priority: any(named: 'priority'),
         ),
-      ).thenReturn(mockBuilder);
+      ).thenReturn(mockChangeBuilder);
 
+      // When addDartFileEdit is called, execute the callback with our fake builder
       when(
-        () => mockBuilder.addDartFileEdit(any(), customPath: any(named: 'customPath')),
-      ).thenAnswer((_) async {});
+        () => mockChangeBuilder.addDartFileEdit(
+          any(),
+          customPath: any(named: 'customPath'),
+        ),
+      ).thenAnswer((invocation) {
+        final callback = invocation.positionalArguments.first as void Function(DartFileEditBuilder);
+        callback(fakeEditBuilder);
+      });
     });
 
-    tearDown(() {
-      if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
-    });
+    Future<void> prepareEnvironment({
+      required String dartCode,
+      required String yamlConfig,
+      required String errorCode,
+      String? targetClassName,
+    }) async {
+      // 1. Resolve Dart Code (AST)
+      final result = await resolveContent(dartCode);
 
-    test('should trigger file creation with correct content', () async {
-      // 1. Setup Config
-      const config = ArchitectureConfig(
-        components: [],
-        templates: {
-          'simple_fix': TemplateDefinition(
-            content: 'class {{name.pascalCase}}Fixed {}',
-          ),
-        },
-        actions: [
-          ActionConfig(
-            id: 'fix_it',
-            description: 'Fix It',
-            trigger: ActionTrigger(errorCode: 'arch_error'),
-            target: ActionTarget(directory: '.', filename: '{{name.pascalCase}}_fixed.dart'),
-            templateId: 'simple_fix',
-            variables: {
-              'name': VariableConfig(
-                type: VariableType.string,
-                value: 'source.name',
-              ),
-            },
-          ),
-        ],
+      // 2. Setup Config
+      // We manually parse the YAML to create the ArchitectureConfig
+      // This mimics what ConfigLoader does
+      final yamlMap = loadYaml(yamlConfig) as Map;
+
+      // Inject root path into config loader logic if needed,
+      // but here we construct config manually.
+      final config = ArchitectureConfig.fromYaml(yamlMap);
+
+      // 3. Populate Shared State
+      fakeContext.sharedState[ArchitectureConfig] = config;
+      fakeContext.sharedState[ResolvedUnitResult] = result;
+
+      // 4. Configure Mocks
+      when(() => mockResolver.path).thenReturn(result.path);
+      when(() => mockResolver.getResolvedUnitResult()).thenAnswer((_) async => result);
+      when(() => mockLintCode.name).thenReturn(errorCode);
+
+      // 5. Find error offset (simulate clicking on a class)
+      final unit = result.unit;
+      final node = targetClassName != null
+          ? unit.declarations.whereType<ClassDeclaration>().firstWhere(
+              (c) => c.name.lexeme == targetClassName,
+            )
+          : unit.declarations.first;
+
+      when(() => mockError.offset).thenReturn(node.offset);
+      when(() => mockError.length).thenReturn(node.length);
+    }
+
+    test('should inject code into current file (Strategy: inject)', () async {
+      const yaml = r'''
+      actions:
+        add_method:
+          description: 'Add Method'
+          trigger: { error_code: 'missing_method' }
+          target: { scope: 'current' }
+          write: { strategy: 'inject', placement: 'end' }
+          variables:
+            className: ${source.name}
+          template_id: 'method_tmpl'
+      
+      templates:
+        method_tmpl: 'void generated() {}'
+      ''';
+
+      const code = '''
+      class User {}
+      ''';
+
+      await prepareEnvironment(
+        dartCode: code,
+        yamlConfig: yaml,
+        errorCode: 'missing_method',
+        targetClassName: 'User',
       );
 
-      // 2. Resolve a real Dart file
-      const sourceCode = 'class MyFeature {}';
-      final unit = await resolveContent(sourceCode);
+      // Run
+      fix.run(mockResolver, mockReporter, fakeContext, mockError, []);
 
-      // 3. Inject State
-      fakeContext.sharedState[ArchitectureConfig] = config;
-      fakeContext.sharedState[ResolvedUnitResult] = unit;
+      // Verify
+      verify(
+        () => mockReporter.createChangeBuilder(message: 'Add Method', priority: 100),
+      ).called(1);
 
-      when(() => mockResolver.path).thenReturn(unit.path);
+      expect(fakeEditBuilder.output.toString(), contains('void generated() {}'));
+      // Should be inserted inside the class (offset checks would confirm placement)
+    });
 
-      // 4. Mock the Analysis Error
-      final error = MockDiagnostic();
-      final errorCode = MockLintCode();
+    test('should create new file (Strategy: file)', () async {
+      const yaml = r'''
+      actions:
+        create_model:
+          description: 'Create Model'
+          trigger: { error_code: 'missing_model' }
+          target: { scope: 'related' } # Just to test file creation logic
+          write: 
+            strategy: 'file'
+            filename: '${source.name.snakeCase}_model.dart'
+          variables:
+            modelName: '${source.name}Model'
+          template_id: 'model_tmpl'
+      
+      templates:
+        model_tmpl: 'class {{modelName}} {}'
+      ''';
 
-      // FIX: Use FakeDiagnosticMessage
-      final diagnosticMessage = FakeDiagnosticMessage('Fix error');
-      when(() => error.problemMessage).thenReturn(diagnosticMessage);
+      const code = '''
+      class User {}
+      ''';
 
-      when(() => errorCode.name).thenReturn('arch_error');
-      when(() => error.diagnosticCode).thenReturn(errorCode);
-      when(() => error.offset).thenReturn(sourceCode.indexOf('MyFeature'));
-      when(() => error.length).thenReturn(9);
+      await prepareEnvironment(
+        dartCode: code,
+        yamlConfig: yaml,
+        errorCode: 'missing_model',
+        targetClassName: 'User',
+      );
 
-      // 5. Intercept Builder
-      var editCallbackCaptured = false;
-      final fakeBuilder = FakeDartFileEditBuilder();
+      // Run
+      fix.run(mockResolver, mockReporter, fakeContext, mockError, []);
 
-      when(
-        () => mockBuilder.addDartFileEdit(any(), customPath: any(named: 'customPath')),
-      ).thenAnswer((invocation) {
-        editCallbackCaptured = true;
+      // Verify customPath was passed
+      final captured = verify(
+        () => mockChangeBuilder.addDartFileEdit(
+          any(),
+          customPath: captureAny(named: 'customPath'),
+        ),
+      ).captured;
 
-        final customPath = invocation.namedArguments[#customPath] as String;
-        const expectedFilename = 'MyFeature_fixed.dart';
-        expect(customPath, endsWith(expectedFilename));
+      final customPath = captured.first as String;
 
-        final callback = invocation.positionalArguments[0] as void Function(DartFileEditBuilder);
-        callback(fakeBuilder);
-      });
+      expect(customPath, endsWith('user_model.dart'));
+      expect(fakeEditBuilder.output.toString(), contains('class UserModel {}'));
+    });
 
-      // 6. Run
-      TestArchitectureFix().run(mockResolver, mockReporter, fakeContext, error, []);
+    test('should ignore actions with mismatching error code', () async {
+      const yaml = '''
+      actions:
+        wrong_action:
+          description: 'Should not run'
+          trigger: { error_code: 'other_error' }
+          target: { scope: 'current' }
+          write: { strategy: 'inject' }
+          variables: {}
+          template_id: 't'
+      templates:
+        t: ''
+      ''';
 
-      // 7. Verify
-      verify(() => mockReporter.createChangeBuilder(message: 'Fix It', priority: 100)).called(1);
+      await prepareEnvironment(
+        dartCode: 'class A {}',
+        yamlConfig: yaml,
+        errorCode: 'my_error', // Mismatch
+      );
 
-      expect(editCallbackCaptured, isTrue, reason: 'addDartFileEdit should be called');
-      expect(fakeBuilder.output.toString(), contains('class MyFeatureFixed {}'));
+      fix.run(mockResolver, mockReporter, fakeContext, mockError, []);
+
+      verifyNever(
+        () => mockReporter.createChangeBuilder(
+          message: any(named: 'message'),
+          priority: any(named: 'priority'),
+        ),
+      );
+    });
+
+    test('should resolve variables using expression engine', () async {
+      const yaml = '''
+      actions:
+        test_vars:
+          description: 'Test Vars'
+          trigger: { error_code: 'var_test' }
+          target: { scope: 'current' }
+          write: { strategy: 'replace' }
+          variables:
+            # Complex expression
+            result: "source.name.pascalCase + 'Fixed'"
+          template_id: 't'
+      templates:
+        t: '{{result}}'
+      ''';
+
+      await prepareEnvironment(
+        dartCode: 'class user_profile {}',
+        yamlConfig: yaml,
+        errorCode: 'var_test',
+        targetClassName: 'user_profile',
+      );
+
+      fix.run(mockResolver, mockReporter, fakeContext, mockError, []);
+
+      expect(fakeEditBuilder.output.toString(), 'UserProfileFixed');
     });
   });
 }

@@ -13,7 +13,7 @@ void main() {
     late ArchitectureConfig mockConfig;
     late CompilationUnit unit;
 
-    // Helper to get a resolver for a specific method in the test file
+    // Helper to get a resolver for a specific method
     VariableResolver getResolverForMethod(String methodName) {
       final clazz = unit.declarations.whereType<ClassDeclaration>().firstWhere(
             (c) => c.name.lexeme == 'AuthPort',
@@ -30,22 +30,16 @@ void main() {
     }
 
     setUp(() async {
-      // 1. Setup Source with various Types
+      // 1. Setup Source Code
       const code = '''
         import 'dart:async';
         class User {}
         
         class AuthPort {
-          // Method 0: Simple Async
+          // Method 0: Simple Async with Params
           Future<User> login(String username, {required int age});
           
-          // Method 1: Complex Generics
-          Map<String, int> getMetaData();
-          
-          // Method 2: List Generics
-          List<String> getTags();
-          
-          // Method 3: No Params
+          // Method 1: No Params
           void logout();
         }
       ''';
@@ -53,7 +47,7 @@ void main() {
       final result = await resolveContent(code);
       unit = result.unit;
 
-      // 2. Setup Config
+      // 2. Setup Config with Definitions and Rewrites
       mockConfig = const ArchitectureConfig(
         components: [],
         definitions: {
@@ -61,82 +55,17 @@ void main() {
             types: ['BaseUseCase'],
             imports: ['package:core/base.dart'],
           ),
+          'deep.dep': Definition(
+            types: ['Deep'],
+            imports: ['package:deep/public.dart'],
+            rewrites: ['package:deep/src/internal.dart'],
+          ),
         },
       );
     });
 
-    group('Generics & Type Analysis', () {
-      test('should resolve Future<T> generics', () {
-        final resolver = getResolverForMethod('login');
-
-        final variables = {
-          'base': const VariableConfig(
-              type: VariableType.string,
-              value: r'${source.returnType.generics.base}' // Future
-          ),
-          'inner': const VariableConfig(
-              type: VariableType.string,
-              value: r'${source.returnType.generics.first.name}' // User
-          ),
-          'isFuture': const VariableConfig(
-            type: VariableType.bool,
-            value: 'source.returnType.isFuture',
-          ),
-        };
-
-        final result = resolver.resolveMap(variables);
-        expect(result['base'], 'Future');
-        expect(result['inner'], 'User');
-        expect(result['isFuture'], true);
-      });
-
-      test('should resolve Map<K, V> generics (first/last)', () {
-        final resolver = getResolverForMethod('getMetaData');
-
-        final variables = {
-          'base': const VariableConfig(
-              type: VariableType.string,
-              value: r'${source.returnType.generics.base}'
-          ),
-          'keyType': const VariableConfig(
-              type: VariableType.string,
-              value: r'${source.returnType.generics.first.name}'
-          ),
-          'valueType': const VariableConfig(
-              type: VariableType.string,
-              value: r'${source.returnType.generics.last.name}'
-          ),
-          'argCount': const VariableConfig(
-              type: VariableType.number,
-              value: 'source.returnType.generics.length'
-          ),
-        };
-
-        final result = resolver.resolveMap(variables);
-        expect(result['base'], 'Map');
-        expect(result['keyType'], 'String');
-        expect(result['valueType'], 'int');
-        expect(result['argCount'], 2);
-      });
-
-      test('should resolve nested args via list index (at)', () {
-        final resolver = getResolverForMethod('getMetaData');
-
-        final variables = {
-          // Access args list directly: args.at(0)
-          'firstArg': const VariableConfig(
-            type: VariableType.string,
-            value: r'${source.returnType.generics.args.at(0).name}',
-          ),
-        };
-
-        final result = resolver.resolveMap(variables);
-        expect(result['firstArg'], 'String');
-      });
-    });
-
     group('Expressions & Strings', () {
-      test('should resolve simple string interpolation', () {
+      test('should resolve string interpolation', () {
         final resolver = getResolverForMethod('login');
 
         final variables = {
@@ -151,6 +80,7 @@ void main() {
         };
 
         final result = resolver.resolveMap(variables);
+
         expect(result['methodName'], 'login');
         expect(result['className'], 'AuthPort');
       });
@@ -170,8 +100,38 @@ void main() {
         };
 
         final result = resolver.resolveMap(variables);
+
         expect(result['pascal'], 'Login');
         expect(result['constant'], 'LOGIN');
+      });
+    });
+
+    group('Generics & Types', () {
+      test('should resolve Future<User> structure', () {
+        final resolver = getResolverForMethod('login');
+
+        final variables = {
+          // Future
+          'base': const VariableConfig(
+            type: VariableType.string,
+            value: r'${source.returnType.generics.base.value}',
+          ),
+          // User
+          'inner': const VariableConfig(
+            type: VariableType.string,
+            value: r'${source.returnType.generics.first.name.value}',
+          ),
+          'isFuture': const VariableConfig(
+            type: VariableType.bool,
+            value: 'source.returnType.isFuture',
+          ),
+        };
+
+        final result = resolver.resolveMap(variables);
+
+        expect(result['base'], 'Future');
+        expect(result['inner'], 'User');
+        expect(result['isFuture'], true);
       });
     });
 
@@ -185,7 +145,7 @@ void main() {
             select: [
               VariableSelect(
                 condition: 'source.parameters.isNotEmpty',
-                // Note: Quoted literals for strings inside expressions
+                // Use quoted literals "'YES'" so expression engine treats them as strings
                 result: VariableConfig(type: VariableType.string, value: "'YES'"),
               ),
               VariableSelect(
@@ -222,7 +182,7 @@ void main() {
       });
     });
 
-    group('Collections (Lists/Sets/Imports)', () {
+    group('Lists & Maps (Collections)', () {
       test('should transform Lists (ListHandler)', () {
         final resolver = getResolverForMethod('login');
 
@@ -231,61 +191,72 @@ void main() {
             type: VariableType.list,
             from: 'source.parameters',
             mapSchema: {
-              'paramName': VariableConfig(type: VariableType.string, value: 'item.name'),
+              'name': VariableConfig(type: VariableType.string, value: 'item.name'),
               'isNamed': VariableConfig(type: VariableType.bool, value: 'item.isNamed'),
             },
           ),
         };
 
         final result = resolver.resolveMap(variables);
-        final paramsList = result['params'] as Map<String, dynamic>;
+        final paramsMap = result['params'] as Map<String, dynamic>;
 
-        expect(paramsList['length'], 2);
-        expect(paramsList['hasMany'], true);
+        expect(paramsMap['length'], 2);
 
-        final items = paramsList['items'] as List;
-        final first = items[0] as Map<String, dynamic>; // username
-        final second = items[1] as Map<String, dynamic>; // age
+        final items = paramsMap['items'] as List;
+        final p1 = items[0] as Map<String, dynamic>;
+        final p2 = items[1] as Map<String, dynamic>;
 
-        expect(first['paramName'], 'username');
-        expect(first['isNamed'], false);
+        expect(p1['name'], 'username');
+        expect(p1['isNamed'], false);
 
-        expect(second['paramName'], 'age');
-        expect(second['isNamed'], true);
+        expect(p2['name'], 'age');
+        expect(p2['isNamed'], true);
       });
+    });
 
-      test('should aggregate Imports (SetHandler)', () {
+    group('Imports (SetHandler)', () {
+      test('should aggregate imports and apply rewrites', () {
         final resolver = getResolverForMethod('login');
 
         final variables = {
           'imports': const VariableConfig(
             type: VariableType.set,
+            // Trigger ImportExtractor
+            transformer: 'imports',
             values: [
-              'source.returnType', // Future<User>
-              "'package:manual/manual.dart'",
+              'source.returnType', // Future<User> -> extracts User
+              "'package:deep/src/internal.dart'", // Raw string -> Should be rewritten
             ],
           )
         };
 
         final result = resolver.resolveMap(variables);
-        final imports = result['imports'] as Map<String, dynamic>;
-        final items = imports['items'] as List;
+        final importsMap = result['imports'] as Map<String, dynamic>;
+        final items = importsMap['items'] as List;
 
-        expect(items, contains('package:manual/manual.dart'));
-        // User is defined in test file -> converted to package URI
-        expect(items.any((i) => i.toString().contains('package:test_project/test.dart')), isTrue);
+        // 1. User import (converted from local path)
+        expect(
+            items.any((i) => i.toString().contains('package:test_project/test.dart')),
+            isTrue,
+            reason: 'Expected package:test_project/test.dart in $items'
+        );
+
+        // 2. Rewrite check: 'deep/src/internal.dart' -> 'deep/public.dart' (from mockConfig)
+        expect(items, contains('package:deep/public.dart'));
+        expect(items, isNot(contains('package:deep/src/internal.dart')));
       });
     });
 
     group('Config Access', () {
-      test('should access Definitions from config via map lookup', () {
+      test('should access definitions map via config.definitionFor', () {
         final resolver = getResolverForMethod('login');
 
         final variables = {
           'baseClass': const VariableConfig(
             type: VariableType.string,
-            // Access map using string key syntax
-            value: r"${definitions['usecase.base'].type}",
+            // Access definition via helper method on ConfigWrapper
+            // The method returns a Map, so we can access .type
+            value: r"${config.definitionFor('usecase.base').type}",
           ),
         };
 

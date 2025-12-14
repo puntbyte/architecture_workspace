@@ -13,8 +13,11 @@ class CodeGenerator {
   final MustacheRenderer _renderer;
   final String packageName;
 
-  CodeGenerator(this.config, this.templateLoader, this.packageName)
-      : _renderer = const MustacheRenderer();
+  CodeGenerator(
+    this.config,
+    this.templateLoader,
+    this.packageName,
+  ) : _renderer = const MustacheRenderer();
 
   /// Generates code based on the [action] configuration.
   /// NOW SYNCHRONOUS.
@@ -89,8 +92,10 @@ class CodeGenerator {
       }
     });
   }
+}
 
-  void _writeMapOld(StringBuffer buffer, Map<String, dynamic> map, String indent) {
+/*
+void _writeMapOld(StringBuffer buffer, Map<String, dynamic> map, String indent) {
     map.forEach((key, value) {
       if (value is Map<String, dynamic>) {
         buffer.writeln('// $indent$key: {');
@@ -105,4 +110,6 @@ class CodeGenerator {
       }
     });
   }
-}
+
+
+ */

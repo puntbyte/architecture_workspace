@@ -4,16 +4,31 @@ import 'package:architecture_lints/src/actions/context/wrappers/generic_wrapper.
 import 'package:architecture_lints/src/actions/context/wrappers/list_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/string_wrapper.dart';
 import 'package:architecture_lints/src/config/schema/definition.dart';
+import 'package:expressions/expressions.dart';
 
 class TypeWrapper {
   final DartType? type;
   final String rawString;
   final Map<String, Definition> definitions;
 
-  TypeWrapper(this.type, {
+  TypeWrapper(
+    this.type, {
     this.rawString = '',
     this.definitions = const {},
   });
+
+  static MemberAccessor<TypeWrapper> get accessor =>
+      const MemberAccessor<TypeWrapper>.fallback(_getMember);
+
+  static dynamic _getMember(TypeWrapper obj, String name) => switch (name) {
+    'name' => obj.name,
+    'generics' => obj.generics,
+    'unwrapped' => obj.unwrapped,
+    'innerType' => obj.innerType,
+    'isFuture' => obj.isFuture,
+    'importUri' => obj.importUri,
+    _ => throw ArgumentError('Unknown TypeWrapper property: $name'),
+  };
 
   StringWrapper get name {
     final t = type;
@@ -31,17 +46,14 @@ class TypeWrapper {
   }
 
   GenericWrapper? get generics {
-    // FIX: Capture local variable for type promotion
     final t = type;
-
     if (t is InterfaceType) {
       if (t.typeArguments.isNotEmpty) {
-        // Recursively wrap arguments
         final wrappedArgs = t.typeArguments
             .map((arg) => TypeWrapper(arg, definitions: definitions))
             .toList();
 
-        final typeName = t.element.name ?? '';
+        final typeName = t.element.name ?? ''; // Non-nullable in recent versions
 
         return GenericWrapper(
           StringWrapper(typeName),
@@ -58,7 +70,6 @@ class TypeWrapper {
     var current = type!;
     var changed = true;
 
-    // Loop to peel off multiple layers (e.g. Future<Either<L, R>> -> Either<L, R> -> R)
     while (changed) {
       changed = false;
 
@@ -77,21 +88,16 @@ class TypeWrapper {
         }
       }
 
-      // 2. Unwrap Generic Wrappers (Heuristic)
+      // 2. Unwrap Generic Wrappers
       if (current is InterfaceType && current.typeArguments.isNotEmpty) {
         final name = current.element.name;
-
-        // STOP if it is a standard collection
         const collections = {'List', 'Map', 'Set', 'Iterable', 'Stream'};
-        if (collections.contains(name)) {
-          break;
-        }
+        if (collections.contains(name)) break;
 
         if (current.typeArguments.length == 1) {
           current = current.typeArguments.first;
           changed = true;
-        }
-        else if (current.typeArguments.length == 2) {
+        } else if (current.typeArguments.length == 2) {
           current = current.typeArguments.last;
           changed = true;
         }
@@ -106,7 +112,6 @@ class TypeWrapper {
   bool get isFuture => name.value.startsWith('Future');
 
   StringWrapper get importUri {
-    // Priority: Alias -> Element -> None
     if (type?.alias != null) return _uriFromElement(type!.alias!.element);
     if (type?.element != null) return _uriFromElement(type!.element);
     return const StringWrapper('');
@@ -121,17 +126,15 @@ class TypeWrapper {
     return StringWrapper(uri);
   }
 
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'generics': generics?.toMap(),
-      'unwrapped': unwrapped,
-      'innerType': innerType,
-      'isFuture': isFuture,
-      'importUri': importUri,
-      'value': toString(),
-    };
-  }
+  Map<String, dynamic> toMap() => {
+    'name': name,
+    'generics': generics?.toMap(),
+    'unwrapped': unwrapped,
+    'innerType': innerType,
+    'isFuture': isFuture,
+    'importUri': importUri,
+    'value': toString(),
+  };
 
   @override
   String toString() => name.value;

@@ -1,5 +1,3 @@
-// lib/src/actions/context/handlers/list_handler.dart
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:architecture_lints/src/actions/context/handlers/variable_handler.dart';
@@ -14,71 +12,68 @@ class ListHandler extends VariableHandler {
 
   @override
   dynamic handle(
-    VariableConfig config,
-    Map<String, dynamic> context,
-    VariableResolver resolver,
-  ) {
-    // A. From Source (Transformer)
+      VariableConfig config,
+      Map<String, dynamic> context,
+      VariableResolver resolver,
+      ) {
+    final result = <dynamic>[];
+
+    // A. From Source
     if (config.from != null) {
+      // print('[ListHandler] Evaluating from: "${config.from}"');
       var source = engine.evaluate(config.from!, context);
 
-      // FIX: Unwrap ListWrapper to Iterable
+      // print('[ListHandler] Source type: ${source.runtimeType}');
+
+      // Unwrap ListWrapper
       if (source is ListWrapper) {
-        // ListWrapper implements List which implements Iterable, so this cast works,
-        // but explicit cast helps clarity if needed.
-        // Iterate over it directly.
-      } else if (source is! Iterable) {
-        // If it evaluated to something else (e.g. null), use empty.
-        source = [];
+        source = source.toList();
+        // print('[ListHandler] Unwrapped ListWrapper. Length: ${source.length}');
       }
 
       if (source is Iterable) {
-        final items = source.map((item) {
+        final mappedItems = source.map((item) {
           final itemContext = Map<String, dynamic>.from(context);
 
-          // Wrap item based on type
+          // WRAP THE ITEM
           if (item is FormalParameter) {
             itemContext['item'] = ParameterWrapper(item);
           } else if (item is DartType) {
             itemContext['item'] = TypeWrapper(item);
           } else {
-            itemContext['item'] = item; // Could be primitive
+            itemContext['item'] = item;
           }
 
           final itemResult = <String, dynamic>{};
           config.mapSchema.forEach((key, subConfig) {
-            // Keys in mapSchema start with '.', remove it
             final cleanKey = key.startsWith('.') ? key.substring(1) : key;
             itemResult[cleanKey] = resolver.resolveConfig(subConfig, itemContext);
           });
           return itemResult;
-        }).toList();
-
-        return buildListMeta(items);
+        });
+        result.addAll(mappedItems);
+      } else {
+        // print('[ListHandler] WARNING: Source is not Iterable! Value: "$source"');
       }
     }
 
     // B. Explicit Values
     if (config.values.isNotEmpty) {
-      final items = config.values.map((e) => engine.evaluate(e, context)).toList();
-      return buildListMeta(items);
+      result.addAll(config.values.map((e) => engine.evaluate(e, context)));
     }
 
     // C. Spread
     if (config.spread.isNotEmpty) {
-      final items = <dynamic>[];
       for (final expr in config.spread) {
         final val = engine.evaluate(expr, context);
         if (val is Iterable) {
-          items.addAll(val);
+          result.addAll(val);
         } else {
-          items.add(val);
+          result.add(val);
         }
       }
-      return buildListMeta(items);
     }
 
-    // Default Empty
-    return buildListMeta([]);
+    return result;
   }
 }

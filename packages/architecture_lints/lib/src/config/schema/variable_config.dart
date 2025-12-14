@@ -25,6 +25,8 @@ class VariableConfig {
   /// Nested variables. Derived from keys starting with '.'.
   final Map<String, VariableConfig> children;
 
+  final String? transformer;
+
   const VariableConfig({
     required this.type,
     this.value,
@@ -34,6 +36,7 @@ class VariableConfig {
     this.spread = const [],
     this.mapSchema = const {},
     this.children = const {},
+    this.transformer,
   });
 
   factory VariableConfig.fromDynamic(dynamic input) {
@@ -80,6 +83,7 @@ class VariableConfig {
         values: properties.getStringList('values'),
         spread: properties.getStringList('spread'),
         select: _parseSelect(properties['select']),
+        transformer: map.tryGetString('transformer'),
         mapSchema: mapSchema,
         children: children,
       );

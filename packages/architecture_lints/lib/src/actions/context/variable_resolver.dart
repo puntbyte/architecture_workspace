@@ -15,12 +15,14 @@ class VariableResolver {
   final ListHandler _listHandler;
   final SetHandler _setHandler;
   final MapHandler _mapHandler;
+  final ImportExtractor _importExtractor;
 
   VariableResolver({
     required AstNode sourceNode,
     required ArchitectureConfig config,
     required String packageName,
   }) : _engine = ExpressionEngine(sourceNode: sourceNode, config: config),
+        _importExtractor = ImportExtractor(packageName, rewrites: config.importRewrites),
         _conditionalHandler = ConditionalHandler(
           ExpressionEngine(sourceNode: sourceNode, config: config),
         ),
@@ -29,7 +31,6 @@ class VariableResolver {
         ),
         _setHandler = SetHandler(
           ExpressionEngine(sourceNode: sourceNode, config: config),
-          ImportExtractor(packageName),
         ),
         _mapHandler = MapHandler(
           ExpressionEngine(sourceNode: sourceNode, config: config),
@@ -39,8 +40,6 @@ class VariableResolver {
     final result = <String, dynamic>{};
 
     variablesConfig.forEach((key, value) {
-      // print('[VariableResolver] Map Key: $key, ValueType: ${value.runtimeType}');
-
       dynamic resolvedValue;
       if (value is String) {
         resolvedValue = _engine.evaluate(value, result);
@@ -63,42 +62,47 @@ class VariableResolver {
   dynamic resolve(String expression) => _engine.evaluate(expression, {});
 
   dynamic resolveConfig(VariableConfig config, Map<String, dynamic> context) {
-    // print('[VariableResolver] resolveConfig type=${config.type}, select=${config.select.length}, value=${config.value}');
-
-    // 1. Logic Branching
     if (config.select.isNotEmpty) {
       final selectedConfig = _conditionalHandler.handle(config.select, context);
-      if (selectedConfig != null) {
-        // print('[VariableResolver] Branch matched. Recursing...');
-        return resolveConfig(selectedConfig, context);
-      }
-      print('[VariableResolver] WARNING: No branch matched in select.');
+      if (selectedConfig != null) return resolveConfig(selectedConfig, context);
       return null;
     }
 
     dynamic result;
+
+    // 1. Generate Raw Data
     switch (config.type) {
       case VariableType.list:
         result = _listHandler.handle(config, context, this);
-        break;
+        break; // FIX: Added break
       case VariableType.set:
         result = _setHandler.handle(config, context, this);
-        break;
+        break; // FIX: Added break
       case VariableType.map:
         result = _mapHandler.handle(config, context, this);
-        break;
-      default: // Primitives
+        break; // FIX: Added break
+      default:
         if (config.value != null) {
-          // print('[VariableResolver] Evaluating primitive value: "${config.value}"');
           result = _engine.evaluate(config.value!, context);
-          // print('[VariableResolver] Eval result: $result');
-        } else {
-          // print('[VariableResolver] Primitive has null value');
         }
     }
 
+    // 2. Apply Transformer (e.g. 'imports')
+    if (config.transformer == 'imports' && result is Iterable) {
+      final extracted = <String>{};
+      _importExtractor.extract(result, extracted);
+      result = extracted.toList()..sort();
+    }
+
+    // 3. Wrap Collections with Metadata
+    if (result is Iterable && result is! Map) {
+      result = _buildCollectionMeta(result);
+    }
+
+    // 4. Handle Nested Children
     if (config.children.isNotEmpty) {
       Map<String, dynamic> resultMap;
+
       if (result is Map<String, dynamic>) {
         resultMap = result;
       } else {
@@ -113,8 +117,18 @@ class VariableResolver {
       return _engine.unwrap(resultMap);
     }
 
-    final unwrapped = _engine.unwrap(result);
-    // print('[VariableResolver] Final Unwrapped Result: $unwrapped');
-    return unwrapped;
+    return _engine.unwrap(result);
+  }
+
+  Map<String, dynamic> _buildCollectionMeta(Iterable items) {
+    final list = items.toList();
+    return {
+      'items': list,
+      'length': list.length,
+      'isEmpty': list.isEmpty,
+      'isNotEmpty': list.isNotEmpty,
+      'hasMany': list.length > 1,
+      'isSingle': list.length == 1,
+    };
   }
 }

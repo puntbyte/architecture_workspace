@@ -21,12 +21,10 @@ Future<ResolvedUnitResult> resolveContent(String content) async {
     final context = collection.contextFor(filePath);
     final result = await context.currentSession.getResolvedUnit(filePath);
 
-    if (result is ResolvedUnitResult) {
-      return result;
-    }
+    if (result is ResolvedUnitResult) return result;
+
     throw StateError('Failed to resolve content: $result');
   } catch (e) {
     rethrow;
   }
-  // Note: We leave tempDir cleanup to the OS or tearDown in the test to avoid race conditions.
 }

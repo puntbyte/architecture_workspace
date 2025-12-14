@@ -1,16 +1,21 @@
 // lib/src/config/schema/action_config.dart
 
-import 'package:architecture_lints/src/config/constants/config_keys.dart';
+import 'package:architecture_lints/src/config/enums/action_scope.dart';
+import 'package:architecture_lints/src/config/enums/write_placement.dart';
+import 'package:architecture_lints/src/config/enums/write_strategy.dart';
 import 'package:architecture_lints/src/config/schema/variable_config.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
 import 'package:meta/meta.dart';
 
 @immutable
+@immutable
 class ActionConfig {
   final String id;
   final String description;
   final ActionTrigger trigger;
+  final ActionSource source;
   final ActionTarget target;
+  final ActionWrite write;
   final Map<String, VariableConfig> variables;
   final String templateId;
   final bool debug;
@@ -19,7 +24,9 @@ class ActionConfig {
     required this.id,
     required this.description,
     required this.trigger,
+    required this.source,
     required this.target,
+    required this.write,
     required this.variables,
     required this.templateId,
     this.debug = false,
@@ -30,9 +37,10 @@ class ActionConfig {
       id: id,
       description: map.getString('description', fallback: 'Fix issue'),
       trigger: ActionTrigger.fromMap(map.getMap('trigger')),
+      source: ActionSource.fromMap(map.getMap('source')),
       target: ActionTarget.fromMap(map.getMap('target')),
+      write: ActionWrite.fromMap(map.getMap('write')),
       variables: _parseVariables(map['variables']),
-      // Keep raw for Hierarchy parsing later
       templateId: map.mustGetString('template_id'),
       debug: map.getBool('debug', fallback: false),
     );
@@ -45,17 +53,12 @@ class ActionConfig {
   static Map<String, VariableConfig> _parseVariables(dynamic raw) {
     if (raw is! Map) return {};
     final result = <String, VariableConfig>{};
-
     raw.forEach((key, value) {
-      // In the root variables block, keys SHOULD start with '.'
-      // per your hierarchy rules, or we can be lenient at the root.
-      // Assuming strict consistency:
       final cleanKey = key.toString().startsWith('.')
           ? key.toString().substring(1)
           : key.toString();
       result[cleanKey] = VariableConfig.fromDynamic(value);
     });
-
     return result;
   }
 }
@@ -63,8 +66,8 @@ class ActionConfig {
 @immutable
 class ActionTrigger {
   final String? component;
-  final String? element; // 'class', 'method'
-  final String? errorCode; // 'arch_type_missing_base'
+  final String? element;
+  final String? errorCode;
 
   const ActionTrigger({this.component, this.element, this.errorCode});
 
@@ -78,16 +81,55 @@ class ActionTrigger {
 }
 
 @immutable
-class ActionTarget {
-  final String directory;
-  final String filename;
+class ActionSource {
+  final ActionScope scope;
+  final String? component;
+  final String? element;
 
-  const ActionTarget({required this.directory, required this.filename});
+  const ActionSource({this.scope = ActionScope.current, this.component, this.element});
+
+  factory ActionSource.fromMap(Map<String, dynamic> map) => ActionSource(
+    scope: ActionScope.fromKey(map.tryGetString('scope')),
+    component: map.tryGetString('component'),
+    element: map.tryGetString('element'),
+  );
+}
+
+@immutable
+class ActionTarget {
+  final ActionScope scope;
+  final String? component;
+  final String? element;
+
+  const ActionTarget({this.scope = ActionScope.related, this.component, this.element});
 
   factory ActionTarget.fromMap(Map<String, dynamic> map) {
     return ActionTarget(
-      directory: map.getString('directory', fallback: '.'),
-      filename: map.mustGetString('filename'),
+      scope: ActionScope.fromKey(map.tryGetString('scope')),
+      component: map.tryGetString('component'),
+      element: map.tryGetString('element'),
+    );
+  }
+}
+
+@immutable
+class ActionWrite {
+  final WriteStrategy strategy;
+  final WritePlacement placement;
+  final String? filename; // Moved here
+
+  const ActionWrite({
+    this.strategy = WriteStrategy.file,
+    this.placement = WritePlacement.end,
+    this.filename,
+  });
+
+  factory ActionWrite.fromMap(Map<String, dynamic> map) {
+    return ActionWrite(
+      // FIX: Use null coalescing to ensure non-nullable fields
+      strategy: WriteStrategy.fromKey(map.tryGetString('strategy')) ?? WriteStrategy.file,
+      placement: WritePlacement.fromKey(map.tryGetString('placement')) ?? WritePlacement.end,
+      filename: map.tryGetString('filename'),
     );
   }
 }

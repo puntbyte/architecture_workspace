@@ -1,18 +1,18 @@
 import 'package:architecture_lints/src/config/schema/vocabulary_config.dart';
 import 'package:architecture_lints/src/utils/nlp/nlp_constants.dart';
 import 'package:dictionaryx/dictentry.dart';
-import 'package:dictionaryx/dictionary_msa.dart';
+import 'package:dictionaryx/dictionary_msa_json.dart';
 
 class LanguageAnalyzer {
   /// Static instance shared across all analyzer instances to avoid reloading memory.
-  static final DictionaryMSA _sharedDictionary = DictionaryMSA();
+  static final DictionaryMSAJson _sharedDictionary = DictionaryMSAJson();
 
-  final DictionaryMSA? _dictionary;
+  final DictionaryMSAJson? _dictionary;
   final VocabularyConfig _overrides;
   final bool treatEntryAsNounIfExists;
 
   LanguageAnalyzer({
-    DictionaryMSA? dictionary,
+    DictionaryMSAJson? dictionary,
     VocabularyConfig? vocabulary,
     this.treatEntryAsNounIfExists = true,
   }) : _dictionary = dictionary ?? _sharedDictionary,

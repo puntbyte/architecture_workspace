@@ -3,6 +3,7 @@ import 'package:architecture_lints/src/actions/context/helpers/import_extractor.
 import 'package:architecture_lints/src/actions/context/wrappers/list_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/node_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/parameter_wrapper.dart';
+import 'package:architecture_lints/src/actions/context/wrappers/string_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/type_wrapper.dart';
 import 'package:architecture_lints/src/config/schema/definition.dart';
 import 'package:path/path.dart' as p;
@@ -14,40 +15,52 @@ void main() {
   group('ImportExtractor', () {
     late ImportExtractor extractor;
     const packageName = 'test_project';
+    const rewrites = {
+      'package:fpdart/src/': 'package:fpdart/fpdart.dart',
+      'package:deep/internal/': 'package:deep/public.dart',
+    };
 
     setUp(() {
-      extractor = const ImportExtractor(packageName);
+      extractor = const ImportExtractor(packageName, rewrites: rewrites);
     });
 
-    test('should extract simple URIs from Strings', () {
+    test('should extract simple URIs from Strings and StringWrappers', () {
       final imports = <String>{};
 
       extractor
         ..extract('package:a/a.dart', imports)
+        ..extract(const StringWrapper('package:b/b.dart'), imports)
         ..extract('dart:async', imports)
-        ..extract('dart:core', imports); // Should be ignored
+        ..extract('dart:core', imports) // Should be ignored
+        ..extract('dynamic', imports); // Should be ignored
 
-      expect(imports, containsAll(['package:a/a.dart', 'dart:async']));
+      expect(imports, containsAll(['package:a/a.dart', 'package:b/b.dart', 'dart:async']));
       expect(imports, isNot(contains('dart:core')));
     });
 
     test('should extract imports from Definition objects', () {
       final imports = <String>{};
       const def = Definition(
-        imports: ['package:b/b.dart', 'package:c/c.dart'],
+        imports: ['package:c/c.dart', 'package:d/d.dart'],
       );
 
       extractor.extract(def, imports);
 
-      expect(imports, containsAll(['package:b/b.dart', 'package:c/c.dart']));
+      expect(imports, containsAll(['package:c/c.dart', 'package:d/d.dart']));
     });
 
-    test('should normalize deep imports (fpdart)', () {
+    test('should apply rewrites for deep imports', () {
       final imports = <String>{};
 
-      extractor.extract('package:fpdart/src/either.dart', imports);
+      extractor
+        ..extract('package:fpdart/src/either.dart', imports)
+        ..extract('package:deep/internal/impl.dart', imports)
+        ..extract('package:other/src/impl.dart', imports); // No rewrite rule
 
       expect(imports, contains('package:fpdart/fpdart.dart'));
+      expect(imports, contains('package:deep/public.dart'));
+      expect(imports, contains('package:other/src/impl.dart'));
+
       expect(imports, isNot(contains('package:fpdart/src/either.dart')));
     });
 
@@ -55,12 +68,10 @@ void main() {
       final imports = <String>{};
 
       // Simulate an absolute path found on disk
-      // e.g. /User/project/lib/features/auth/user.dart
       final absPath = p.join('root', 'project', 'lib', 'features', 'auth', 'user.dart');
 
       extractor.extract(absPath, imports);
 
-      // Should convert using the packageName passed in constructor
       expect(imports, contains('package:test_project/features/auth/user.dart'));
     });
 
@@ -93,7 +104,6 @@ void main() {
         extractor.extract(typeWrapper, imports);
 
         // The test file simulates 'package:test_project/lib/test.dart'
-        // Resolver usually treats 'lib/test.dart' as 'package:test_project/test.dart'
         expect(imports.first, contains('package:test_project/test.dart'));
       });
 
@@ -111,20 +121,17 @@ void main() {
         extractor.extract(typeWrapper, imports);
 
         // Should extract import for the file defining Box AND User
-        // Since they are in the same file, we just check it exists
         expect(imports, isNotEmpty);
         expect(imports.first, contains('package:test_project/test.dart'));
       });
 
       test('should extract import from NodeWrapper (File path)', () {
         final imports = <String>{};
-        final clazz = unit.declarations.first; // Class User
+        final clazz = unit.declarations.first;
         final nodeWrapper = NodeWrapper(clazz);
 
         extractor.extract(nodeWrapper, imports);
 
-        // NodeWrapper.filePath returns absolute path.
-        // Extractor should convert it to package: URI
         expect(imports, contains(matches('package:test_project/.*test.dart')));
       });
 
@@ -145,14 +152,23 @@ void main() {
     test('should handle Lists and ListWrappers', () {
       final imports = <String>{};
 
-      final list = ['package:a/a.dart', 'package:b/b.dart'];
-      const wrapper = ListWrapper(['package:c/c.dart']);
+      final list = ['package:e/e.dart', 'package:f/f.dart'];
+      const wrapper = ListWrapper(['package:g/g.dart']);
 
       extractor
         ..extract(list, imports)
         ..extract(wrapper, imports);
 
-      expect(imports, containsAll(['package:a/a.dart', 'package:b/b.dart', 'package:c/c.dart']));
+      expect(imports, containsAll(['package:e/e.dart', 'package:f/f.dart', 'package:g/g.dart']));
+    });
+
+    test('should handle Map with import key (Unwrapped definition)', () {
+      final imports = <String>{};
+      final map = {'import': 'package:h/h.dart'};
+
+      extractor.extract(map, imports);
+
+      expect(imports, contains('package:h/h.dart'));
     });
   });
 }

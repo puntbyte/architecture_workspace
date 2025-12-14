@@ -4,11 +4,22 @@ import 'package:architecture_lints/src/actions/context/wrappers/node_wrapper.dar
 import 'package:architecture_lints/src/actions/context/wrappers/parameter_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/string_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/type_wrapper.dart';
+import 'package:expressions/expressions.dart';
 
 class MethodWrapper extends NodeWrapper {
   final MethodDeclaration method;
 
-  MethodWrapper(this.method, {super.definitions = const {}}) : super(method);
+  const MethodWrapper(this.method, {super.definitions = const {}}) : super(method);
+
+  static MemberAccessor<MethodWrapper> get accessor =>
+      const MemberAccessor<MethodWrapper>.fallback(_getMember);
+
+  static dynamic _getMember(MethodWrapper obj, String name) => switch (name) {
+    'returnType' => obj.returnType,
+    'returnTypeInner' => obj.returnTypeInner,
+    'parameters' => obj.parameters,
+    _ => NodeWrapper.getMember(obj, name),
+  };
 
   TypeWrapper get returnType {
     return TypeWrapper(method.returnType?.type, rawString: 'void', definitions: definitions);

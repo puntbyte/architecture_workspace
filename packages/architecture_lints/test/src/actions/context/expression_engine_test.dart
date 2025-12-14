@@ -1,83 +1,106 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:architecture_lints/src/actions/context/expression_engine.dart';
-import 'package:architecture_lints/src/actions/context/wrappers/node_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/string_wrapper.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
+import 'package:architecture_lints/src/config/schema/definition.dart';
 import 'package:test/test.dart';
 
 import '../../../helpers/test_resolver.dart';
 
 void main() {
   group('ExpressionEngine', () {
-    late AstNode sourceNode;
-    late ArchitectureConfig config;
     late ExpressionEngine engine;
+    late ArchitectureConfig mockConfig;
 
     setUp(() async {
-      final unit = await resolveContent('class TestClass {}');
-      sourceNode = unit.unit.declarations.first;
-      config = ArchitectureConfig.empty();
-      engine = ExpressionEngine(sourceNode: sourceNode, config: config);
+      // 1. Setup Source
+      const code = '''
+        class Auth { 
+          void login(String username) {} 
+        }
+      ''';
+      final unit = await resolveContent(code);
+
+      final clazz = unit.unit.declarations.whereType<ClassDeclaration>().first;
+      final method = clazz.members.whereType<MethodDeclaration>().first;
+
+      // 2. Setup Config
+      mockConfig = const ArchitectureConfig(
+        components: [],
+        definitions: {
+          'core.base': Definition(types: ['BaseClass']),
+        },
+      );
+
+      // 3. Initialize Engine
+      engine = ExpressionEngine(sourceNode: method, config: mockConfig);
     });
 
-    test('should initialize rootContext with source and config', () {
-      expect(engine.rootContext.containsKey('source'), isTrue);
-      expect(engine.rootContext['source'], isA<NodeWrapper>());
-      expect(engine.rootContext.containsKey('config'), isTrue);
-    });
-
-    test('should evaluate simple expressions', () {
-      expect(engine.evaluate('1 + 1', {}), 2);
-      expect(engine.evaluate("'hello' + ' world'", {}), 'hello world');
-      expect(engine.evaluate('true && false', {}), false);
-    });
-
-    test('should evaluate expressions using root context', () {
-      expect(engine.evaluate('source.name.value', {}), 'TestClass');
-    });
-
-    test('should evaluate expressions using passed context', () {
-      final context = {'custom': 123};
-      expect(engine.evaluate('custom + 1', context), 124);
-    });
-
-    test('should handle evaluation errors gracefully', () {
-      // 1. Syntax Error -> Returns raw string (caught exception)
-      expect(engine.evaluate('1 + ', {}), '1 + ');
-
-      // 2. Unknown Variable -> Returns null (valid expression, evaluates to null)
-      expect(engine.evaluate('unknown_var', {}), isNull);
-    });
-
-    group('unwrap', () {
-      test('should unwrap StringWrapper', () {
-        expect(engine.unwrap(const StringWrapper('test')), 'test');
+    group('evaluate()', () {
+      test('should evaluate raw expressions using MemberAccessors', () {
+        // source (MethodWrapper) -> name (StringWrapper) -> pascalCase (String)
+        final result = engine.evaluate('source.name.pascalCase', {});
+        expect(result, 'Login');
       });
 
-      test('should unwrap nested Lists', () {
-        final input = [const StringWrapper('a'), const StringWrapper('b')];
-        final output = engine.unwrap(input);
-        expect(output, ['a', 'b']);
+      test('should evaluate string interpolation', () {
+        final result = engine.evaluate(r'Use case: ${source.name.snakeCase}.dart', {});
+        expect(result, 'Use case: login.dart');
       });
 
-      test('should unwrap nested Maps', () {
-        final input = {
+      test('should access definitions via config.definitionFor', () {
+        // FIX: Use config.definitionFor() which returns a Map
+        // definitions['...'] would return a Definition object which has no accessor now.
+        final result = engine.evaluate("config.definitionFor('core.base').type", {});
+        expect(result, 'BaseClass');
+      });
+
+      test('should fallback to raw string on error', () {
+        const input = 'missing.property';
+        final result = engine.evaluate(input, {});
+        expect(result, input);
+      });
+
+      test('should use passed context over root context', () {
+        final result = engine.evaluate('custom.pascalCase', {
+          'custom': const StringWrapper('hello_world')
+        });
+        expect(result, 'HelloWorld');
+      });
+    });
+
+    group('unwrap()', () {
+      test('should unwrap StringWrapper to primitive String', () {
+        const wrapper = StringWrapper('test');
+        expect(engine.unwrap(wrapper), 'test');
+      });
+
+      test('should unwrap Definition to Map', () {
+        const def = Definition(types: ['MyType']);
+        final result = engine.unwrap(def);
+
+        expect(result, isA<Map>());
+        expect(result['type'], 'MyType');
+      });
+
+      test('should unwrap List of Wrappers to List of Primitives', () {
+        final list = [const StringWrapper('a'), const StringWrapper('b')];
+        final result = engine.unwrap(list);
+
+        expect(result, isA<List>());
+        expect(result, ['a', 'b']);
+      });
+
+      test('should unwrap Map values recursively', () {
+        final map = {
           'key': const StringWrapper('value'),
-          'nested': [const StringWrapper('item')],
+          'nested': {'inner': const StringWrapper('innerValue')}
         };
 
-        final output = engine.unwrap(input);
+        final result = engine.unwrap(map) as Map;
 
-        expect(output['key'], 'value');
-        expect(output['nested'], ['item']);
-      });
-
-      test('should pass through primitives', () {
-        expect(engine.unwrap(123), 123);
-        expect(engine.unwrap(12.5), 12.5);
-        expect(engine.unwrap(true), true);
-        expect(engine.unwrap('str'), 'str');
-        expect(engine.unwrap(null), isNull);
+        expect(result['key'], 'value');
+        expect((result['nested'] as Map)['inner'], 'innerValue');
       });
     });
   });

@@ -1,7 +1,10 @@
 import 'package:analyzer/dart/ast/ast.dart' hide Expression;
-import 'package:architecture_lints/src/actions/context/architectural_member_accessors.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/config_wrapper.dart';
+import 'package:architecture_lints/src/actions/context/wrappers/generic_wrapper.dart';
+import 'package:architecture_lints/src/actions/context/wrappers/list_wrapper.dart';
+import 'package:architecture_lints/src/actions/context/wrappers/method_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/node_wrapper.dart';
+import 'package:architecture_lints/src/actions/context/wrappers/parameter_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/string_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/type_wrapper.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
@@ -16,12 +19,35 @@ class ExpressionEngine {
   ExpressionEngine({
     required AstNode sourceNode,
     required ArchitectureConfig config,
-  }) : _evaluator = ExpressionEvaluator(memberAccessors: ArchitectureMemberAccessors.getAll()),
-       rootContext = {
-         'source': NodeWrapper.create(sourceNode, config.definitions),
-         'config': ConfigWrapper(config),
-         'definitions': config.definitions,
-       };
+  }) : _evaluator = evaluator(),
+       rootContext = _rootContext(sourceNode, config);
+
+  static ExpressionEvaluator evaluator() => ExpressionEvaluator(
+    memberAccessors: [
+      // Wrappers
+      MethodWrapper.accessor,
+      ParameterWrapper.accessor,
+      NodeWrapper.accessor,
+      TypeWrapper.accessor,
+      StringWrapper.accessor,
+      GenericWrapper.accessor,
+
+      // Collections
+      ListWrapper.accessor,
+
+      // Configuration Objects
+      ConfigWrapper.accessor,
+
+      // Default Map support
+      MemberAccessor.mapAccessor,
+    ],
+  );
+
+  static Map<String, dynamic> _rootContext(AstNode sourceNode, ArchitectureConfig config) => {
+    'source': NodeWrapper.create(sourceNode, config.definitions),
+    'config': ConfigWrapper(config),
+    'definitions': config.definitions,
+  };
 
   dynamic evaluate(String input, Map<String, dynamic> context) {
     if (input.contains(r'${')) {
@@ -49,7 +75,6 @@ class ExpressionEngine {
   dynamic unwrap(dynamic value) {
     if (value == null) return null;
 
-    // FIX: Unwrap Definition to Map so .type property works in expressions
     if (value is Definition) return value.toMap();
 
     if (value is StringWrapper) return value.value;
@@ -57,13 +82,9 @@ class ExpressionEngine {
     if (value is TypeWrapper) return unwrap(value.toMap());
     if (value is NodeWrapper) return unwrap(value.toMap());
 
-    if (value is Iterable && value is! Map) {
-      return value.map(unwrap).toList();
-    }
+    if (value is Iterable && value is! Map) return value.map(unwrap).toList();
 
-    if (value is Map) {
-      return value.map((k, v) => MapEntry(k.toString(), unwrap(v)));
-    }
+    if (value is Map) return value.map((k, v) => MapEntry(k.toString(), unwrap(v)));
 
     return value.toString();
   }

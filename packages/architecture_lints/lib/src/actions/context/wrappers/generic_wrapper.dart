@@ -1,6 +1,7 @@
 import 'package:architecture_lints/src/actions/context/wrappers/list_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/string_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/type_wrapper.dart';
+import 'package:expressions/expressions.dart';
 
 class GenericWrapper {
   /// The base type name (e.g. "Future", "Either", "Map").
@@ -10,6 +11,18 @@ class GenericWrapper {
   final ListWrapper<TypeWrapper> args;
 
   const GenericWrapper(this.base, this.args);
+
+  static MemberAccessor<GenericWrapper> get accessor =>
+      const MemberAccessor<GenericWrapper>.fallback(_getMember);
+
+  static dynamic _getMember(GenericWrapper obj, String name) => switch (name) {
+    'base' => obj.base,
+    'args' => obj.args,
+    'first' => obj.first,
+    'last' => obj.last,
+    'length' => obj.length,
+    _ => throw ArgumentError('Unknown GenericWrapper property: $name'),
+  };
 
   // --- Convenience Properties for Expressions ---
 
@@ -23,11 +36,9 @@ class GenericWrapper {
   int get length => args.length;
 
   /// Converts to Map for Mustache.
-  Map<String, dynamic> toMap() {
-    return {
-      'base': base,
-      'args': args, // ListWrapper will be handled by accessors
-      'length': length,
-    };
-  }
+  Map<String, dynamic> toMap() => {
+    'base': base,
+    'args': args, // ListWrapper will be handled by accessors
+    'length': length,
+  };
 }
