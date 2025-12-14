@@ -16,10 +16,6 @@ class GrammarRule extends NamingBaseRule with GrammarLogic {
     errorSeverity: DiagnosticSeverity.WARNING,
   );
 
-  // Removed late final _analyzer.
-  // We create it on the fly or rely on a static cache if needed.
-  // Since we use a static dictionary in LanguageAnalyzer, creating the instance is cheap.
-
   const GrammarRule() : super(code: _code);
 
   @override
@@ -27,20 +23,18 @@ class GrammarRule extends NamingBaseRule with GrammarLogic {
     required ClassDeclaration node,
     required ComponentConfig config,
     required DiagnosticReporter reporter,
-    required ArchitectureConfig rootConfig, // We need rootConfig for vocabulary
+    required ArchitectureConfig rootConfig,
   }) {
     if (config.grammar.isEmpty) return;
 
     final className = node.name.lexeme;
 
     // Create analyzer with the current project's vocabulary
-    final analyzer = LanguageAnalyzer(
-      vocabulary: rootConfig.vocabulary,
-    );
+    final analyzer = LanguageAnalyzer(vocabulary: rootConfig.vocabulary);
 
     String? failureReason;
     String? failureCorrection;
-    bool hasMatch = false;
+    var hasMatch = false;
 
     for (final grammar in config.grammar) {
       final result = validateGrammar(grammar, className, analyzer);

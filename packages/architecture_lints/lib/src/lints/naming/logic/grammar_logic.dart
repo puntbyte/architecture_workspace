@@ -44,6 +44,7 @@ mixin GrammarLogic {
             correction: 'End with the subject being acted upon (e.g., User, Data).',
           );
         }
+
         return const GrammarResult.valid();
       }
     }
@@ -112,6 +113,7 @@ mixin GrammarLogic {
           correction: 'States should end with an Adjective, Past Action, or Ongoing Action.',
         );
       }
+
       return const GrammarResult.valid();
     }
 

@@ -5,11 +5,11 @@ import 'package:architecture_lints/src/config/schema/definition.dart';
 
 mixin ExceptionLogic {
   bool matchesType(
-      DartType? type,
-      String? definitionKey,
-      String? rawType,
-      Map<String, Definition> registry,
-      ) {
+    DartType? type,
+    String? definitionKey,
+    String? rawType,
+    Map<String, Definition> registry,
+  ) {
     if (type == null) return false;
 
     final element = type.element;
@@ -18,9 +18,7 @@ mixin ExceptionLogic {
     final name = element?.name ?? type.getDisplayString();
 
     // 1. Raw Type Check
-    if (rawType != null && name == rawType) {
-      return true;
-    }
+    if (rawType != null && name == rawType) return true;
 
     // 2. Definition Check
     if (definitionKey != null) {
@@ -32,9 +30,8 @@ mixin ExceptionLogic {
             // Handle dart:core exceptions
             if (libUri == 'dart:core' && def.imports.isEmpty) return true;
 
-            if (libUri != null && def.imports.any((imp) => libUri.startsWith(imp))) {
-              return true;
-            }
+            if (libUri != null && def.imports.any(libUri.startsWith)) return true;
+
             return false;
           }
           return true;
@@ -50,15 +47,13 @@ mixin ExceptionLogic {
     return results;
   }
 
-  DartType? getCaughtType(CatchClause node) {
-    return node.exceptionType?.type;
-  }
+  DartType? getCaughtType(CatchClause node) => node.exceptionType?.type;
 
   bool returnStatementMatchesType(
-      ReturnStatement node,
-      String definitionKey,
-      Map<String, Definition> registry,
-      ) {
+    ReturnStatement node,
+    String definitionKey,
+    Map<String, Definition> registry,
+  ) {
     final expression = node.expression;
     if (expression == null) return false;
 
@@ -71,12 +66,14 @@ mixin ExceptionLogic {
         if (matchesType(arg, definitionKey, null, registry)) return true;
       }
     }
+
     return false;
   }
 }
 
 class _TypedVisitor<T extends AstNode> extends UnifyingAstVisitor<void> {
   final List<T> results;
+
   _TypedVisitor(this.results);
 
   @override

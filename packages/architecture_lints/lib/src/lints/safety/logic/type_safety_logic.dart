@@ -19,23 +19,23 @@ mixin TypeSafetyLogic {
   ) {
     var best = MatchSpecificity.none;
 
-    for (final c in constraintList) {
+    for (final constraint in constraintList) {
       // 1. Check Alias (Strongest Match)
       if (type.alias != null) {
         if (_matchesElement(
           type.alias!.element,
-          c,
+          constraint,
           registry,
           typeArguments: type.alias!.typeArguments,
         )) {
-          return MatchSpecificity.alias; // Return immediately found highest specificity
+          return MatchSpecificity.alias;
         }
       }
 
       // 2. Check Canonical (Weak Match)
       if (_matchesElement(
         type.element,
-        c,
+        constraint,
         registry,
         typeArguments: _getTypeArguments(type),
       )) {
@@ -44,12 +44,12 @@ mixin TypeSafetyLogic {
       }
 
       // 3. Component Match (Treat as Canonical for now)
-      if (c.component != null) {
+      if (constraint.component != null) {
         final library = type.element?.library;
         if (library != null) {
           final sourcePath = library.firstFragment.source.fullName;
           final comp = fileResolver.resolve(sourcePath);
-          if (comp != null && comp.matchesReference(c.component!)) {
+          if (comp != null && comp.matchesReference(constraint.component!)) {
             if (best == MatchSpecificity.none) best = MatchSpecificity.canonical;
           }
         }

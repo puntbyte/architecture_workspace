@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/ast/ast.dart'; // Required for ClassDeclaration
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
+import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
@@ -37,9 +38,7 @@ class MisplacedComponentRule extends ArchitectureLintRule with NamingLogic, Inhe
       // This prevents flagging a file just because it *also* looks like something else.
       if (component != null && component.patterns.isNotEmpty) {
         for (final pattern in component.patterns) {
-          if (validateName(className, pattern)) {
-            return; // Correctly placed
-          }
+          if (validateName(className, pattern)) return;
         }
       }
 
@@ -47,7 +46,8 @@ class MisplacedComponentRule extends ArchitectureLintRule with NamingLogic, Inhe
       // If the class extends a known architectural type, that trumps naming.
       final inheritanceId = findComponentIdByInheritance(node, config, fileResolver);
       if (inheritanceId != null) {
-        // If we found a specific ID via inheritance, and it doesn't match the current component location
+        // If we found a specific ID via inheritance, and it doesn't match the current component
+        // location
         if (component?.id != inheritanceId) {
           try {
             final realComponent = config.components.firstWhere((c) => c.id == inheritanceId);
@@ -88,16 +88,15 @@ class MisplacedComponentRule extends ArchitectureLintRule with NamingLogic, Inhe
         }
       }
 
-      if (bestMatch != null) {
-        _report(reporter, node, className, bestMatch);
-      }
+      if (bestMatch != null) _report(reporter, node, className, bestMatch);
     });
   }
 
-  int _calculateSpecificity(String pattern) {
-    // Strip placeholders to measure the "uniqueness" of the pattern
-    return pattern.replaceAll('{{name}}', '').replaceAll('{{affix}}', '').length;
-  }
+  // Strip placeholders to measure the "uniqueness" of the pattern
+  int _calculateSpecificity(String pattern) => pattern
+      .replaceAll(ConfigKeys.placeholder.name, '')
+      .replaceAll(ConfigKeys.placeholder.affix, '')
+      .length;
 
   void _report(
     DiagnosticReporter reporter,

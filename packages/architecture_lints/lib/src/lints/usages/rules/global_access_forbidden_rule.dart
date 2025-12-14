@@ -78,11 +78,7 @@ class GlobalAccessForbiddenRule extends UsageBaseRule {
           // instead of the internal config key ("service.locator").
           final displayName = node.name;
 
-          reporter.atNode(
-            node,
-            _code,
-            arguments: [displayName],
-          );
+          reporter.atNode(node, _code, arguments: [displayName]);
           // Stop after first match
           return;
         }

@@ -22,9 +22,7 @@ abstract class UsageBaseRule extends ArchitectureLintRule {
   }) {
     if (component == null) return;
 
-    final rules = config.usages.where((rule) {
-      return component.matchesAny(rule.onIds);
-    }).toList();
+    final rules = config.usages.where((rule) => component.matchesAny(rule.onIds)).toList();
 
     if (rules.isEmpty) return;
 

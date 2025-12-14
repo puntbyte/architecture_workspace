@@ -12,16 +12,12 @@ mixin UsageLogic {
     final name = node.name;
 
     // 1. Identifiers
-    if (definition.identifiers.contains(name)) {
-      return _checkImport(element, definition);
-    }
+    if (definition.identifiers.contains(name)) return _checkImport(element, definition);
 
     // 2. Static Access
     if (definition.types.isNotEmpty) {
       if (element is ClassElement || element is InterfaceElement) {
-        if (definition.types.contains(element.name)) {
-          return _checkImport(element, definition);
-        }
+        if (definition.types.contains(element.name)) return _checkImport(element, definition);
       }
     }
 

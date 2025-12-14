@@ -91,7 +91,6 @@ abstract class ArchitectureLintRule extends DartLintRule {
       reporter: reporter,
       resolver: resolver,
       config: config ?? ArchitectureConfig.empty(),
-      // Safe fallback
       fileResolver: fileResolver ?? FileResolver(ArchitectureConfig.empty()),
       component: component,
     );
