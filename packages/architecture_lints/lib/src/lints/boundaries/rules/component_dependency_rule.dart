@@ -65,12 +65,12 @@ class ComponentDependencyRule extends BoundaryBaseRule {
   }
 
   void _validate(
-      AstNode node,
-      ComponentContext component,
-      ComponentContext targetComponent,
-      ArchitectureConfig config,
-      DiagnosticReporter reporter,
-      ) {
+    AstNode node,
+    ComponentContext component,
+    ComponentContext targetComponent,
+    ArchitectureConfig config,
+    DiagnosticReporter reporter,
+  ) {
     if (component.id == targetComponent.id) return;
 
     final rules = config.dependencies.where((rule) {
@@ -107,17 +107,20 @@ class ComponentDependencyRule extends BoundaryBaseRule {
   }
 
   void _report(
-      DiagnosticReporter reporter,
-      AstNode node,
-      ComponentContext current,
-      ComponentContext target,
-      Set<String> allAllowed,
-      ) {
+    DiagnosticReporter reporter,
+    AstNode node,
+    ComponentContext current,
+    ComponentContext target,
+    Set<String> allAllowed,
+  ) {
     var suggestion = '';
     if (allAllowed.isNotEmpty) {
-      final allowedDisplay = allAllowed.take(3).map((id) {
-        return id.split('.').map((s) => s[0].toUpperCase() + s.substring(1)).join(' ');
-      }).join(', ');
+      final allowedDisplay = allAllowed
+          .take(3)
+          .map((id) {
+            return id.split('.').map((s) => s[0].toUpperCase() + s.substring(1)).join(' ');
+          })
+          .join(', ');
       suggestion = ' Allowed dependencies: $allowedDisplay${allAllowed.length > 3 ? '...' : ''}.';
     }
 

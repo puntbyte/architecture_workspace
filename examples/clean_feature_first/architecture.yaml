@@ -83,7 +83,7 @@ excludes:
 # --------------------------------------------------------------------------------------------------
 modules:
   feature:
-    path: 'features/{{name}}'
+    path: 'features/${name}'
     default: true
   core: 'core'
   config: 'config'

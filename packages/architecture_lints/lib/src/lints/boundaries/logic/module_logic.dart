@@ -1,5 +1,6 @@
 // lib/src/lints/boundaries/logic/module_logic.dart
 
+import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/config/schema/module_config.dart';
 import 'package:architecture_lints/src/core/resolver/path_matcher.dart';
 import 'package:architecture_lints/src/domain/module_context.dart';
@@ -9,7 +10,7 @@ mixin ModuleLogic {
     final normalizedFile = filePath.replaceAll(r'\', '/');
 
     for (final module in modules) {
-      if (!module.path.contains('{{name}}')) continue;
+      if (!module.path.contains(ConfigKeys.placeholder.name)) continue;
 
       final pattern = PathMatcher.escapeRegex(module.path)
           .replaceAll(r'\{\{name\}\}', '([^/]+)');

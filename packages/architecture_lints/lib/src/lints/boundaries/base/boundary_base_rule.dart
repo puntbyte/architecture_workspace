@@ -63,7 +63,7 @@ abstract class BoundaryBaseRule extends ArchitectureLintRule {
     required ComponentContext? component,
     required DiagnosticReporter reporter,
     required CustomLintResolver resolver,
-    required CustomLintContext context, // Added
+    required CustomLintContext context,
   });
 
   /// Called for every named type usage.
@@ -74,6 +74,6 @@ abstract class BoundaryBaseRule extends ArchitectureLintRule {
     required ComponentContext? component,
     required DiagnosticReporter reporter,
     required CustomLintResolver resolver,
-    required CustomLintContext context, // Added
+    required CustomLintContext context,
   }) {}
 }

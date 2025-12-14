@@ -13,15 +13,6 @@ import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.da
 import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart';
 import 'package:path/path.dart' as p;
 
-extension _StringExt on String {
-  String toPascalCase() {
-    if (isEmpty) return this;
-    return split('_')
-        .map((s) => s.isNotEmpty ? '${s[0].toUpperCase()}${s.substring(1)}' : '')
-        .join();
-  }
-}
-
 class ComponentRefiner with InheritanceLogic, NamingLogic {
   final ArchitectureConfig config;
   final FileResolver fileResolver;
@@ -34,17 +25,19 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
   }) {
     // 1. Get Candidates
     var candidates = fileResolver.resolveAllCandidates(filePath);
-    candidates = candidates
-        .where((c) => c.component.mode != ComponentMode.namespace)
-        .toList();
+    candidates = candidates.where((c) => c.component.mode != ComponentMode.namespace).toList();
 
     if (candidates.isEmpty) return null;
 
     if (candidates.length == 1) {
-      final log = ScoreLog(candidates.first)..add(100, "MATCH: Only candidate");
-      log.confidence = 1.0;
+      final log = ScoreLog(candidates.first)
+        ..add(100, 'MATCH: Only candidate')
+        ..confidence = 1.0;
       return _buildContext(
-          filePath, candidates.first.component, log.generateReport(isWinner: true));
+        filePath,
+        candidates.first.component,
+        log.generateReport(isWinner: true),
+      );
     }
 
     // 2. Identify Main Declaration
@@ -52,9 +45,10 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
     final element = mainNode?.declaredFragment?.element;
     final className = element?.name;
 
-    final headerLog = StringBuffer();
-    headerLog.writeln(
-        '   (Refiner Analyzed Node: "${className ?? 'Unknown'}" [${mainNode.runtimeType}])');
+    final headerLog = StringBuffer()
+      ..writeln(
+        '   (Refiner Analyzed Node: "${className ?? 'Unknown'}" [${mainNode.runtimeType}])',
+      );
 
     final logs = <ScoreLog>[];
 
@@ -64,8 +58,7 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
 
       // [0] PATH & MODE
       final pathScore = (candidate.matchIndex * 10.0) + candidate.matchLength;
-      log.add(pathScore,
-          'PATH: Idx:${candidate.matchIndex}, Len:${candidate.matchLength}');
+      log.add(pathScore, 'PATH: Idx:${candidate.matchIndex}, Len:${candidate.matchLength}');
 
       if (cConfig.mode == ComponentMode.file) {
         log.add(50, 'MODE: File');
@@ -75,8 +68,8 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
 
       // [1] NAMING PATTERN
       if (cConfig.patterns.isNotEmpty && className != null) {
-        bool matchesPattern = false;
-        String matchedPattern = '';
+        var matchesPattern = false;
+        var matchedPattern = '';
         for (final p in cConfig.patterns) {
           if (validateName(className, p)) {
             matchesPattern = true;
@@ -86,8 +79,7 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
         }
 
         if (matchesPattern) {
-          log.add(40.0 + matchedPattern.length,
-              'NAME: Matched "$matchedPattern"');
+          log.add(40.0 + matchedPattern.length, 'NAME: Matched "$matchedPattern"');
         } else {
           log.add(-5, 'NAME: No match for ${cConfig.patterns}');
         }
@@ -98,8 +90,7 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
         final idLower = cConfig.id.toLowerCase();
         final nameLower = className.toLowerCase();
 
-        final isImplComponent =
-            idLower.contains('impl') || idLower.contains('implementation');
+        final isImplComponent = idLower.contains('impl') || idLower.contains('implementation');
         final isImplClass = nameLower.endsWith('impl');
 
         if (isImplComponent && isImplClass) {
@@ -112,15 +103,12 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
 
       // [2] INHERITANCE
       if (element is InterfaceElement) {
-        final inheritanceRules = config.inheritances.where(
-              (r) => r.onIds.contains(cConfig.id),
-        );
+        final inheritanceRules = config.inheritances.where((r) => r.onIds.contains(cConfig.id));
 
         for (final rule in inheritanceRules) {
           if (rule.required.isNotEmpty) {
             if (satisfiesRule(element, rule, config, fileResolver)) {
-              final requiresComponent =
-              rule.required.any((d) => d.component != null);
+              final requiresComponent = rule.required.any((d) => d.component != null);
               log.add(requiresComponent ? 80 : 40, 'INHERIT: Requirement Met');
             } else {
               log.add(-30, 'INHERIT: Requirement Failed');
@@ -141,8 +129,7 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
             log.add(20, 'KIND: Matched ${actualKind.name}');
           } else {
             final req = cConfig.kinds.map((k) => k.name).join(',');
-            log.add(-200,
-                'KIND: Mismatch (Found:${actualKind?.name}, Req:[$req])');
+            log.add(-200, 'KIND: Mismatch (Found:${actualKind?.name}, Req:[$req])');
           }
         }
 
@@ -168,11 +155,10 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
 
     final winner = logs.first;
 
-    final fullReport = StringBuffer();
-    fullReport.writeln(headerLog.toString().trim());
-    fullReport.writeln('');
-    fullReport
-        .write(logs.map((l) => l.generateReport(isWinner: l == winner)).join('\n'));
+    final fullReport = StringBuffer()
+      ..writeln(headerLog.toString().trim())
+      ..writeln()
+      ..write(logs.map((l) => l.generateReport(isWinner: l == winner)).join('\n'));
 
     return _buildContext(
       filePath,
@@ -181,8 +167,6 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
     );
   }
 
-  /// Calculates confidence as a percentage of the Winner's score.
-  /// This prevents valid path matches (high base score) from showing as 0%.
   void _calculateConfidence(List<ScoreLog> logs) {
     if (logs.isEmpty) return;
 
@@ -195,8 +179,6 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
     if (maxScore <= 0) maxScore = 1.0;
 
     for (final log in logs) {
-      // Ratio: How close is this score to the winner?
-      // e.g. Winner 1388, Current 1023 -> 0.73 (73%)
       final ratio = log.totalScore / maxScore;
       log.confidence = ratio.clamp(0.0, 1.0);
     }
@@ -204,8 +186,7 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
 
   // --- Helpers ---
 
-  NamedCompilationUnitMember? _findMainDeclaration(
-      CompilationUnit unit, String filePath) {
+  NamedCompilationUnitMember? _findMainDeclaration(CompilationUnit unit, String filePath) {
     final filename = p.basenameWithoutExtension(filePath);
     final expectedName = filename.toPascalCase();
     NamedCompilationUnitMember? firstPublicClass;
@@ -216,7 +197,7 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
       final name = declaration.name.lexeme;
       if (name == expectedName) return declaration;
       if (!name.startsWith('_')) {
-        if (firstPublic == null) firstPublic = declaration;
+        firstPublic ??= declaration;
         if (firstPublicClass == null && declaration is ClassDeclaration) {
           firstPublicClass = declaration;
         }
@@ -239,43 +220,41 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
     return null;
   }
 
-  bool _checkModifiers(
-      ClassDeclaration node, List<ComponentModifier> requiredModifiers) {
+  bool _checkModifiers(ClassDeclaration node, List<ComponentModifier> requiredModifiers) {
     final element = node.declaredFragment?.element;
     if (element == null) return false;
     for (final mod in requiredModifiers) {
       switch (mod) {
         case ComponentModifier.abstract:
-          if (!element.isAbstract &&
-              !element.isInterface &&
-              !element.isMixinClass) return false;
-          break;
+          if (!element.isAbstract && !element.isInterface && !element.isMixinClass) {
+            return false;
+          }
         case ComponentModifier.sealed:
           if (!element.isSealed) return false;
-          break;
         case ComponentModifier.base:
           if (!element.isBase) return false;
-          break;
         case ComponentModifier.interface:
           if (!element.isInterface) return false;
-          break;
         case ComponentModifier.final$:
           if (!element.isFinal) return false;
-          break;
         case ComponentModifier.mixin:
           if (!element.isMixinClass) return false;
-          break;
       }
     }
     return true;
   }
 
-  bool _checkSiblingInheritance(InterfaceElement element, Candidate current,
-      List<Candidate> allCandidates) {
+  bool _checkSiblingInheritance(
+      InterfaceElement element,
+      Candidate current,
+      List<Candidate> allCandidates,
+      ) {
     final supertypes = element.allSupertypes;
     for (final supertype in supertypes) {
       final superElement = supertype.element;
       final library = superElement.library;
+
+      // FIX: Null check for library (e.g. dynamic type or SDK types in some contexts)
       if (library == null) continue;
 
       final sourcePath = library.firstFragment.source.fullName;
@@ -283,25 +262,34 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
 
       if (superComponent == null) continue;
 
-      final isSibling =
-      allCandidates.any((c) => c.component.id == superComponent.id);
+      final isSibling = allCandidates.any((c) => c.component.id == superComponent.id);
 
       if (isSibling && superComponent.id != current.component.id) {
         if (current.component.id.length > superComponent.id.length) return true;
         if (current.component.id.toLowerCase().contains('impl') &&
-            !superComponent.id.toLowerCase().contains('impl')) return true;
+            !superComponent.id.toLowerCase().contains('impl')) {
+          return true;
+        }
       }
     }
     return false;
   }
 
-  ComponentContext _buildContext(String filePath, ComponentConfig config,
-      [String? log]) {
+  ComponentContext _buildContext(String filePath, ComponentConfig config, [String? log]) {
     return ComponentContext(
       filePath: filePath,
       config: config,
       module: fileResolver.resolveModule(filePath),
       debugScoreLog: log,
     );
+  }
+}
+
+extension _StringExt on String {
+  String toPascalCase() {
+    if (isEmpty) return this;
+    return split(
+      '_',
+    ).map((s) => s.isNotEmpty ? '${s[0].toUpperCase()}${s.substring(1)}' : '').join();
   }
 }

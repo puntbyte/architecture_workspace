@@ -30,6 +30,6 @@ class NamingStrategy with NamingLogic implements RefinementStrategy {
 
     // Mild penalty: Just because name doesn't match doesn't mean it's NOT this component
     // (could be a typo by user). Do not Veto.
-    log.add(-5.0, 'NAME: No match');
+    log.add(-5, 'NAME: No match');
   }
 }

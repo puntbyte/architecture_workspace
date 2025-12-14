@@ -1,8 +1,8 @@
 // lib/src/utils/naming_utils.dart
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
 
-class NamingUtils {
-  const NamingUtils._();
+class NamingUtils2 {
+  const NamingUtils2._();
 
   // Regex: Capitalized letter followed by alphanumerics
   static const String _regexPascalCaseGroup = '([A-Z][a-zA-Z0-9]*)';

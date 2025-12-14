@@ -4,9 +4,8 @@ import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
-import 'package:architecture_lints/src/domain/module_context.dart';
 import 'package:architecture_lints/src/lints/boundaries/base/boundary_base_rule.dart';
-import 'package:architecture_lints/src/lints/boundaries/logic/module_logic.dart'; // Ensure Mixin is imported
+import 'package:architecture_lints/src/lints/boundaries/logic/module_logic.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class ModuleDependencyRule extends BoundaryBaseRule with ModuleLogic {

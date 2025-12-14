@@ -9,10 +9,10 @@ class YamlMerger {
   /// Loads merged YAML.
   /// [projectRoot] is required to resolve 'package:' includes.
   static Future<Map<dynamic, dynamic>> loadMergedYaml(
-      String filePath, {
-        Set<String>? seenPaths,
-        String? projectRoot,
-      }) async {
+    String filePath, {
+    Set<String>? seenPaths,
+    String? projectRoot,
+  }) async {
     final normalizedPath = p.normalize(p.absolute(filePath));
 
     final visited = seenPaths ?? {};
@@ -30,7 +30,7 @@ class YamlMerger {
     final includeRegex = RegExp(r'^\s*#\s*include:\s*(.+)$', multiLine: true);
     final match = includeRegex.firstMatch(content);
 
-    Map<dynamic, dynamic> baseConfig = {};
+    var baseConfig = <dynamic, dynamic>{};
 
     if (match != null) {
       final includePath = match.group(1)?.trim();
@@ -64,7 +64,7 @@ class YamlMerger {
 
     // 2. Parse & Merge
     final currentYaml = loadYaml(content);
-    Map<dynamic, dynamic> currentMap = {};
+    var currentMap = <dynamic, dynamic>{};
     if (currentYaml is Map) {
       currentMap = currentYaml;
     }
@@ -72,7 +72,10 @@ class YamlMerger {
     return _deepMerge(baseConfig, currentMap);
   }
 
-  static Map<dynamic, dynamic> _deepMerge(Map<dynamic, dynamic> base, Map<dynamic, dynamic> override) {
+  static Map<dynamic, dynamic> _deepMerge(
+    Map<dynamic, dynamic> base,
+    Map<dynamic, dynamic> override,
+  ) {
     final result = Map<dynamic, dynamic>.from(base);
 
     override.forEach((key, value) {

@@ -1,5 +1,3 @@
-// lib/src/lints/debug_component_identity.dart
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -13,10 +11,7 @@ import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-/// Debugging lint that emits structured debug messages for many AST locations.
-/// Implementation is split: the public rule is a small adapter, the heavy lifting
-/// is performed by DebugRuleRunner and DebugReportGenerator.
-class DebugComponentIdentity extends ArchitectureLintRule {
+class DebugComponentIdentity extends ArchitectureLintRule with DebugComponentIdentityWrapper {
   static const _code = LintCode(
     name: 'debug_component_identity',
     problemMessage: '{0}',
@@ -34,6 +29,13 @@ class DebugComponentIdentity extends ArchitectureLintRule {
     required FileResolver fileResolver,
     ComponentContext? component,
   }) {
+    // 1. Retrieve errors captured during startUp()
+    final configError = context.sharedState['arch_config_error']?.toString();
+    final refinerError = context.sharedState['arch_refiner_error']?.toString();
+    final resolverError = context.sharedState['arch_resolver_error']?.toString();
+
+    final combinedError = configError ?? refinerError ?? resolverError;
+
     DebugRuleRunner(
       context: context,
       reporter: reporter,
@@ -41,11 +43,11 @@ class DebugComponentIdentity extends ArchitectureLintRule {
       config: config,
       fileResolver: fileResolver,
       component: component,
+      globalError: combinedError, // Pass error down
     ).register();
   }
 }
 
-/// The runner sets up registry callbacks and uses small helpers to keep handlers tiny.
 class DebugRuleRunner {
   final CustomLintContext context;
   final DiagnosticReporter reporter;
@@ -53,6 +55,7 @@ class DebugRuleRunner {
   final ArchitectureConfig config;
   final FileResolver fileResolver;
   final ComponentContext? component;
+  final String? globalError;
 
   late final ReporterHelper _reporter;
   late final DebugReportGenerator _generator;
@@ -64,9 +67,14 @@ class DebugRuleRunner {
     required this.config,
     required this.fileResolver,
     required this.component,
+    this.globalError,
   }) {
     _reporter = ReporterHelper(reporter, DebugComponentIdentity._code);
-    _generator = DebugReportGenerator(fileResolver: fileResolver, component: component);
+    _generator = DebugReportGenerator(
+      fileResolver: fileResolver,
+      component: component,
+      error: globalError,
+    );
   }
 
   void register() {
@@ -85,14 +93,14 @@ class DebugRuleRunner {
     context.registry.addExtensionDeclaration(_onExtensionDeclaration);
     context.registry.addConstructorDeclaration(_onConstructorDeclaration);
     context.registry.addFieldDeclaration(_onFieldDeclaration);
-    // problem with usecase
+
+    // Additional Nodes
     //context.registry.addMethodDeclaration(_onMethodDeclaration);
     //context.registry.addVariableDeclaration(_onVariableDeclaration);
     //context.registry.addFormalParameter(_onFormalParameter);
 
     // 4) Type references
-    // problem with usecase
-    //context.registry.addNamedType(_onNamedType);
+    context.registry.addNamedType(_onNamedType);
 
     // 5) Flow & logic
     context.registry.addReturnStatement(_onReturnStatement);
@@ -102,15 +110,15 @@ class DebugRuleRunner {
   }
 
   // ----------------------------
-  // Handlers (very small, single-responsibility)
+  // Handlers
   // ----------------------------
 
   void _onCompilationUnit(CompilationUnit node) {
     final target = node.directives.firstOrNull ?? node.declarations.firstOrNull;
     if (target == null) return;
 
-    // Use a token so the message is attached to a physical spot in file header
     final token = target.firstTokenAfterCommentAndMetadata;
+
     final message = _generator.generateHeaderReport(resolver.path);
     _reporter.reportOnToken(token, message);
   }
@@ -128,12 +136,8 @@ class DebugRuleRunner {
       typeLabel: 'Import',
       name: node.uri.stringValue ?? '???',
       path: resolver.path,
-      dartType: null,
-      element: null,
-      astNode: null,
       extraInfo: info,
     );
-
     _reporter.reportOnNode(node.uri, message);
   }
 
@@ -234,7 +238,6 @@ class DebugRuleRunner {
   }
 
   void _onVariableDeclaration(VariableDeclaration node) {
-    // Skip fields (they're handled by _onFieldDeclaration)
     if (node.parent?.parent is FieldDeclaration) return;
 
     final message = _generator.generate(
@@ -256,25 +259,28 @@ class DebugRuleRunner {
       path: resolver.path,
       dartType: type,
     );
+    // Prefer node.name, fallback to node itself
     _reporter.reportOnEntity(node.name ?? node, message);
   }
 
   void _onNamedType(NamedType node) {
-    // Avoid highlighting definitions themselves; keep inheritance highlights if desired
     if (node.parent is ClassDeclaration ||
         node.parent is ConstructorDeclaration ||
-        node.parent is MethodDeclaration) {
+        node.parent is MethodDeclaration ||
+        node.parent is ExtendsClause ||
+        node.parent is ImplementsClause ||
+        node.parent is WithClause) {
       return;
     }
 
     final message = _generator.generate(
       typeLabel: 'Type Ref',
-      name: node.name.lexeme,
+      name: node.name2.lexeme,
       path: resolver.path,
       dartType: node.type,
       element: node.element,
     );
-    _reporter.reportOnToken(node.name, message);
+    _reporter.reportOnToken(node.name2, message);
   }
 
   void _onReturnStatement(ReturnStatement node) {
@@ -316,9 +322,9 @@ class DebugRuleRunner {
   }
 
   void _onInstanceCreation(InstanceCreationExpression node) {
-    // For constructor expressions, prefer showing the ConstructorName token
     final cName = node.constructorName;
-    final element = cName.name?.element; // named constructors may have a name token
+    final element = cName.name?.element;
+
     final message = _generator.generate(
       typeLabel: 'Instantiation',
       name: cName.toSource(),
@@ -331,7 +337,6 @@ class DebugRuleRunner {
   }
 }
 
-/// Thin helper that adapts reporter to AstNode/Token objects.
 class ReporterHelper {
   final DiagnosticReporter _reporter;
   final LintCode _code;
@@ -351,21 +356,29 @@ class ReporterHelper {
   }
 }
 
-/// Generates debug report strings; extracted from the previous monolithic method.
 class DebugReportGenerator {
   final FileResolver fileResolver;
   final ComponentContext? component;
+  final String? error;
 
   DebugReportGenerator({
     required this.fileResolver,
     required this.component,
+    this.error,
   });
 
-  /// Generates a short file-header style report used by compilation-unit handler.
   String generateHeaderReport(String path) {
-    final sb = StringBuffer()
-      ..writeln('[DEBUG: FILE CONTEXT] "${path.split('/').last}"')
-      ..writeln('==================================================');
+    final sb = StringBuffer();
+
+    // ERROR HEADER
+    if (error != null) {
+      sb.writeln('🔥 FATAL CONFIGURATION / RUNTIME ERROR 🔥');
+      sb.writeln(error);
+      sb.writeln('==================================================\n');
+    }
+
+    sb.writeln('[DEBUG: FILE CONTEXT] "${path.split('/').last}"');
+    sb.writeln('==================================================');
 
     if (component != null) {
       sb.writeln('✅ RESOLVED: "${component!.id}"');
@@ -381,7 +394,6 @@ class DebugReportGenerator {
     return sb.toString();
   }
 
-  /// General generator used by most node handlers.
   String generate({
     required String typeLabel,
     required String name,
@@ -391,11 +403,18 @@ class DebugReportGenerator {
     AstNode? astNode,
     String? extraInfo,
   }) {
-    final sb = StringBuffer()
-      ..writeln('[DEBUG: $typeLabel] "$name"')
-      ..writeln('==================================================');
+    final sb = StringBuffer();
 
-    // Resolution result (component context)
+    // ERROR HEADER
+    if (error != null) {
+      sb.writeln('🔥 FATAL CONFIGURATION / RUNTIME ERROR 🔥');
+      sb.writeln(error);
+      sb.writeln('==================================================\n');
+    }
+
+    sb.writeln('[DEBUG: $typeLabel] "$name"');
+    sb.writeln('==================================================');
+
     if (component != null) {
       sb.writeln('✅ RESOLVED: "${component!.id}"');
       if (component!.module != null) {
@@ -406,7 +425,6 @@ class DebugReportGenerator {
       sb.writeln('❌ RESOLVED: <NULL> (Orphan File)');
     }
 
-    // Element & Type analysis
     if (dartType != null || element != null || extraInfo != null) {
       sb.writeln('\n🔬 ANALYSIS:');
       if (dartType != null) {
@@ -430,14 +448,14 @@ class DebugReportGenerator {
       }
     }
 
-    // Structural analysis for classes/mixins
     if (astNode is ClassDeclaration) {
       sb.writeln('\n🏗️ STRUCTURE:');
       final el = astNode.declaredFragment?.element;
       if (el != null) {
-        sb
-          ..writeln('   • Abstract? ${el.isAbstract}')
-          ..writeln('   • Interface? ${el.isInterface}');
+        sb..writeln('   • Abstract? ${el.isAbstract}')
+        ..writeln('   • Interface? ${el.isInterface}')
+        ..writeln('   • Sealed? ${el.isSealed}')
+        ..writeln('   • Mixin Class? ${el.isMixinClass}');
 
         final supertypes = el.allSupertypes
             .map((t) => t.element.name)
@@ -449,11 +467,9 @@ class DebugReportGenerator {
       }
     }
 
-    // Scoring log
     if (component?.debugScoreLog != null) {
-      sb
-        ..writeln('\n🧮 SCORING LOG:')
-        ..write(component!.debugScoreLog!.trimRight());
+      sb.writeln('\n🧮 SCORING LOG:');
+      sb.write(component!.debugScoreLog!.trimRight());
     }
 
     sb.writeln('\n==================================================');

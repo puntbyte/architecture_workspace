@@ -1,5 +1,4 @@
 import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
-import 'dart:math' as math;
 
 class ScoreEntry {
   final String tag;
@@ -12,10 +11,10 @@ class ScoreEntry {
 class ScoreLog implements Comparable<ScoreLog> {
   final Candidate candidate;
   final List<ScoreEntry> _entries = [];
-  double _totalScore = 0.0;
+  double _totalScore = 0;
 
   /// Normalized confidence (0.0 to 1.0)
-  double confidence = 0.0;
+  double confidence = 0;
 
   ScoreLog(this.candidate);
 
@@ -47,12 +46,13 @@ class ScoreLog implements Comparable<ScoreLog> {
 
     // Visual Confidence Bar
     final percent = (confidence * 100).clamp(0, 100).round();
-    final barLength = 10;
+    const barLength = 10;
     final filled = (confidence * barLength).round();
     final bar = '█' * filled + '░' * (barLength - filled);
 
-    sb.writeln('   $bar $percent% (Score: ${_totalScore.toStringAsFixed(1)})');
-    sb.writeln('');
+    sb
+      ..writeln('   $bar $percent% (Score: ${_totalScore.toStringAsFixed(1)})')
+      ..writeln();
 
     // Entries
     for (final entry in _entries) {
@@ -63,7 +63,7 @@ class ScoreLog implements Comparable<ScoreLog> {
       sb.writeln('   $scoreStr $tagStr ${entry.description}');
     }
 
-    sb.writeln(''); // Spacer
+    sb.writeln(); // Spacer
     return sb.toString();
   }
 }

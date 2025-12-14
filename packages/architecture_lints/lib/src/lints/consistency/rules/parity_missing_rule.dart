@@ -27,7 +27,7 @@ class ParityMissingRule extends ArchitectureLintRule with NamingLogic, Relations
 
   @override
   List<Fix> getFixes() => [
-    ArchitectureFix(),
+    //ArchitectureFix(),
   ];
 
   @override

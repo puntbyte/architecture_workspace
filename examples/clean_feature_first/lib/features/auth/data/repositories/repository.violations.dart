@@ -49,6 +49,11 @@ class AuthService implements AuthPort { //! <-- LINT WARNING HERE (Missing Annot
     throw UnimplementedError();
   }
 
+  @override
+  FutureEither<User> currentUser(int id) {
+    // TODO: implement currentUser
+    throw UnimplementedError();
+  }
 }
 
 // LINT: [8] enforce_repository_contract

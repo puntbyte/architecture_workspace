@@ -1,4 +1,4 @@
-// lib/src/core/resolver/path_matcher.dart
+import 'package:architecture_lints/src/config/constants/config_keys.dart';
 
 class PathMatcher {
   /// Returns the start index of the match in [filePath], or -1 if no match.
@@ -6,9 +6,18 @@ class PathMatcher {
     final normalizedFile = filePath.replaceAll(r'\', '/');
     final normalizedConfig = configPath.replaceAll(r'\', '/');
 
-    // 1. Handle {{name}} wildcard
-    if (normalizedConfig.contains('{{name}}')) {
-      final pattern = escapeRegex(normalizedConfig).replaceAll(r'\{\{name\}\}', '[^/]+');
+    final namePlaceholder = ConfigKeys.placeholder.name;
+
+    // 1. Handle {{name}} / ${name} wildcard
+    if (normalizedConfig.contains(namePlaceholder)) {
+      // Escape the config string to treat path separators/dots as literals
+      final escapedConfig = escapeRegex(normalizedConfig);
+      // Escape the placeholder to find it inside the escaped config
+      final escapedPlaceholder = escapeRegex(namePlaceholder);
+
+      // Replace placeholder with Regex group for "anything except slash"
+      final pattern = escapedConfig.replaceAll(escapedPlaceholder, '[^/]+');
+
       final regex = RegExp(pattern);
       final match = regex.firstMatch(normalizedFile);
       return match?.start ?? -1;

@@ -61,15 +61,19 @@ class StructureStrategy implements RefinementStrategy {
     if (element == null) return false;
 
     for (final mod in requiredModifiers) {
-      switch(mod) {
+      switch (mod) {
         case ComponentModifier.abstract:
           if (!element.isAbstract && !element.isInterface && !element.isMixinClass) return false;
-          break;
-        case ComponentModifier.sealed: if (!element.isSealed) return false; break;
-        case ComponentModifier.base: if (!element.isBase) return false; break;
-        case ComponentModifier.interface: if (!element.isInterface) return false; break;
-        case ComponentModifier.final$: if (!element.isFinal) return false; break;
-        case ComponentModifier.mixin: if (!element.isMixinClass) return false; break;
+        case ComponentModifier.sealed:
+          if (!element.isSealed) return false;
+        case ComponentModifier.base:
+          if (!element.isBase) return false;
+        case ComponentModifier.interface:
+          if (!element.isInterface) return false;
+        case ComponentModifier.final$:
+          if (!element.isFinal) return false;
+        case ComponentModifier.mixin:
+          if (!element.isMixinClass) return false;
       }
     }
     return true;

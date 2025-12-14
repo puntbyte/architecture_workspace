@@ -19,7 +19,8 @@ class RefinementContext {
   void _analyze() {
     final filename = p.basenameWithoutExtension(filePath);
     // Naive PascalCase conversion for matching
-    final expectedName = filename.split('_')
+    final expectedName = filename
+        .split('_')
         .map((s) => s.isNotEmpty ? '${s[0].toUpperCase()}${s.substring(1)}' : '')
         .join();
 
@@ -37,18 +38,20 @@ class RefinementContext {
         break;
       }
 
-      final isStructural = declaration is ClassDeclaration ||
+      final isStructural =
+          declaration is ClassDeclaration ||
           declaration is MixinDeclaration ||
           declaration is EnumDeclaration ||
           declaration is ExtensionDeclaration;
 
       if (!name.startsWith('_')) {
         if (isStructural && firstStructural == null) firstStructural = declaration;
-        if (firstPublic == null) firstPublic = declaration;
+        firstPublic ??= declaration;
       }
     }
 
-    mainNode = exactMatch ??
+    mainNode =
+        exactMatch ??
         firstStructural ??
         firstPublic ??
         (unit.unit.declarations.whereType<NamedCompilationUnitMember>().firstOrNull);

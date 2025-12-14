@@ -8,13 +8,13 @@ enum ComponentModifier {
   base('base'),
   interface('interface'),
   final$('final'),
-  mixin('mixin');
+  mixin('mixin')
+  ;
 
   final String yamlKey;
 
   const ComponentModifier(this.yamlKey);
 
-  static ComponentModifier? fromKey(String? key) {
-    return ComponentModifier.values.firstWhereOrNull((e) => e.yamlKey == key);
-  }
+  static ComponentModifier? fromKey(String? key) =>
+      ComponentModifier.values.firstWhereOrNull((e) => e.yamlKey == key);
 }

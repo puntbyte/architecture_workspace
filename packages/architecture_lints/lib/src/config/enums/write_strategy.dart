@@ -8,12 +8,13 @@ enum WriteStrategy {
   inject('inject'),
 
   /// Replaces an existing member (e.g. updating a method).
-  replace('replace');
+  replace('replace')
+  ;
 
   final String yamlKey;
+
   const WriteStrategy(this.yamlKey);
 
-  static WriteStrategy? fromKey(String? key) {
-    return WriteStrategy.values.firstWhereOrNull((e) => e.yamlKey == key);
-  }
+  static WriteStrategy? fromKey(String? key) =>
+      WriteStrategy.values.firstWhereOrNull((e) => e.yamlKey == key);
 }

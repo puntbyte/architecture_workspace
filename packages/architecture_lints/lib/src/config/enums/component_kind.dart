@@ -14,9 +14,9 @@ enum ComponentKind {
   ;
 
   final String yamlKey;
+
   const ComponentKind(this.yamlKey);
 
-  static ComponentKind? fromKey(String? key) {
-    return ComponentKind.values.firstWhereOrNull((e) => e.yamlKey == key);
-  }
+  static ComponentKind? fromKey(String? key) =>
+      ComponentKind.values.firstWhereOrNull((e) => e.yamlKey == key);
 }

@@ -7,8 +7,6 @@ class ComponentContext {
   final String filePath;
   final ComponentConfig config;
   final ModuleContext? module;
-
-  // NEW: Debug info regarding how this component was selected
   final String? debugScoreLog;
 
   const ComponentContext({
@@ -19,9 +17,13 @@ class ComponentContext {
   });
 
   String get id => config.id;
+
   String get displayName => config.displayName;
+
   List<String> get patterns => config.patterns;
+
   List<String> get antipatterns => config.antipatterns;
+
   List<String> get grammar => config.grammar;
 
   bool matchesReference(String referenceId) {
@@ -34,7 +36,7 @@ class ComponentContext {
     if (refSegments.length > idSegments.length) return false;
 
     for (var i = 0; i <= idSegments.length - refSegments.length; i++) {
-      bool match = true;
+      var match = true;
       for (var j = 0; j < refSegments.length; j++) {
         if (idSegments[i + j] != refSegments[j]) {
           match = false;
@@ -46,9 +48,7 @@ class ComponentContext {
     return false;
   }
 
-  bool matchesAny(List<String> referenceIds) {
-    return referenceIds.any(matchesReference);
-  }
+  bool matchesAny(List<String> referenceIds) => referenceIds.any(matchesReference);
 
   @override
   String toString() => 'ComponentContext(id: $id, module: ${module?.name})';

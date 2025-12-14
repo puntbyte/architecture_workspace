@@ -13,7 +13,6 @@ enum MemberKind {
 
   const MemberKind(this.yamlKey);
 
-  static MemberKind? fromKey(String? key) {
-    return MemberKind.values.firstWhereOrNull((e) => e.yamlKey == key);
-  }
+  static MemberKind? fromKey(String? key) =>
+      MemberKind.values.firstWhereOrNull((e) => e.yamlKey == key);
 }
