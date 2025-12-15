@@ -26,9 +26,7 @@ abstract class InheritanceBaseRule extends ArchitectureLintRule with Inheritance
   }) {
     if (component == null) return;
 
-    final rules = config.inheritances.where((rule) {
-      return component.matchesAny(rule.onIds);
-    }).toList();
+    final rules = config.inheritances.where((rule) => component.matchesAny(rule.onIds)).toList();
 
     if (rules.isEmpty) return;
 

@@ -86,7 +86,7 @@ class ArchitectureConfig {
           .map((key, value) => MapEntry(key, TemplateDefinition.fromDynamic(value))),
 
       excludes: yaml.mustGetStringList(ConfigKeys.root.excludes),
-      vocabulary: VocabularyConfig.fromMap(yaml.getMap(ConfigKeys.root.vocabulary)),
+      vocabulary: VocabularyConfig.fromMap(yaml.getMap(ConfigKeys.root.vocabularies)),
     );
   }
 

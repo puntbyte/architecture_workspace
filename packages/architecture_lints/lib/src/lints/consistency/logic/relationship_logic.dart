@@ -11,22 +11,15 @@ import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart';
 import 'package:path/path.dart' as p;
 
-class ParityResult {
-  final ParityTarget? target;
-  final String? failureReason;
-
-  ParityResult.success(this.target) : failureReason = null;
-  ParityResult.failure(this.failureReason) : target = null;
-}
-
 mixin RelationshipLogic on NamingLogic {
-
   String? extractCoreName(String className, ComponentContext context) {
     if (context.patterns.isEmpty) return className;
+
     for (final pattern in context.patterns) {
       final coreName = extractCoreNameFromPattern(className, pattern);
       if (coreName != null) return coreName;
     }
+
     return null;
   }
 
@@ -38,11 +31,9 @@ mixin RelationshipLogic on NamingLogic {
         .replaceAll(ConfigKeys.placeholder.affix, '');
   }
 
-  String toSnakeCase(String input) {
-    return input
-        .replaceAllMapped(RegExp('([a-z])([A-Z])'), (Match m) => '${m[1]}_${m[2]}')
-        .toLowerCase();
-  }
+  String toSnakeCase(String input) => input
+      .replaceAllMapped(RegExp('([a-z])([A-Z])'), (Match match) => '${match[1]}_${match[2]}')
+      .toLowerCase();
 
   ParityResult findMissingTarget({
     required AstNode node,
@@ -57,7 +48,7 @@ mixin RelationshipLogic on NamingLogic {
 
     if (node is ClassDeclaration) {
       name = node.name.lexeme;
-      kind = RelationshipKind.class$; // Updated enum name
+      kind = RelationshipKind.class$;
     } else if (node is MethodDeclaration) {
       methodName = node.name.lexeme;
       name = methodName.isEmpty ? '' : '${methodName[0].toUpperCase()}${methodName.substring(1)}';
@@ -65,7 +56,7 @@ mixin RelationshipLogic on NamingLogic {
     }
 
     if (name == null || kind == null) {
-      return ParityResult.failure('Node is not a Class or Method');
+      return const ParityResult.failure('Node is not a Class or Method');
     }
 
     final rules = config.relationships.where((rule) {
@@ -83,23 +74,21 @@ mixin RelationshipLogic on NamingLogic {
       return currentComponent.matchesAny(rule.onIds);
     }).toList();
 
-    if (rules.isEmpty) {
-      return ParityResult.failure('No matching rules found');
-    }
+    if (rules.isEmpty) return const ParityResult.failure('No matching rules found');
 
-    // ... (Rest of logic remains the same) ...
     for (final rule in rules) {
       ComponentConfig? targetComponent;
       try {
-        targetComponent = config.components.firstWhere((c) => c.id == rule.targetComponent);
+        targetComponent = config.components.firstWhere(
+          (component) => component.id == rule.targetComponent,
+        );
       } catch (e) {
         continue;
       }
 
       String? coreName = name;
-      if (node is ClassDeclaration) {
-        coreName = extractCoreName(name!, currentComponent);
-      }
+      if (node is ClassDeclaration) coreName = extractCoreName(name, currentComponent);
+
       if (coreName == null) continue;
 
       final targetClassName = generateTargetClassName(coreName, targetComponent);
@@ -113,17 +102,19 @@ mixin RelationshipLogic on NamingLogic {
       );
 
       if (targetPath != null) {
-        return ParityResult.success(ParityTarget(
-          path: targetPath,
-          coreName: coreName,
-          targetClassName: targetClassName,
-          templateId: rule.action,
-          sourceComponent: currentComponent.config,
-        ));
+        return ParityResult.success(
+          ParityTarget(
+            path: targetPath,
+            coreName: coreName,
+            targetClassName: targetClassName,
+            templateId: rule.action,
+            sourceComponent: currentComponent.config,
+          ),
+        );
       }
     }
 
-    return ParityResult.failure('Path resolution failed for all rules');
+    return const ParityResult.failure('Path resolution failed for all rules');
   }
 
   String? findTargetFilePath({
@@ -146,6 +137,7 @@ mixin RelationshipLogic on NamingLogic {
         }
       }
     }
+
     return null;
   }
 }
@@ -157,11 +149,19 @@ class ParityTarget {
   final String? templateId;
   final ComponentConfig sourceComponent;
 
-  ParityTarget({
+  const ParityTarget({
     required this.path,
     required this.coreName,
     required this.targetClassName,
     required this.templateId,
     required this.sourceComponent,
   });
+}
+
+class ParityResult {
+  final ParityTarget? target;
+  final String? failureReason;
+
+  const ParityResult.success(this.target) : failureReason = null;
+  const ParityResult.failure(this.failureReason) : target = null;
 }

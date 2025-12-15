@@ -17,7 +17,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class ParityMissingRule extends ArchitectureLintRule with NamingLogic, RelationshipLogic {
   static const _code = LintCode(
-    name: 'arch_parity_missing', // Matches YAML trigger
+    name: 'arch_parity_missing',
     problemMessage: 'Missing companion component: "{0}" expected "{1}".',
     correctionMessage: 'Create the missing file to maintain architectural parity.',
     errorSeverity: DiagnosticSeverity.WARNING,
@@ -27,7 +27,7 @@ class ParityMissingRule extends ArchitectureLintRule with NamingLogic, Relations
 
   @override
   List<Fix> getFixes() => [
-    //ArchitectureFix(),
+    ArchitectureFix(),
   ];
 
   @override
@@ -68,12 +68,7 @@ class ParityMissingRule extends ArchitectureLintRule with NamingLogic, Relations
       }
     }
 
-    context.registry.addClassDeclaration((node) {
-      checkNode(node, node.name);
-    });
-
-    context.registry.addMethodDeclaration((node) {
-      checkNode(node, node.name);
-    });
+    context.registry.addClassDeclaration((node) => checkNode(node, node.name));
+    context.registry.addMethodDeclaration((node) => checkNode(node, node.name));
   }
 }

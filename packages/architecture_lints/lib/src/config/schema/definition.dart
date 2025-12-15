@@ -1,5 +1,3 @@
-// lib/src/config/schema/definition.dart
-
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/config/parsing/hierarchy_parser.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
@@ -44,13 +42,13 @@ class Definition {
       final refKey = map.tryGetString(ConfigKeys.definition.definition);
       if (refKey != null) return Definition(ref: refKey);
 
-      final typeName = map.tryGetString(ConfigKeys.definition.type);
-      if (typeName == '*') return const Definition(isWildcard: true);
-
+      // 'type' can be String or List<String>
       final typesList = map.getStringList(ConfigKeys.definition.type);
       if (typesList.contains('*')) return const Definition(isWildcard: true);
 
       final importsList = map.getStringList(ConfigKeys.definition.import);
+
+      // FIX: Use the correct singular key for identifiers from the map
       final ids = map.getStringList(ConfigKeys.definition.identifier);
 
       final rewritesList = map.getStringList(ConfigKeys.definition.rewrite);
@@ -97,12 +95,10 @@ class Definition {
     );
   }
 
-  /// Backward compatibility getter.
   String? get type => types.isNotEmpty ? types.first : null;
 
   String? get import => imports.isNotEmpty ? imports.first : null;
 
-  /// Converts the definition to a Map for templates and expressions.
   Map<String, dynamic> toMap() => {
     'type': type,
     'types': types,
@@ -114,7 +110,6 @@ class Definition {
     'isWildcard': isWildcard,
   };
 
-  /// Generates a human-readable description.
   String describe([Map<String, Definition>? registry]) {
     if (isWildcard) return 'Any';
     if (component != null) return 'Component($component)';

@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:architecture_lints/src/actions/architecture_fix.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -33,7 +36,7 @@ void main() {
       mockLintCode = MockLintCode();
 
       // Wire up mocks
-      when(() => mockError.errorCode).thenReturn(mockLintCode);
+      when(() => mockError.diagnosticCode).thenReturn(mockLintCode);
 
       // When createChangeBuilder is called, return our mock builder
       when(
@@ -64,25 +67,26 @@ void main() {
       // 1. Resolve Dart Code (AST)
       final result = await resolveContent(dartCode);
 
-      // 2. Setup Config
-      // We manually parse the YAML to create the ArchitectureConfig
-      // This mimics what ConfigLoader does
-      final yamlMap = loadYaml(yamlConfig) as Map;
+      // 2. CRITICAL FIX: Write architecture.yaml to disk
+      // This allows ConfigLoader.findRootPath to succeed inside ArchitectureFix
+      final rootDir = File(result.path).parent.parent; // Up from lib/test.dart to root
+      final configFile = File(p.join(rootDir.path, 'architecture.yaml'))
+        ..writeAsStringSync(yamlConfig);
 
-      // Inject root path into config loader logic if needed,
-      // but here we construct config manually.
+      // 3. Setup Config (Manual Parse for Shared State injection)
+      final yamlMap = loadYaml(yamlConfig) as Map;
       final config = ArchitectureConfig.fromYaml(yamlMap);
 
-      // 3. Populate Shared State
+      // 4. Populate Shared State
       fakeContext.sharedState[ArchitectureConfig] = config;
       fakeContext.sharedState[ResolvedUnitResult] = result;
 
-      // 4. Configure Mocks
+      // 5. Configure Mocks
       when(() => mockResolver.path).thenReturn(result.path);
       when(() => mockResolver.getResolvedUnitResult()).thenAnswer((_) async => result);
       when(() => mockLintCode.name).thenReturn(errorCode);
 
-      // 5. Find error offset (simulate clicking on a class)
+      // 6. Find error offset
       final unit = result.unit;
       final node = targetClassName != null
           ? unit.declarations.whereType<ClassDeclaration>().firstWhere(

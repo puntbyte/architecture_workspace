@@ -33,9 +33,7 @@ class ArchitectureFix extends DartFix {
         final unit = await resolver.getResolvedUnitResult();
         context.sharedState[ResolvedUnitResult] = unit;
       }
-    } catch (e) {
-      // Swallow startup errors
-    }
+    } catch (e) {}
     await super.startUp(resolver, context);
   }
 
@@ -49,9 +47,7 @@ class ArchitectureFix extends DartFix {
   ) {
     try {
       protectedRun(resolver, reporter, context, analysisError);
-    } catch (e) {
-      // print('ArchitectureFix Error: $e');
-    }
+    } catch (e, stack) {}
   }
 
   @visibleForTesting
@@ -64,19 +60,28 @@ class ArchitectureFix extends DartFix {
     final config = context.sharedState[ArchitectureConfig] as ArchitectureConfig?;
     final unitResult = context.sharedState[ResolvedUnitResult] as ResolvedUnitResult?;
 
-    if (config == null || unitResult == null) return;
+    if (config == null) {
+      return;
+    }
+    if (unitResult == null) {
+      return;
+    }
 
     final errorCode = analysisError.diagnosticCode.name;
+
+
     final actions = config.getActionsForError(errorCode);
+
     if (actions.isEmpty) return;
 
     final rootPath = ConfigLoader.findRootPath(resolver.path) ?? p.dirname(resolver.path);
+
     final loader = TemplateLoader(rootPath);
     final generator = CodeGenerator(config, loader, context.pubspec.name);
     const renderer = MustacheRenderer();
 
-    // Find source node
     var errorNode = _findNodeAt(unitResult.unit, analysisError.offset);
+    // Find Declaration
     while (errorNode != null) {
       if (errorNode is MethodDeclaration || errorNode is ClassDeclaration) break;
       errorNode = errorNode.parent;
@@ -111,7 +116,10 @@ class ArchitectureFix extends DartFix {
   }) {
     // A. Generate Code
     final code = generator.generate(action: action, sourceNode: sourceNode);
-    if (code == null) return;
+
+    if (code == null) {
+      return;
+    }
 
     // B. Calculate Target Path
     String? targetPath;
@@ -155,11 +163,13 @@ class ArchitectureFix extends DartFix {
     final templateContext = variableResolver.resolveMap(action.variables);
 
     final filenamePattern = action.write.filename!;
+    // Evaluate expressions in filename
     final resolvedFilename = filenamePattern.replaceAllMapped(RegExp(r'\$\{(.*?)\}'), (
       Match match,
     ) {
       final expr = match.group(1);
-      return expr != null ? variableResolver.resolve(expr).toString() : match.group(0)!;
+      final res = expr != null ? variableResolver.resolve(expr).toString() : match.group(0)!;
+      return res;
     });
 
     final fileName = renderer.render(resolvedFilename, templateContext);
@@ -217,19 +227,17 @@ class ArchitectureFix extends DartFix {
     required AstNode sourceNode,
     required ResolvedUnitResult unitResult,
   }) {
-    reporter
-        .createChangeBuilder(
+    final changeBuilder =
+        reporter.createChangeBuilder(
           message: action.description,
           priority: 100,
-        )
-        .addDartFileEdit((builder) {
+        )..addDartFileEdit((builder) {
           switch (action.write.strategy) {
             case WriteStrategy.file:
               _applyFileEdit(builder, code, targetPath, currentPath, unitResult);
             case WriteStrategy.inject:
               _applyInjectionEdit(builder, code, sourceNode, action.write.placement);
             case WriteStrategy.replace:
-              // FIX: Use builder callback for replacement
               builder.addReplacement(
                 SourceRange(sourceNode.offset, sourceNode.length),
                 (editBuilder) => editBuilder.write(code),
@@ -246,10 +254,8 @@ class ArchitectureFix extends DartFix {
     ResolvedUnitResult unitResult,
   ) {
     if (targetPath != null && targetPath != currentPath) {
-      // FIX: Use builder callback for replacement (Empty range = Insert at start)
       builder.addReplacement(SourceRange.EMPTY, (editBuilder) => editBuilder.write(code));
     } else {
-      // FIX: Use builder callback for insertion
       builder.addInsertion(unitResult.unit.end, (editBuilder) => editBuilder.write('\n$code'));
     }
   }
@@ -273,7 +279,6 @@ class ArchitectureFix extends DartFix {
       offset = sourceNode.end;
     }
 
-    // FIX: Use builder callback for insertion
     builder.addInsertion(offset, (editBuilder) => editBuilder.write('\n$code'));
   }
 
@@ -289,7 +294,6 @@ class ArchitectureFix extends DartFix {
           }
         }
       }
-
       if (childFound != null) {
         currentNode = childFound;
       } else {

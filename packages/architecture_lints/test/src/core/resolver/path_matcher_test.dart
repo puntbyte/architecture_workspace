@@ -31,28 +31,28 @@ void main() {
       });
     });
 
-    group('Wildcards {{name}}', () {
+    group(r'Wildcards ${name}', () {
       test('should match simple feature structure', () {
-        const configPath = 'features/{{name}}/domain';
+        const configPath = r'features/${name}/domain';
         const filePath = 'lib/features/auth/domain/auth_repo.dart';
         expect(PathMatcher.matches(filePath, configPath), isTrue);
       });
 
-      test('should match {{name}} in middle of path', () {
-        const configPath = 'modules/{{name}}/api';
+      test(r'should match ${name} in middle of path', () {
+        const configPath = r'modules/${name}/api';
         const filePath = 'lib/modules/payments/api/service.dart';
         expect(PathMatcher.matches(filePath, configPath), isTrue);
       });
 
-      test('should match {{name}} at start of path', () {
+      test(r'should match ${name} at start of path', () {
         // If config assumes root context
-        const configPath = '{{name}}/presentation';
+        const configPath = r'${name}/presentation';
         const filePath = 'features/dashboard/presentation/page.dart';
         expect(PathMatcher.matches(filePath, configPath), isTrue);
       });
 
       test('should NOT match if structure differs', () {
-        const configPath = 'features/{{name}}/domain';
+        const configPath = r'features/${name}/domain';
         // Missing 'domain' folder
         const filePath = 'lib/features/auth/presentation/page.dart';
         expect(PathMatcher.matches(filePath, configPath), isFalse);

@@ -1,5 +1,3 @@
-// lib/src/lints/boundaries/logic/module_logic.dart
-
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/config/schema/module_config.dart';
 import 'package:architecture_lints/src/core/resolver/path_matcher.dart';
@@ -8,7 +6,9 @@ import 'package:architecture_lints/src/domain/module_context.dart';
 mixin ModuleLogic {
   ModuleContext? resolveModuleContext(String filePath, List<ModuleConfig> modules) {
     final normalizedFile = filePath.replaceAll(r'\', '/');
-    final placeholder = ConfigKeys.placeholder.name; // r'${name}'
+
+    // ConfigKeys.placeholder.name is now r'${name}'
+    final placeholder = ConfigKeys.placeholder.name;
 
     for (final module in modules) {
       // 1. Dynamic Modules (e.g. features/${name})
@@ -26,6 +26,7 @@ mixin ModuleLogic {
 
         // Step D: Match against file path
         // We look for the pattern surrounded by slashes to ensure directory matching
+        // e.g. /features/auth/
         final regex = RegExp('/$pattern/');
         final match = regex.firstMatch(normalizedFile);
 
@@ -38,6 +39,8 @@ mixin ModuleLogic {
       }
       // 2. Static Modules (e.g. core)
       else {
+        // Check if the file is inside the module directory
+        // We check for '/core/' to avoid partial matches
         if (normalizedFile.contains('/${module.path}/')) {
           return ModuleContext(
             config: module,

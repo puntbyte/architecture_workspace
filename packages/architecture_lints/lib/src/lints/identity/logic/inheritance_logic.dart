@@ -25,11 +25,11 @@ mixin InheritanceLogic {
     final supertypes = getImmediateSupertypes(element);
 
     // Check if ANY supertype matches ANY of the required definitions
-    return supertypes.any((type) {
-      return rule.required.any(
-            (reqDef) => matchesDefinition(type, reqDef, fileResolver, config.definitions),
-      );
-    });
+    return supertypes.any(
+      (type) => rule.required.any(
+        (reqDef) => matchesDefinition(type, reqDef, fileResolver, config.definitions),
+      ),
+    );
   }
 
   /// Attempts to identify the architectural component of a class based on what it
@@ -139,9 +139,7 @@ mixin InheritanceLogic {
     }
   }
 
-  List<InterfaceType> getImmediateSupertypes(InterfaceElement element) {
-    // For Deep Check, we want ALL supertypes, not just immediate.
-    // This fixes the issue where DefaultAuthSource -> AuthSource -> Source
-    return element.allSupertypes;
-  }
+  // For Deep Check, we want ALL supertypes, not just immediate.
+  // This fixes the issue where DefaultAuthSource -> AuthSource -> Source
+  List<InterfaceType> getImmediateSupertypes(InterfaceElement element) => element.allSupertypes;
 }

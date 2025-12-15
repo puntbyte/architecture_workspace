@@ -1516,15 +1516,15 @@ templates:
     file: 'templates/model_freezed.dart.mustache'
     description: 'Generates a Freezed model with fromEntity/toEntity mappers'
 
-  model_to_entity_method: |
-    @override
-    {{entityName}} toEntity() {
-      return {{entityName}}(
-        {{#fields}}
-        {{name}}: {{name}},
-        {{/fields}}
-      );
-    }
+  #model_to_entity_method: |
+    #@override
+    #{{entityName}} toEntity() {
+     # return {{entityName}}(
+      #  {{#fields}}
+       # {{name}}: {{name}},
+       # {{/fields}}
+      #);
+    #}
 
   repository_impl:
     file: 'templates/repository_impl.dart.mustache'

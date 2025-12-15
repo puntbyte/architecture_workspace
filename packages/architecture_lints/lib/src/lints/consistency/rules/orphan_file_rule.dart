@@ -35,9 +35,7 @@ class OrphanFileRule extends ArchitectureLintRule {
     // e.g. '*.g.dart', 'lib/main.dart'
     for (final pattern in config.excludes) {
       // We assume PathMatcher.matches handles glob-like patterns
-      if (PathMatcher.matches(resolver.path, pattern)) {
-        return;
-      }
+      if (PathMatcher.matches(resolver.path, pattern)) return;
     }
 
     // 3. Check if it belongs to a Module

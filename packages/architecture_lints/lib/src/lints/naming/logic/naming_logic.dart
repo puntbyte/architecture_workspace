@@ -1,12 +1,11 @@
-// lib/src/naming/logic/naming_logic.dart
-
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
-import 'package:architecture_lints/src/core/resolver/path_matcher.dart';
+// Note: PathMatcher is no longer needed for escaping if we want to support regex syntax
 
 mixin NamingLogic {
   static final Map<String, RegExp> _regexCache = {};
 
   bool validateName(String className, String pattern) {
+    // Optimization for the common case where pattern is just "${name}"
     if (pattern == ConfigKeys.placeholder.name) {
       return RegExp('^${ConfigKeys.regex.pascalCaseGroup}\$').hasMatch(className);
     }
@@ -14,8 +13,6 @@ mixin NamingLogic {
     return regex.hasMatch(className);
   }
 
-  /// Extracts the value of {{name}} from a class name based on the pattern.
-  /// Returns null if the class name doesn't match the pattern.
   String? extractCoreNameFromPattern(String className, String pattern) {
     final regex = _getRegex(pattern);
     final match = regex.firstMatch(className);
@@ -26,20 +23,16 @@ mixin NamingLogic {
   RegExp _getRegex(String pattern) => _regexCache.putIfAbsent(pattern, () => _buildRegex(pattern));
 
   RegExp _buildRegex(String pattern) {
-    // 1. Escape the pattern to treat literals (like dots/brackets) safely.
-    //    We use the PathMatcher helper or RegExp.escape.
-    var regexStr = PathMatcher.escapeRegex(pattern);
+    // FIX: Do NOT escape the input pattern. 
+    // We want to support Regex syntax like '(Bloc|Cubit)' in the config.
+    var regexStr = pattern;
 
-    // 2. Identify the escaped placeholders.
-    //    Since we escaped the pattern, '${name}' became '\$\{name\}'.
-    //    We must look for that escaped string to replace it.
-    final escapedName = PathMatcher.escapeRegex(ConfigKeys.placeholder.name);
-    final escapedAffix = PathMatcher.escapeRegex(ConfigKeys.placeholder.affix);
+    // Replace ${name} -> ([A-Z][a-zA-Z0-9]*)
+    // We use literal replacement since the input is a string.
+    regexStr = regexStr.replaceAll(ConfigKeys.placeholder.name, ConfigKeys.regex.pascalCaseGroup);
 
-    // 3. Inject Regex Groups
-    regexStr = regexStr
-        .replaceAll(escapedName, ConfigKeys.regex.pascalCaseGroup)
-        .replaceAll(escapedAffix, ConfigKeys.regex.wildcard);
+    // Replace ${affix} -> .*
+    regexStr = regexStr.replaceAll(ConfigKeys.placeholder.affix, ConfigKeys.regex.wildcard);
 
     return RegExp('^$regexStr\$');
   }
@@ -48,8 +41,11 @@ mixin NamingLogic {
     return pattern
         .replaceAll(ConfigKeys.placeholder.name, 'Login')
         .replaceAll(ConfigKeys.placeholder.affix, 'My')
-        // Clean up regex artifacts for display if present
+    // Clean up regex artifacts for display if present
         .replaceAll(RegExp(r'[\(\)\|]'), '') // Remove ( ) |
-        .replaceAll(r'\', '');
+        .replaceAll(r'\', '') // Remove escapes
+        .replaceAll('?', '') // Remove quantifiers
+        .replaceAll('^', '') // Remove anchors
+        .replaceAll(r'$', '');
   }
 }

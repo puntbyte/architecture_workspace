@@ -6,14 +6,14 @@ void main() {
     const renderer = MustacheRenderer();
 
     test('should render simple variable replacement', () {
-      final template = 'Hello {{name}}!';
+      const template = 'Hello {{name}}!';
       final context = {'name': 'World'};
 
       expect(renderer.render(template, context), 'Hello World!');
     });
 
     test('should handle missing variables gracefully (lenient)', () {
-      final template = 'Hello {{missing}}!';
+      const template = 'Hello {{missing}}!';
       final context = {'name': 'World'};
 
       // Default mustache behavior for missing vars is empty string
@@ -21,7 +21,7 @@ void main() {
     });
 
     test('should render sections', () {
-      final template = '{{#flag}}Show{{/flag}}{{^flag}}Hide{{/flag}}';
+      const template = '{{#flag}}Show{{/flag}}{{^flag}}Hide{{/flag}}';
 
       expect(renderer.render(template, {'flag': true}), 'Show');
       expect(renderer.render(template, {'flag': false}), 'Hide');

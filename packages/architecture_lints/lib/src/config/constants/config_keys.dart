@@ -34,6 +34,7 @@ class _RootKeys {
   String get modules => 'modules';
   String get components => 'components';
   String get definitions => 'definitions';
+
   String get types => 'types';
   String get dependencies => 'dependencies';
   String get inheritances => 'inheritances';
@@ -45,7 +46,8 @@ class _RootKeys {
   String get annotations => 'annotations';
   String get relationships => 'relationships';
   String get templates => 'templates';
-  String get vocabulary => 'vocabulary';
+  String get vocabularies => 'vocabularies';
+  String get actions => 'actions';
 
   String get excludes => 'excludes';
 }

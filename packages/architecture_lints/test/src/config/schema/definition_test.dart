@@ -1,5 +1,4 @@
-// test/src/config/schema/definition_test.dart
-
+import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/config/schema/definition.dart';
 import 'package:test/test.dart';
 
@@ -8,6 +7,7 @@ void main() {
     group('fromDynamic', () {
       test('should parse shorthand string', () {
         final def = Definition.fromDynamic('MyClass');
+        expect(def.types, ['MyClass']);
         expect(def.type, 'MyClass');
         expect(def.isWildcard, isFalse);
       });
@@ -17,22 +17,46 @@ void main() {
         expect(def.isWildcard, isTrue);
       });
 
-      test('should parse map', () {
-        final map = {'type': 'Future', 'import': 'pkg/async'};
+      test('should parse map with single type and import', () {
+        // Use Map<String, dynamic> for type safety
+        final map = <String, dynamic>{'type': 'Future', 'import': 'dart:async'};
         final def = Definition.fromDynamic(map);
-        expect(def.type, 'Future');
-        expect(def.import, 'pkg/async');
+        expect(def.types, ['Future']);
+        expect(def.imports, ['dart:async']);
+      });
+
+      test('should parse map with list of types', () {
+        final map = <String, dynamic>{
+          'type': ['GetIt', 'Injector'],
+          'import': 'package:get_it/get_it.dart'
+        };
+        final def = Definition.fromDynamic(map);
+        expect(def.types, ['GetIt', 'Injector']);
+        expect(def.imports, ['package:get_it/get_it.dart']);
       });
 
       test('should parse identifiers list', () {
-        final def = Definition.fromDynamic(const {
-          'identifiers': ['sl', 'getIt'],
-        });
+        // Use the exact key from ConfigKeys to ensure correctness
+        final map = <String, dynamic>{
+          ConfigKeys.definition.identifier: ['sl', 'getIt'],
+        };
+
+        final def = Definition.fromDynamic(map);
         expect(def.identifiers, ['sl', 'getIt']);
       });
 
+      test('should parse rewrites list', () {
+        final map = <String, dynamic>{
+          'type': 'Either',
+          'import': 'package:fpdart/fpdart.dart',
+          ConfigKeys.definition.rewrite: ['package:fpdart/src/either.dart'],
+        };
+        final def = Definition.fromDynamic(map);
+        expect(def.rewrites, ['package:fpdart/src/either.dart']);
+      });
+
       test('should parse recursive arguments', () {
-        final map = {
+        final map = <String, dynamic>{
           'type': 'Either',
           'argument': [
             {'type': 'L'},
@@ -48,7 +72,7 @@ void main() {
 
     group('parseRegistry (Hierarchy Integration)', () {
       test('should parse nested keys with dots', () {
-        final yaml = {
+        final yaml = <String, dynamic>{
           'domain': {
             '.base': {'type': 'Entity'},
             '.sub': {'type': 'SubEntity'},
@@ -62,14 +86,11 @@ void main() {
       });
 
       test('should cascade imports (Sibling Inheritance)', () {
-        final yaml = {
+        final yaml = <String, dynamic>{
           'result': {
-            // First item defines import
             '.success': {'type': 'Right', 'import': 'package:fpdart'},
-            // Second item should inherit 'package:fpdart' via HierarchyParser
             '.failure': {
               'type': 'Left',
-              // missing import
             },
           },
         };
@@ -81,7 +102,7 @@ void main() {
       });
 
       test('should override cascaded import', () {
-        final yaml = {
+        final yaml = <String, dynamic>{
           'group': {
             '.first': {'type': 'A', 'import': 'pkg/a'},
             '.second': {'type': 'B', 'import': 'pkg/b'},

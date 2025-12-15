@@ -6,13 +6,14 @@ class PathMatcher {
     final normalizedFile = filePath.replaceAll(r'\', '/');
     final normalizedConfig = configPath.replaceAll(r'\', '/');
 
-    final namePlaceholder = ConfigKeys.placeholder.name;
+    final namePlaceholder = ConfigKeys.placeholder.name; // r'${name}'
 
-    // 1. Handle {{name}} / ${name} wildcard
+    // 1. Handle ${name} wildcard
     if (normalizedConfig.contains(namePlaceholder)) {
       // Escape the config string to treat path separators/dots as literals
       final escapedConfig = escapeRegex(normalizedConfig);
       // Escape the placeholder to find it inside the escaped config
+      // ${name} -> \$\{name\}
       final escapedPlaceholder = escapeRegex(namePlaceholder);
 
       // Replace placeholder with Regex group for "anything except slash"
@@ -44,7 +45,9 @@ class PathMatcher {
     }
 
     // Check 'configPath/' (Start)
-    if (normalizedFile.startsWith('$normalizedConfig/')) return 0;
+    if (normalizedFile.startsWith('$normalizedConfig/')) {
+      return 0;
+    }
 
     // Fallback: Exact match
     if (normalizedFile == normalizedConfig) return 0;
