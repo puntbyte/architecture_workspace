@@ -1,10 +1,10 @@
 // lib/src/core/resolver/file_resolver.dart
 
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/core/resolver/module_resolver.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
-import 'package:architecture_lints/src/domain/module_context.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/engines/file/module_resolver.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
+import 'package:architecture_lints/src/context/module_context.dart';
 import 'package:architecture_lints/src/engines/file/path_matcher.dart';
 
 class FileResolver {
@@ -69,8 +69,8 @@ class FileResolver {
     return matches;
   }
 
-  ComponentConfig? _resolveConfig(String filePath) {
-    ComponentConfig? bestMatch;
+  ComponentDefinition? _resolveConfig(String filePath) {
+    ComponentDefinition? bestMatch;
     var bestMatchIndex = -1;
     var bestMatchLength = -1;
 
@@ -118,7 +118,7 @@ class FileResolver {
 /// A potential match for a file.
 class Candidate implements Comparable<Candidate> {
   /// The component configuration.
-  final ComponentConfig component;
+  final ComponentDefinition component;
 
   /// Length of the path segment matched (Longer = More Specific).
   final int matchLength;

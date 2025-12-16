@@ -1,7 +1,7 @@
 // test/src/config/schema/component_config_test.dart
 
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/config/schema/module_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/schema/definitions/module_definition.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -9,7 +9,7 @@ void main() {
     group('fromMap', () {
       test('should parse fields', () {
         final map = {'path': 'lib', 'pattern': '{{name}}', 'default': true};
-        final config = ComponentConfig.fromMap('id', map);
+        final config = ComponentDefinition.fromMap('id', map);
         expect(config.id, 'id');
         expect(config.paths, ['lib']);
         expect(config.isDefault, isTrue);
@@ -24,7 +24,7 @@ void main() {
             '.entity': {'pattern': '{{name}}'},
           },
         };
-        final results = ComponentConfig.parseMap(yaml, []);
+        final results = ComponentDefinition.parseMap(yaml, []);
 
         final domain = results.firstWhere((c) => c.id == 'domain');
         final entity = results.firstWhere((c) => c.id == 'domain.entity');
@@ -46,7 +46,7 @@ void main() {
           },
         };
 
-        final results = ComponentConfig.parseMap(yaml, []);
+        final results = ComponentDefinition.parseMap(yaml, []);
 
         final interface = results.firstWhere((c) => c.id == 'source.interface');
         expect(interface.paths, ['data/sources']);
@@ -56,14 +56,14 @@ void main() {
       });
 
       test('should handle module scoping', () {
-        final modules = [const ModuleConfig(key: 'core', path: 'core')];
+        final modules = [const ModuleDefinition(key: 'core', path: 'core')];
         final yaml = {
           'core': {
             '.util': {'path': 'utils'},
           },
         };
 
-        final results = ComponentConfig.parseMap(yaml, modules);
+        final results = ComponentDefinition.parseMap(yaml, modules);
 
         expect(results.any((c) => c.id == 'core.util'), isTrue);
       });

@@ -3,7 +3,7 @@
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that forbids any reference to a Repository (Port) within the presentation layer.
@@ -15,7 +15,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 /// `UseCases`. A UseCase provides a narrow, functional contract, whereas a
 /// Repository is a broad data contract. Depending on a repository tempts the
 /// presentation layer to perform business logic that belongs in a UseCase.
-class DisallowRepositoryInPresentation extends ArchitectureLintRule {
+class DisallowRepositoryInPresentation extends ArchitectureRule {
   static const _code = LintCode(
     name: 'disallow_repository_in_presentation',
     problemMessage: 'Presentation layer purity violation: Do not depend directly on a Repository.',

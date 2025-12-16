@@ -3,12 +3,12 @@
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// Enforces that Repository implementations (Data Layer) implement a
 /// Port Interface (Domain Layer).
-class EnforceRepositoryContract extends ArchitectureLintRule {
+class EnforceRepositoryContract extends ArchitectureRule {
   static const _code = LintCode(
     name: 'enforce_repository_contract',
     // FIX: Updated message to match the test expectation ("Port interface")

@@ -5,7 +5,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/models/configs/error_handlers_config.dart';
 import 'package:architecture_lints/src/models/configs/type_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -19,7 +19,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 /// Catching a specific exception (e.g., `ServerException`) but returning a generic
 /// or incorrect failure (e.g., `CacheFailure`) hides the true cause of the error
 /// and makes debugging difficult.
-class ConvertExceptionsToFailures extends ArchitectureLintRule {
+class ConvertExceptionsToFailures extends ArchitectureRule {
   static const _code = LintCode(
     name: 'convert_exceptions_to_failures',
     problemMessage: 'Incorrect exception mapping. Expected to return `{0}` when catching `{1}`.',

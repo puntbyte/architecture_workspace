@@ -1,10 +1,10 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/config/detail/dependency_detail.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/config/schema/dependency_config.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/schema/constraints/dependency_constraint.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/schema/policies/dependency_policy.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:architecture_lints/src/lints/boundaries/rules/component_dependency_rule.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
@@ -53,11 +53,11 @@ void main() {
     ComponentContext createComponent(String id, String name) {
       return ComponentContext(
         filePath: 'lib/$id.dart',
-        config: ComponentConfig(id: id, name: name),
+        config: ComponentDefinition(id: id, name: name),
       );
     }
 
-    ArchitectureConfig createConfig(List<DependencyConfig> dependencies) {
+    ArchitectureConfig createConfig(List<DependencyPolicy> dependencies) {
       return ArchitectureConfig(
         components: [],
         dependencies: dependencies,
@@ -66,10 +66,10 @@ void main() {
 
     test('should report error when target is explicitly FORBIDDEN', () {
       final config = createConfig([
-        const DependencyConfig(
+        const DependencyPolicy(
           onIds: ['domain'],
-          allowed: DependencyDetail(),
-          forbidden: DependencyDetail(components: ['data']),
+          allowed: DependencyConstraint(),
+          forbidden: DependencyConstraint(components: ['data']),
         ),
       ]);
 
@@ -110,10 +110,10 @@ void main() {
 
     test('should report error when target is NOT in ALLOWED list (Strict Mode)', () {
       final config = createConfig([
-        const DependencyConfig(
+        const DependencyPolicy(
           onIds: ['domain'],
-          allowed: DependencyDetail(components: ['shared']),
-          forbidden: DependencyDetail(),
+          allowed: DependencyConstraint(components: ['shared']),
+          forbidden: DependencyConstraint(),
         ),
       ]);
 
@@ -154,10 +154,10 @@ void main() {
 
     test('should PASS when target is in ALLOWED list', () {
       final config = createConfig([
-        const DependencyConfig(
+        const DependencyPolicy(
           onIds: ['domain'],
-          allowed: DependencyDetail(components: ['shared']),
-          forbidden: DependencyDetail(),
+          allowed: DependencyConstraint(components: ['shared']),
+          forbidden: DependencyConstraint(),
         ),
       ]);
 
@@ -187,10 +187,10 @@ void main() {
 
     test('should PASS when target is a child of ALLOWED component', () {
       final config = createConfig([
-        const DependencyConfig(
+        const DependencyPolicy(
           onIds: ['domain'],
-          allowed: DependencyDetail(components: ['data']),
-          forbidden: DependencyDetail(),
+          allowed: DependencyConstraint(components: ['data']),
+          forbidden: DependencyConstraint(),
         ),
       ]);
 
@@ -220,15 +220,15 @@ void main() {
 
     test('should support Additive Rules', () {
       final config = createConfig([
-        const DependencyConfig(
+        const DependencyPolicy(
           onIds: ['domain'],
-          allowed: DependencyDetail(components: ['shared']),
-          forbidden: DependencyDetail(),
+          allowed: DependencyConstraint(components: ['shared']),
+          forbidden: DependencyConstraint(),
         ),
-        const DependencyConfig(
+        const DependencyPolicy(
           onIds: ['domain.entity'],
-          allowed: DependencyDetail(components: ['core']),
-          forbidden: DependencyDetail(),
+          allowed: DependencyConstraint(components: ['core']),
+          forbidden: DependencyConstraint(),
         ),
       ]);
 
@@ -256,10 +256,10 @@ void main() {
 
     test('should ignore non-component imports', () {
       final config = createConfig([
-        const DependencyConfig(
+        const DependencyPolicy(
           onIds: ['domain'],
-          allowed: DependencyDetail(components: ['shared']),
-          forbidden: DependencyDetail(),
+          allowed: DependencyConstraint(components: ['shared']),
+          forbidden: DependencyConstraint(),
         ),
       ]);
 

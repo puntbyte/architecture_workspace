@@ -2,9 +2,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/member_config.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/policies/member_policy.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:architecture_lints/src/lints/members/base/member_base_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
@@ -21,7 +21,7 @@ class MemberForbiddenRule extends MemberBaseRule {
   @override
   void checkMembers({
     required ClassDeclaration node,
-    required List<MemberConfig> rules,
+    required List<MemberPolicy> rules,
     required ArchitectureConfig config,
     required DiagnosticReporter reporter,
     required ComponentContext component,

@@ -1,12 +1,12 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:architecture_lints/src/config/enums/component_kind.dart';
-import 'package:architecture_lints/src/config/enums/component_mode.dart';
-import 'package:architecture_lints/src/config/enums/component_modifier.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/schema/enums/component_kind.dart';
+import 'package:architecture_lints/src/schema/enums/component_mode.dart';
+import 'package:architecture_lints/src/schema/enums/component_modifier.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:architecture_lints/src/engines/component/refinement/score_log.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.dart';
@@ -270,7 +270,7 @@ class ComponentRefiner with InheritanceLogic, NamingLogic {
     return false;
   }
 
-  ComponentContext _buildContext(String filePath, ComponentConfig config, [String? log]) {
+  ComponentContext _buildContext(String filePath, ComponentDefinition config, [String? log]) {
     return ComponentContext(
       filePath: filePath,
       config: config,

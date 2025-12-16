@@ -2,9 +2,9 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
-import 'package:architecture_lints/src/config/schema/type_safety_config.dart';
-import 'package:architecture_lints/src/config/schema/type_safety_constraint.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
+import 'package:architecture_lints/src/schema/policies/type_safety_policy.dart';
+import 'package:architecture_lints/src/schema/constraints/type_safety_constraint.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 
 enum MatchSpecificity { none, canonical, alias }
@@ -15,7 +15,7 @@ mixin TypeSafetyLogic {
     DartType type,
     List<TypeSafetyConstraint> constraintList,
     FileResolver fileResolver,
-    Map<String, Definition> registry,
+    Map<String, TypeDefinition> registry,
   ) {
     var best = MatchSpecificity.none;
 
@@ -62,7 +62,7 @@ mixin TypeSafetyLogic {
     DartType type,
     List<TypeSafetyConstraint> constraintList,
     FileResolver fileResolver,
-    Map<String, Definition> registry,
+    Map<String, TypeDefinition> registry,
   ) {
     return constraintList.any(
       (c) => matchesConstraint(type, c, fileResolver, registry),
@@ -71,10 +71,10 @@ mixin TypeSafetyLogic {
 
   bool isExplicitlyForbidden({
     required DartType type,
-    required TypeSafetyConfig configRule,
+    required TypeSafetyPolicy configRule,
     required String kind,
     required FileResolver fileResolver,
-    required Map<String, Definition> registry,
+    required Map<String, TypeDefinition> registry,
     String? paramName,
   }) {
     final forbiddenConstraints = configRule.forbidden.where((c) {
@@ -94,7 +94,7 @@ mixin TypeSafetyLogic {
     DartType type,
     TypeSafetyConstraint constraint,
     FileResolver fileResolver,
-    Map<String, Definition> registry,
+    Map<String, TypeDefinition> registry,
   ) {
     // 1. Check Canonical Element
     if (_matchesElement(
@@ -143,7 +143,7 @@ mixin TypeSafetyLogic {
   bool _matchesElement(
     Element? element,
     TypeSafetyConstraint constraint,
-    Map<String, Definition> registry, {
+    Map<String, TypeDefinition> registry, {
     List<DartType> typeArguments = const [],
   }) {
     // Handle void/dynamic special cases if needed (element is null)
@@ -177,11 +177,11 @@ mixin TypeSafetyLogic {
   }
 
   bool _matchesDefinitionRecursive(
-    Definition def,
+    TypeDefinition def,
     String? elementName,
     String? elementUri,
     List<DartType> typeArgs,
-    Map<String, Definition> registry,
+    Map<String, TypeDefinition> registry,
   ) {
     // A. Wildcard
     if (def.isWildcard) return true;
@@ -240,7 +240,7 @@ mixin TypeSafetyLogic {
     return true;
   }
 
-  String describeConstraint(TypeSafetyConstraint c, Map<String, Definition> registry) {
+  String describeConstraint(TypeSafetyConstraint c, Map<String, TypeDefinition> registry) {
     // 1. Definitions
     if (c.definitions.isNotEmpty) {
       return c.definitions

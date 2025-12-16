@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/naming/rules/naming_pattern_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -68,7 +68,7 @@ void main() {
     test('should report no error when class name matches single pattern', () async {
       const config = ArchitectureConfig(
         components: [
-          ComponentConfig(
+          ComponentDefinition(
             id: 'usecase',
             paths: ['domain/usecases'],
             patterns: ['{{name}}UseCase'],
@@ -88,7 +88,7 @@ void main() {
     test('should report no error when class name matches ANY of multiple patterns', () async {
       const config = ArchitectureConfig(
         components: [
-          ComponentConfig(
+          ComponentDefinition(
             id: 'manager',
             paths: ['presentation/managers'],
             // Allow both Cubit AND Bloc suffixes
@@ -117,7 +117,7 @@ void main() {
     test('should report error when class name matches NONE of multiple patterns', () async {
       const config = ArchitectureConfig(
         components: [
-          ComponentConfig(
+          ComponentDefinition(
             id: 'manager',
             paths: ['presentation/managers'],
             patterns: ['{{name}}Cubit', '{{name}}Bloc'],
@@ -140,7 +140,7 @@ void main() {
     test('should support {{affix}} wildcard for implementation classes', () async {
       const config = ArchitectureConfig(
         components: [
-          ComponentConfig(
+          ComponentDefinition(
             id: 'repo_impl',
             paths: ['data/repositories'],
             // e.g. AuthRepositoryImpl, MockAuthRepository
@@ -163,7 +163,7 @@ void main() {
       () async {
         const config = ArchitectureConfig(
           components: [
-            ComponentConfig(
+            ComponentDefinition(
               id: 'entity',
               paths: ['domain/entities'],
               patterns: ['{{name}}Entity'], // Strict ending
@@ -185,7 +185,7 @@ void main() {
     test('should ignore files that do not match any component path', () async {
       const config = ArchitectureConfig(
         components: [
-          ComponentConfig(id: 'usecase', paths: ['domain/usecases'], patterns: ['{{name}}']),
+          ComponentDefinition(id: 'usecase', paths: ['domain/usecases'], patterns: ['{{name}}']),
         ],
       );
 

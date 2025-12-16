@@ -1,12 +1,13 @@
-import 'package:architecture_lints/src/config/schema/variable_config.dart';
 import 'package:architecture_lints/src/engines/expression/expression.dart';
+import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
+import 'package:architecture_lints/src/schema/descriptors/variable_select.dart';
 
 class ConditionalHandler {
   final ExpressionEngine engine;
 
   ConditionalHandler(this.engine);
 
-  VariableConfig? handle(List<VariableSelect> select, Map<String, dynamic> context) {
+  VariableDefinition? handle(List<VariableSelect> select, Map<String, dynamic> context) {
     for (var i = 0; i < select.length; i++) {
       final branch = select[i];
       final condition = branch.condition;

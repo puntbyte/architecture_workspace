@@ -1,10 +1,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/enums/exception_operation.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/exception_config.dart';
 import 'package:architecture_lints/src/lints/safety/base/exception_base_rule.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/enums/exception_operation.dart';
+import 'package:architecture_lints/src/schema/policies/exception_policy.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class ExceptionForbiddenRule extends ExceptionBaseRule {
@@ -20,7 +20,7 @@ class ExceptionForbiddenRule extends ExceptionBaseRule {
   @override
   void checkMethod({
     required MethodDeclaration node,
-    required List<ExceptionConfig> rules,
+    required List<ExceptionPolicy> rules,
     required ArchitectureConfig config,
     required DiagnosticReporter reporter,
   }) {

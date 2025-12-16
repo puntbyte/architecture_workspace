@@ -3,7 +3,7 @@
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that forbids any reference to a domain `Entity` within a `DataSource`.
@@ -13,7 +13,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 /// **Reasoning:** The data layer's responsibility is to deal with raw data and
 /// data transfer objects (Models). It must not know about the pure business
 /// objects of the domain layer (Entities).
-class DisallowEntityInDataSource extends ArchitectureLintRule {
+class DisallowEntityInDataSource extends ArchitectureRule {
   static const _code = LintCode(
     name: 'disallow_entity_in_data_source',
     problemMessage: 'DataSources must not depend on or reference domain Entities.',

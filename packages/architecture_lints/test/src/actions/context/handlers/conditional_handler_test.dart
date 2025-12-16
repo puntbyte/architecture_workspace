@@ -1,9 +1,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
 import 'package:architecture_lints/src/engines/variable/handlers/conditional_handler.dart';
-import 'package:architecture_lints/src/config/enums/variable_type.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/variable_config.dart';
+import 'package:architecture_lints/src/schema/enums/variable_type.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
 import 'package:test/test.dart';
 
 import '../../../../helpers/test_resolver.dart';
@@ -31,10 +31,10 @@ void main() {
       final select = [
         const VariableSelect(
           condition: 'true',
-          result: VariableConfig(type: VariableType.string, value: "'A'"),
+          result: VariableDefinition(type: VariableType.string, value: "'A'"),
         ),
         const VariableSelect(
-          result: VariableConfig(type: VariableType.string, value: "'B'"),
+          result: VariableDefinition(type: VariableType.string, value: "'B'"),
         ),
       ];
 
@@ -46,10 +46,10 @@ void main() {
       final select = [
         const VariableSelect(
           condition: 'false',
-          result: VariableConfig(type: VariableType.string, value: "'A'"),
+          result: VariableDefinition(type: VariableType.string, value: "'A'"),
         ),
         const VariableSelect(
-          result: VariableConfig(type: VariableType.string, value: "'B'"),
+          result: VariableDefinition(type: VariableType.string, value: "'B'"),
         ),
       ];
 
@@ -61,10 +61,10 @@ void main() {
       final select = [
         const VariableSelect(
           condition: 'myVar > 10',
-          result: VariableConfig(type: VariableType.string, value: "'BIG'"),
+          result: VariableDefinition(type: VariableType.string, value: "'BIG'"),
         ),
         const VariableSelect(
-          result: VariableConfig(type: VariableType.string, value: "'SMALL'"),
+          result: VariableDefinition(type: VariableType.string, value: "'SMALL'"),
         ),
       ];
 
@@ -81,7 +81,7 @@ void main() {
       final select = [
         const VariableSelect(
           condition: 'false',
-          result: VariableConfig(type: VariableType.string, value: "'A'"),
+          result: VariableDefinition(type: VariableType.string, value: "'A'"),
         ),
         // No else branch
       ];

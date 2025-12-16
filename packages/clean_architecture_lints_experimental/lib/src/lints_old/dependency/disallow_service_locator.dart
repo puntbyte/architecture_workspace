@@ -4,11 +4,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that forbids the use of the Service Locator pattern.
-class DisallowServiceLocator extends ArchitectureLintRule {
+class DisallowServiceLocator extends ArchitectureRule {
   static const _code = LintCode(
     name: 'disallow_service_locator',
     problemMessage:

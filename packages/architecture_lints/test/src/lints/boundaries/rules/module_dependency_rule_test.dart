@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/module_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/module_definition.dart';
 import 'package:architecture_lints/src/lints/boundaries/rules/module_dependency_rule.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
@@ -58,13 +58,13 @@ void main() {
         components: [],
         modules: [
           // Strict Feature Module (default strict=true if wildcard used)
-          ModuleConfig(
+          ModuleDefinition(
             key: 'feature',
             path: r'features/${name}',
             strict: true,
           ),
           // Shared Module (Not strict isolation between siblings usually, but let's test strict logic)
-          ModuleConfig(
+          ModuleDefinition(
             key: 'core',
             path: 'core',
             strict: false,
@@ -178,7 +178,7 @@ void main() {
         components: [],
         modules: [
           // Non-strict features
-          const ModuleConfig(
+          const ModuleDefinition(
             key: 'feature',
             path: r'features/${name}',
             strict: false,

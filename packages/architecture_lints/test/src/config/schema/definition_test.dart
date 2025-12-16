@@ -1,26 +1,26 @@
-import 'package:architecture_lints/src/config/constants/config_keys.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
+import 'package:architecture_lints/src/schema/constants/config_keys.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('Definition', () {
     group('fromDynamic', () {
       test('should parse shorthand string', () {
-        final def = Definition.fromDynamic('MyClass');
+        final def = TypeDefinition.fromDynamic('MyClass');
         expect(def.types, ['MyClass']);
         expect(def.type, 'MyClass');
         expect(def.isWildcard, isFalse);
       });
 
       test('should parse wildcard', () {
-        final def = Definition.fromDynamic('*');
+        final def = TypeDefinition.fromDynamic('*');
         expect(def.isWildcard, isTrue);
       });
 
       test('should parse map with single type and import', () {
         // Use Map<String, dynamic> for type safety
         final map = <String, dynamic>{'type': 'Future', 'import': 'dart:async'};
-        final def = Definition.fromDynamic(map);
+        final def = TypeDefinition.fromDynamic(map);
         expect(def.types, ['Future']);
         expect(def.imports, ['dart:async']);
       });
@@ -30,7 +30,7 @@ void main() {
           'type': ['GetIt', 'Injector'],
           'import': 'package:get_it/get_it.dart'
         };
-        final def = Definition.fromDynamic(map);
+        final def = TypeDefinition.fromDynamic(map);
         expect(def.types, ['GetIt', 'Injector']);
         expect(def.imports, ['package:get_it/get_it.dart']);
       });
@@ -41,7 +41,7 @@ void main() {
           ConfigKeys.definition.identifier: ['sl', 'getIt'],
         };
 
-        final def = Definition.fromDynamic(map);
+        final def = TypeDefinition.fromDynamic(map);
         expect(def.identifiers, ['sl', 'getIt']);
       });
 
@@ -51,7 +51,7 @@ void main() {
           'import': 'package:fpdart/fpdart.dart',
           ConfigKeys.definition.rewrite: ['package:fpdart/src/either.dart'],
         };
-        final def = Definition.fromDynamic(map);
+        final def = TypeDefinition.fromDynamic(map);
         expect(def.rewrites, ['package:fpdart/src/either.dart']);
       });
 
@@ -63,7 +63,7 @@ void main() {
             {'type': 'R'},
           ],
         };
-        final def = Definition.fromDynamic(map);
+        final def = TypeDefinition.fromDynamic(map);
         expect(def.arguments, hasLength(2));
         expect(def.arguments[0].type, 'L');
         expect(def.arguments[1].type, 'R');
@@ -79,7 +79,7 @@ void main() {
           },
         };
 
-        final registry = Definition.parseRegistry(yaml);
+        final registry = TypeDefinition.parseRegistry(yaml);
 
         expect(registry.keys, containsAll(['domain.base', 'domain.sub']));
         expect(registry['domain.base']?.type, 'Entity');
@@ -95,7 +95,7 @@ void main() {
           },
         };
 
-        final registry = Definition.parseRegistry(yaml);
+        final registry = TypeDefinition.parseRegistry(yaml);
 
         expect(registry['result.success']?.import, 'package:fpdart');
         expect(registry['result.failure']?.import, 'package:fpdart');
@@ -109,7 +109,7 @@ void main() {
           },
         };
 
-        final registry = Definition.parseRegistry(yaml);
+        final registry = TypeDefinition.parseRegistry(yaml);
 
         expect(registry['group.first']?.import, 'pkg/a');
         expect(registry['group.second']?.import, 'pkg/b');

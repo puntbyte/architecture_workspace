@@ -3,12 +3,12 @@
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/utils/extensions/string_extension.dart';
 import 'package:architecture_lints/src/utils/nlp/language_analyzer.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-class EnforceSemanticNaming extends ArchitectureLintRule {
+class EnforceSemanticNaming extends ArchitectureRule {
   static const _code = LintCode(
     name: 'enforce_semantic_naming',
     problemMessage: 'The {2} name "{0}" is grammatically incorrect: {1}',

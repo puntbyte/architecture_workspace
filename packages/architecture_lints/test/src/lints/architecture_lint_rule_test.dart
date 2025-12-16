@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
@@ -17,7 +17,7 @@ import '../../helpers/test_resolver.dart';
 
 // --- Concrete Implementation for Testing ---
 // This fixes the "Invalid Override" error by matching the new signature.
-class TestArchitectureRule extends ArchitectureLintRule {
+class TestArchitectureRule extends ArchitectureRule {
   // Capture arguments to verify logic flow
   ComponentContext? capturedComponent;
   ArchitectureConfig? capturedConfig;
@@ -102,7 +102,7 @@ void main() {
       final fileResolver = FileResolver(config);
 
       // Create a mock ComponentContext
-      const componentConfig = ComponentConfig(id: 'domain', paths: ['domain']);
+      const componentConfig = ComponentDefinition(id: 'domain', paths: ['domain']);
       const componentContext = ComponentContext(
         filePath: '/lib/domain/user.dart',
         config: componentConfig,

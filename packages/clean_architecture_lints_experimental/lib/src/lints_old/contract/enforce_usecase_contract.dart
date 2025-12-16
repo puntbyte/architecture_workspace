@@ -3,12 +3,12 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/models/configs/inheritances_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// Enforces that concrete UseCase classes implement one of the base UseCase classes.
-class EnforceUsecaseContract extends ArchitectureLintRule {
+class EnforceUsecaseContract extends ArchitectureRule {
   static const _code = LintCode(
     name: 'enforce_usecase_contract',
     problemMessage: 'UseCases must extend one of the base use case classes: {0}.',

@@ -1,13 +1,13 @@
 // lib/src/lints/consistency/logic/relationship_logic.dart
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/config/constants/config_keys.dart';
-import 'package:architecture_lints/src/config/enums/relationship_kind.dart';
-import 'package:architecture_lints/src/config/enums/relationship_visibility.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
+import 'package:architecture_lints/src/schema/constants/config_keys.dart';
+import 'package:architecture_lints/src/schema/enums/relationship_kind.dart';
+import 'package:architecture_lints/src/schema/enums/relationship_visibility.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart';
 import 'package:path/path.dart' as p;
 
@@ -23,7 +23,7 @@ mixin RelationshipLogic on NamingLogic {
     return null;
   }
 
-  String generateTargetClassName(String coreName, ComponentConfig targetConfig) {
+  String generateTargetClassName(String coreName, ComponentDefinition targetConfig) {
     if (targetConfig.patterns.isEmpty) return coreName;
     final pattern = targetConfig.patterns.first;
     return pattern
@@ -77,7 +77,7 @@ mixin RelationshipLogic on NamingLogic {
     if (rules.isEmpty) return const ParityResult.failure('No matching rules found');
 
     for (final rule in rules) {
-      ComponentConfig? targetComponent;
+      ComponentDefinition? targetComponent;
       try {
         targetComponent = config.components.firstWhere(
           (component) => component.id == rule.targetComponent,
@@ -119,8 +119,8 @@ mixin RelationshipLogic on NamingLogic {
 
   String? findTargetFilePath({
     required String currentFilePath,
-    required ComponentConfig currentComponent,
-    required ComponentConfig targetComponent,
+    required ComponentDefinition currentComponent,
+    required ComponentDefinition targetComponent,
     required String targetFileName,
   }) {
     final currentDir = p.dirname(currentFilePath);
@@ -147,7 +147,7 @@ class ParityTarget {
   final String coreName;
   final String targetClassName;
   final String? templateId;
-  final ComponentConfig sourceComponent;
+  final ComponentDefinition sourceComponent;
 
   const ParityTarget({
     required this.path,

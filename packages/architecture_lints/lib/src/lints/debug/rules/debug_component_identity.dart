@@ -1,13 +1,13 @@
 import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/lints/debug/logic/debug_rule_runner.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-class DebugComponentIdentity extends ArchitectureLintRule with DebugComponentIdentityWrapper {
+class DebugComponentIdentity extends ArchitectureRule with DebugComponentIdentityWrapper {
   static const _code = LintCode(
     name: 'debug_component_identity',
     problemMessage: '{0}',

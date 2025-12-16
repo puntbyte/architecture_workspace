@@ -4,7 +4,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/utils/extensions/iterable_extension.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
@@ -17,7 +17,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 /// live in the Data layer (outer circle). The Dependency Rule states dependencies must
 /// point inwards. Therefore, UseCases must depend on the Interface (Port) defined
 /// in the Domain layer, not the Implementation in the Data layer.
-class EnforceAbstractRepositoryDependency extends ArchitectureLintRule {
+class EnforceAbstractRepositoryDependency extends ArchitectureRule {
   static const _code = LintCode(
     name: 'enforce_abstract_repository_dependency',
     problemMessage:

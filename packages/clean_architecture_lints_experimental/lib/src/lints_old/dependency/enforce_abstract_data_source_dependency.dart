@@ -4,7 +4,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/utils/extensions/iterable_extension.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
@@ -12,7 +12,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 /// abstractions (interfaces) and not on concrete implementations.
 ///
 /// **Category:** Dependency / Dependency Inversion
-class EnforceAbstractDataSourceDependency extends ArchitectureLintRule {
+class EnforceAbstractDataSourceDependency extends ArchitectureRule {
   static const _code = LintCode(
     name: 'enforce_abstract_data_source_dependency',
     problemMessage:

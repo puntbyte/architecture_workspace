@@ -3,9 +3,9 @@ import 'package:architecture_lints/src/engines/expression/expression_engine.dart
 import 'package:architecture_lints/src/engines/variable/handlers/list_handler.dart';
 import 'package:architecture_lints/src/engines/variable/variable_resolver.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/list_wrapper.dart';
-import 'package:architecture_lints/src/config/enums/variable_type.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/variable_config.dart';
+import 'package:architecture_lints/src/schema/enums/variable_type.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
 import 'package:test/test.dart';
 
 import '../../../../helpers/test_resolver.dart';
@@ -39,12 +39,12 @@ void main() {
     });
 
     test('should transform source list (AST Nodes) into Maps', () {
-      const config = VariableConfig(
+      const config = VariableDefinition(
         type: VariableType.list,
         from: 'source.parameters', // ListWrapper<ParameterWrapper>
         mapSchema: {
-          'name': VariableConfig(type: VariableType.string, value: 'item.name'),
-          'isNamed': VariableConfig(type: VariableType.bool, value: 'item.isNamed'),
+          'name': VariableDefinition(type: VariableType.string, value: 'item.name'),
+          'isNamed': VariableDefinition(type: VariableType.bool, value: 'item.isNamed'),
         },
       );
 
@@ -61,7 +61,7 @@ void main() {
     });
 
     test('should handle explicit values', () {
-      const config = VariableConfig(
+      const config = VariableDefinition(
         type: VariableType.list,
         values: ["'A'", "'B'"],
       );
@@ -71,7 +71,7 @@ void main() {
     });
 
     test('should handle spread', () {
-      const config = VariableConfig(
+      const config = VariableDefinition(
         type: VariableType.list,
         spread: ['list1', 'list2'],
       );

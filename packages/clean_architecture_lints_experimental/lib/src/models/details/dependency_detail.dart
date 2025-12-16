@@ -1,4 +1,4 @@
-// lib/src/models/details/dependency_detail.dart
+// lib/src/models/details/dependency_constraint.dart
 
 part of '../configs/dependencies_config.dart';
 

@@ -3,7 +3,7 @@
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that forbids `throw` and `rethrow` expressions inside a repository implementation
@@ -15,7 +15,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 /// exceptions from the Data Source and converting them into a `Failure` object (typically
 /// wrapped in an `Either`). Throwing or rethrowing exceptions breaks this boundary,
 /// leaking infrastructure details into the Domain layer.
-class DisallowThrowingFromRepository extends ArchitectureLintRule {
+class DisallowThrowingFromRepository extends ArchitectureRule {
   static const _code = LintCode(
     name: 'disallow_throwing_from_repository',
     problemMessage:

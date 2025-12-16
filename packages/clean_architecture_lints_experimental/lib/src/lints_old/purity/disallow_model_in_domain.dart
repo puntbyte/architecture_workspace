@@ -3,7 +3,7 @@
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that forbids any reference to a data-layer `Model` within the domain layer.
@@ -13,7 +13,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 /// **Reasoning:** The domain layer must not know about the implementation details of the
 /// data layer. Data-layer Models (DTOs) are a data transfer detail. The domain layer
 /// should only ever deal with its own pure `Entity` objects.
-class DisallowModelInDomain extends ArchitectureLintRule {
+class DisallowModelInDomain extends ArchitectureRule {
   static const _code = LintCode(
     name: 'disallow_model_in_domain',
     problemMessage: 'Domain layer purity violation: Do not use a data-layer Model.',

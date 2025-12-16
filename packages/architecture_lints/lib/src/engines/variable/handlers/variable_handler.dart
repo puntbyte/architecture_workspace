@@ -1,6 +1,6 @@
 // lib/src/actions/context/handlers/variable_handler.dart
 
-import 'package:architecture_lints/src/config/schema/variable_config.dart';
+import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
 import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
 import 'package:architecture_lints/src/engines/variable/variable_resolver.dart';
 
@@ -12,7 +12,7 @@ abstract class VariableHandler {
   /// Handles the resolution of a specific variable type.
   /// [resolver] is passed to allow recursive resolution (e.g. for list items).
   dynamic handle(
-    VariableConfig config,
+    VariableDefinition config,
     Map<String, dynamic> context,
     VariableResolver resolver,
   );

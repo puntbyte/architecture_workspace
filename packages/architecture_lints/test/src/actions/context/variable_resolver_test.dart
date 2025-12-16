@@ -1,8 +1,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/config/enums/variable_type.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
-import 'package:architecture_lints/src/config/schema/variable_config.dart';
+import 'package:architecture_lints/src/schema/enums/variable_type.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
+import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
 import 'package:architecture_lints/src/engines/variable/variable_resolver.dart';
 import 'package:test/test.dart';
 
@@ -51,11 +51,11 @@ void main() {
       mockConfig = const ArchitectureConfig(
         components: [],
         definitions: {
-          'usecase.base': Definition(
+          'usecase.base': TypeDefinition(
             types: ['BaseUseCase'],
             imports: ['package:core/base.dart'],
           ),
-          'deep.dep': Definition(
+          'deep.dep': TypeDefinition(
             types: ['Deep'],
             imports: ['package:deep/public.dart'],
             rewrites: ['package:deep/src/internal.dart'],
@@ -69,11 +69,11 @@ void main() {
         final resolver = getResolverForMethod('login');
 
         final variables = {
-          'methodName': const VariableConfig(
+          'methodName': const VariableDefinition(
             type: VariableType.string,
             value: '{{source.name}}',
           ),
-          'className': const VariableConfig(
+          'className': const VariableDefinition(
             type: VariableType.string,
             value: '{{source.parent.name}}',
           ),
@@ -89,11 +89,11 @@ void main() {
         final resolver = getResolverForMethod('login');
 
         final variables = {
-          'pascal': const VariableConfig(
+          'pascal': const VariableDefinition(
             type: VariableType.string,
             value: '{{source.name.pascalCase}}',
           ),
-          'constant': const VariableConfig(
+          'constant': const VariableDefinition(
             type: VariableType.string,
             value: '{{source.name.constantCase}}',
           ),
@@ -112,16 +112,16 @@ void main() {
 
         final variables = {
           // Future
-          'base': const VariableConfig(
+          'base': const VariableDefinition(
             type: VariableType.string,
             value: '{{source.returnType.generics.base.value}}',
           ),
           // User
-          'inner': const VariableConfig(
+          'inner': const VariableDefinition(
             type: VariableType.string,
             value: '{{source.returnType.generics.first.name.value}}',
           ),
-          'isFuture': const VariableConfig(
+          'isFuture': const VariableDefinition(
             type: VariableType.bool,
             value: 'source.returnType.isFuture',
           ),
@@ -140,16 +140,16 @@ void main() {
         final resolver = getResolverForMethod('login'); // Has params
 
         final variables = {
-          'hasParams': const VariableConfig(
+          'hasParams': const VariableDefinition(
             type: VariableType.string,
             select: [
               VariableSelect(
                 condition: 'source.parameters.isNotEmpty',
                 // Use quoted literals "'YES'" so expression engine treats them as strings
-                result: VariableConfig(type: VariableType.string, value: "'YES'"),
+                result: VariableDefinition(type: VariableType.string, value: "'YES'"),
               ),
               VariableSelect(
-                result: VariableConfig(type: VariableType.string, value: "'NO'"),
+                result: VariableDefinition(type: VariableType.string, value: "'NO'"),
               ),
             ],
           ),
@@ -163,15 +163,15 @@ void main() {
         final resolver = getResolverForMethod('logout'); // No params
 
         final variables = {
-          'hasParams': const VariableConfig(
+          'hasParams': const VariableDefinition(
             type: VariableType.string,
             select: [
               VariableSelect(
                 condition: 'source.parameters.isNotEmpty',
-                result: VariableConfig(type: VariableType.string, value: "'YES'"),
+                result: VariableDefinition(type: VariableType.string, value: "'YES'"),
               ),
               VariableSelect(
-                result: VariableConfig(type: VariableType.string, value: "'NO'"),
+                result: VariableDefinition(type: VariableType.string, value: "'NO'"),
               ),
             ],
           ),
@@ -187,12 +187,12 @@ void main() {
         final resolver = getResolverForMethod('login');
 
         final variables = {
-          'params': const VariableConfig(
+          'params': const VariableDefinition(
             type: VariableType.list,
             from: 'source.parameters',
             mapSchema: {
-              'name': VariableConfig(type: VariableType.string, value: 'item.name'),
-              'isNamed': VariableConfig(type: VariableType.bool, value: 'item.isNamed'),
+              'name': VariableDefinition(type: VariableType.string, value: 'item.name'),
+              'isNamed': VariableDefinition(type: VariableType.bool, value: 'item.isNamed'),
             },
           ),
         };
@@ -219,7 +219,7 @@ void main() {
         final resolver = getResolverForMethod('login');
 
         final variables = {
-          'imports': const VariableConfig(
+          'imports': const VariableDefinition(
             type: VariableType.set,
             // Trigger ImportExtractor
             transformer: 'imports',
@@ -252,7 +252,7 @@ void main() {
         final resolver = getResolverForMethod('login');
 
         final variables = {
-          'baseClass': const VariableConfig(
+          'baseClass': const VariableDefinition(
             type: VariableType.string,
             // Access definition via helper method on ConfigWrapper
             // The method returns a Map, so we can access .type

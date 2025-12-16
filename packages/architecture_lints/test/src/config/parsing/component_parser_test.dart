@@ -1,12 +1,12 @@
 import 'package:architecture_lints/src/engines/configuration/hierarchy_parser.dart';
-import 'package:architecture_lints/src/config/schema/module_config.dart';
+import 'package:architecture_lints/src/schema/definitions/module_definition.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('ComponentParser', () {
     List<String> parseIds(
         Map<String, dynamic> yaml, [
-          List<ModuleConfig> modules = const [],
+          List<ModuleDefinition> modules = const [],
         ]) {
       final results = HierarchyParser.parse(
         yaml: yaml,
@@ -58,8 +58,8 @@ void main() {
 
     test('should handle Module scoping correctly', () {
       final modules = [
-        const ModuleConfig(key: 'core', path: 'core'),
-        const ModuleConfig(key: 'shared', path: 'shared'),
+        const ModuleDefinition(key: 'core', path: 'core'),
+        const ModuleDefinition(key: 'shared', path: 'shared'),
       ];
 
       final yaml = {

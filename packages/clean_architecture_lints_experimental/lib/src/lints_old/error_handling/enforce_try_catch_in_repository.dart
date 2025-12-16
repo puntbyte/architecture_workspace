@@ -4,7 +4,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that ensures calls to a DataSource within a repository are wrapped in a try-catch block.
@@ -12,7 +12,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 /// This lint is driven by the `error_handlers` configuration. If a component is configured
 /// to require `try_return`, this lint ensures that interactions with dependencies (like DataSources)
 /// are safe.
-class EnforceTryCatchInRepository extends ArchitectureLintRule {
+class EnforceTryCatchInRepository extends ArchitectureRule {
   static const _code = LintCode(
     name: 'enforce_try_catch_in_repository',
     problemMessage: 'Calls to a DataSource must be wrapped in a `try` block.',

@@ -3,8 +3,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:architecture_lints/src/lints/naming/base/naming_base_rule.dart';
 import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -22,7 +22,7 @@ class NamingPatternRule extends NamingBaseRule with NamingLogic {
   @override
   void checkName({
     required ClassDeclaration node,
-    required ComponentConfig config,
+    required ComponentDefinition config,
     required DiagnosticReporter reporter,
     required ArchitectureConfig rootConfig, // Fixed: Added missing parameter
   }) {

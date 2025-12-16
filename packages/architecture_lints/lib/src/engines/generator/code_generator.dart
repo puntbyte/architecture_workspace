@@ -4,8 +4,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:architecture_lints/src/engines/variable/variable_resolver.dart';
 import 'package:architecture_lints/src/engines/template/mustache_renderer.dart';
 import 'package:architecture_lints/src/engines/template/template_loader.dart';
-import 'package:architecture_lints/src/config/schema/action_config.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/action_definition.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 
 class CodeGenerator {
   final ArchitectureConfig config;
@@ -22,7 +22,7 @@ class CodeGenerator {
   /// Generates code based on the [action] configuration.
   /// NOW SYNCHRONOUS.
   String? generate({
-    required ActionConfig action,
+    required ActionDefinition action,
     required AstNode sourceNode,
   }) {
     // 1. Resolve Template Definition

@@ -3,12 +3,12 @@
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that forbids DataSource methods from returning types flagged as "forbidden"
 /// in the configuration (e.g., wrapper types like `Either` or `Result`).
-class EnforceExceptionOnDataSource extends ArchitectureLintRule {
+class EnforceExceptionOnDataSource extends ArchitectureRule {
   static const _code = LintCode(
     name: 'enforce_exception_on_data_source',
     problemMessage:

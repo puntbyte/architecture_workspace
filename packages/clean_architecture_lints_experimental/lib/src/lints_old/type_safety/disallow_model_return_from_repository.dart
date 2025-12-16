@@ -5,11 +5,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/utils/ast/semantic_utils.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-class DisallowModelReturnFromRepository extends ArchitectureLintRule {
+class DisallowModelReturnFromRepository extends ArchitectureRule {
   static const _code = LintCode(
     name: 'disallow_model_return_from_repository',
     problemMessage: 'Repository methods must return domain Entities, not data Models.',

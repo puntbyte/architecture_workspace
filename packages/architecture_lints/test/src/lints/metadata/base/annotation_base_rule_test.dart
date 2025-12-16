@@ -4,11 +4,11 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/enums/annotation_mode.dart';
-import 'package:architecture_lints/src/config/schema/annotation_config.dart';
-import 'package:architecture_lints/src/config/schema/annotation_constraint.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
+import 'package:architecture_lints/src/schema/enums/annotation_mode.dart';
+import 'package:architecture_lints/src/schema/policies/annotation_policy.dart';
+import 'package:architecture_lints/src/schema/constraints/annotation_constraint.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/metadata/rules/annotation_forbidden_rule.dart';
 import 'package:architecture_lints/src/lints/metadata/rules/annotation_required_rule.dart';
@@ -47,7 +47,7 @@ class TestRuleWrapper<T extends DartLintRule> extends DartLintRule {
 void main() {
   group('Annotation Rules', () {
     late Directory tempDir;
-    const entityConfig = ComponentConfig(id: 'entity', paths: ['domain']);
+    const entityConfig = ComponentDefinition(id: 'entity', paths: ['domain']);
 
     setUp(() {
       tempDir = Directory.systemTemp.createTempSync('annot_test_');
@@ -82,7 +82,7 @@ void main() {
         const config = ArchitectureConfig(
           components: [entityConfig],
           annotations: [
-            AnnotationConfig(
+            AnnotationPolicy(
               onIds: ['entity'],
               forbidden: [
                 AnnotationConstraint(types: ['JsonSerializable']),
@@ -113,7 +113,7 @@ void main() {
         const config = ArchitectureConfig(
           components: [entityConfig],
           annotations: [
-            AnnotationConfig(
+            AnnotationPolicy(
               onIds: ['entity'],
               forbidden: [
                 AnnotationConstraint(types: ['Forbidden']),
@@ -142,7 +142,7 @@ void main() {
         const config = ArchitectureConfig(
           components: [entityConfig],
           annotations: [
-            AnnotationConfig(
+            AnnotationPolicy(
               onIds: ['entity'],
               required: [
                 AnnotationConstraint(types: ['Immutable']),
@@ -171,7 +171,7 @@ void main() {
         const config = ArchitectureConfig(
           components: [entityConfig],
           annotations: [
-            AnnotationConfig(
+            AnnotationPolicy(
               onIds: ['entity'],
               required: [
                 AnnotationConstraint(types: ['Immutable']),
@@ -200,7 +200,7 @@ void main() {
         const config = ArchitectureConfig(
           components: [entityConfig],
           annotations: [
-            AnnotationConfig(
+            AnnotationPolicy(
               onIds: ['entity'],
               mode: AnnotationMode.strict,
               allowed: [
@@ -233,7 +233,7 @@ void main() {
         const config = ArchitectureConfig(
           components: [entityConfig],
           annotations: [
-            AnnotationConfig(
+            AnnotationPolicy(
               onIds: ['entity'],
               mode: AnnotationMode.strict,
               required: [

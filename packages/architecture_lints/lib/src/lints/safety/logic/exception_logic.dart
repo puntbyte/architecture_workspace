@@ -1,14 +1,14 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 
 mixin ExceptionLogic {
   bool matchesType(
     DartType? type,
     String? definitionKey,
     String? rawType,
-    Map<String, Definition> registry,
+    Map<String, TypeDefinition> registry,
   ) {
     if (type == null) return false;
 
@@ -52,7 +52,7 @@ mixin ExceptionLogic {
   bool returnStatementMatchesType(
     ReturnStatement node,
     String definitionKey,
-    Map<String, Definition> registry,
+    Map<String, TypeDefinition> registry,
   ) {
     final expression = node.expression;
     if (expression == null) return false;

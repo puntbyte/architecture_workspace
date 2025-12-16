@@ -1,4 +1,4 @@
-import 'package:architecture_lints/src/config/schema/vocabulary_config.dart';
+import 'package:architecture_lints/src/schema/definitions/vocabulary_definition.dart';
 import 'package:architecture_lints/src/engines/language/nlp_constants.dart';
 import 'package:dictionaryx/dictentry.dart';
 import 'package:dictionaryx/dictionary_msa_json.dart';
@@ -8,15 +8,15 @@ class LanguageAnalyzer {
   static final DictionaryMSAJson _sharedDictionary = DictionaryMSAJson();
 
   final DictionaryMSAJson? _dictionary;
-  final VocabularyConfig _overrides;
+  final VocabularyDefinition _overrides;
   final bool treatEntryAsNounIfExists;
 
   LanguageAnalyzer({
     DictionaryMSAJson? dictionary,
-    VocabularyConfig? vocabulary,
+    VocabularyDefinition? vocabulary,
     this.treatEntryAsNounIfExists = true,
   }) : _dictionary = dictionary ?? _sharedDictionary,
-       _overrides = vocabulary ?? const VocabularyConfig();
+       _overrides = vocabulary ?? const VocabularyDefinition();
 
   bool isAdjective(String word) => _hasPos(word, POS.ADJ);
 

@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/ast/ast.dart' hide Expression;
-import 'package:architecture_lints/src/config/enums/variable_type.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/variable_config.dart';
+import 'package:architecture_lints/src/schema/enums/variable_type.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
 import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
 import 'package:architecture_lints/src/engines/imports/import_extractor.dart';
 import 'package:architecture_lints/src/engines/variable/handlers/conditional_handler.dart';
@@ -44,7 +44,7 @@ class VariableResolver {
 
       if (value is String) {
         resolvedValue = _engine.evaluate(value, result);
-      } else if (value is VariableConfig) {
+      } else if (value is VariableDefinition) {
         resolvedValue = resolveConfig(value, result);
       } else if (value is Map<String, dynamic> && !key.startsWith('.')) {
         resolvedValue = resolveMap(value);
@@ -62,7 +62,7 @@ class VariableResolver {
 
   dynamic resolve(String expression) => _engine.evaluate(expression, {});
 
-  dynamic resolveConfig(VariableConfig config, Map<String, dynamic> context) {
+  dynamic resolveConfig(VariableDefinition config, Map<String, dynamic> context) {
     if (config.select.isNotEmpty) {
       final selectedConfig = _conditionalHandler.handle(config.select, context);
       if (selectedConfig != null) return resolveConfig(selectedConfig, context);

@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
-import 'package:architecture_lints/src/config/schema/inheritance_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
+import 'package:architecture_lints/src/schema/policies/inheritance_policy.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
@@ -71,10 +71,10 @@ void main() {
         const config = ArchitectureConfig(
           components: [],
           inheritances: [
-            InheritanceConfig(
+            InheritancePolicy(
               onIds: ['entity'],
               required: [
-                Definition(types: ['BaseEntity']),
+                TypeDefinition(types: ['BaseEntity']),
               ],
               allowed: [],
               forbidden: [],
@@ -97,10 +97,10 @@ void main() {
         const config = ArchitectureConfig(
           components: [],
           inheritances: [
-            InheritanceConfig(
+            InheritancePolicy(
               onIds: ['repository'],
               required: [
-                Definition(types: ['RepoInterface']),
+                TypeDefinition(types: ['RepoInterface']),
               ],
               allowed: [],
               forbidden: [],
@@ -131,7 +131,7 @@ void main() {
 
     group('matchesDefinition', () {
       test('should match by Type Name', () async {
-        const def = Definition(types: ['Base']);
+        const def = TypeDefinition(types: ['Base']);
         final node = await resolveClass('''
           class Base {}
           class Child extends Base {}
@@ -148,7 +148,7 @@ void main() {
         File(libPath).writeAsStringSync('class Remote {}');
         final libUri = p.toUri(libPath).toString();
 
-        final def = Definition(types: const ['Remote'], imports: [libUri]);
+        final def = TypeDefinition(types: const ['Remote'], imports: [libUri]);
 
         final node = await resolveClass('''
           import 'lib.dart';
@@ -162,7 +162,7 @@ void main() {
       });
 
       test('should fail if Import URI does not match', () async {
-        const def = Definition(
+        const def = TypeDefinition(
           types: ['Remote'],
           imports: ['package:wrong/lib.dart'],
         );
@@ -179,7 +179,7 @@ void main() {
       });
 
       test('should match by Component Reference (Location)', () async {
-        const def = Definition(component: 'domain.entity');
+        const def = TypeDefinition(component: 'domain.entity');
 
         final superPath = p.join(tempDir.path, 'entity_base.dart');
         File(superPath).writeAsStringSync('class BaseEntity {}');
@@ -189,7 +189,7 @@ void main() {
           if (p.normalize(pathArg) == p.normalize(superPath)) {
             return ComponentContext(
               filePath: pathArg,
-              config: const ComponentConfig(id: 'domain.entity', paths: []),
+              config: const ComponentDefinition(id: 'domain.entity', paths: []),
             );
           }
           return null;
@@ -208,9 +208,9 @@ void main() {
 
       test('should match recursively via Reference (ref)', () async {
         final registry = {
-          'core.base': const Definition(types: ['Base']),
+          'core.base': const TypeDefinition(types: ['Base']),
         };
-        const def = Definition(ref: 'core.base');
+        const def = TypeDefinition(ref: 'core.base');
 
         final node = await resolveClass('''
           class Base {}
@@ -224,7 +224,7 @@ void main() {
       });
 
       test('should match Wildcard (*)', () async {
-        const def = Definition(isWildcard: true);
+        const def = TypeDefinition(isWildcard: true);
         final node = await resolveClass('class A extends Object {}');
         final superType = node.declaredFragment!.element.supertype!;
 

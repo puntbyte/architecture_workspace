@@ -1,4 +1,4 @@
-// lib/src/models/inheritance_config.dart
+// lib/src/models/inheritance_policy.dart
 
 import 'package:clean_architecture_kit/src/utils/json_map_extension.dart';
 

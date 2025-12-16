@@ -3,7 +3,7 @@
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that forbids any reference to a UseCase within a widget file.
@@ -14,7 +14,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 /// state from a dedicated state management class (Bloc, Cubit, Controller).
 /// Business logic encapsulated in UseCases must be called from those managers,
 /// never directly from a widget.
-class DisallowUseCaseInWidget extends ArchitectureLintRule {
+class DisallowUseCaseInWidget extends ArchitectureRule {
   static const _code = LintCode(
     name: 'disallow_use_case_in_widget',
     problemMessage: 'Widgets must not depend on or invoke UseCases directly.',

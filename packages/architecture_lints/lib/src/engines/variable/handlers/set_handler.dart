@@ -1,6 +1,6 @@
 // lib/src/actions/context/handlers/set_handler.dart
 
-import 'package:architecture_lints/src/config/schema/variable_config.dart';
+import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
 import 'package:architecture_lints/src/engines/variable/handlers/variable_handler.dart';
 import 'package:architecture_lints/src/engines/variable/variable_resolver.dart';
 
@@ -9,7 +9,7 @@ class SetHandler extends VariableHandler {
 
   @override
   dynamic handle(
-    VariableConfig config,
+    VariableDefinition config,
     Map<String, dynamic> context,
     VariableResolver resolver,
   ) {

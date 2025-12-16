@@ -1,4 +1,4 @@
-import 'package:architecture_lints/src/config/constants/config_keys.dart';
+import 'package:architecture_lints/src/schema/constants/config_keys.dart';
 
 class PathMatcher {
   /// Returns the start index of the match in [filePath], or -1 if no match.

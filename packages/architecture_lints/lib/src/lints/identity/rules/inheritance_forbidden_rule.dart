@@ -5,10 +5,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/inheritance_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/policies/inheritance_policy.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:architecture_lints/src/lints/identity/base/inheritance_base_rule.dart';
 import 'package:collection/collection.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -28,7 +28,7 @@ class InheritanceForbiddenRule extends InheritanceBaseRule {
     required ClassDeclaration node,
     required InterfaceElement element,
     required List<InterfaceType> supertypes,
-    required List<InheritanceConfig> rules,
+    required List<InheritancePolicy> rules,
     required ArchitectureConfig config,
     required FileResolver fileResolver,
     required DiagnosticReporter reporter,

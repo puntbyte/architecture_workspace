@@ -1,6 +1,6 @@
-import 'package:architecture_lints/src/config/schema/annotation_constraint.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
+import 'package:architecture_lints/src/schema/constraints/annotation_constraint.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/list_wrapper.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/string_wrapper.dart';
 import 'package:collection/collection.dart';
@@ -56,19 +56,19 @@ class ConfigWrapper {
 
     if (rule == null) {
       return {
-        'required': <Definition>[],
-        'forbidden': <Definition>[],
-        'allowed': <Definition>[],
+        'required': <TypeDefinition>[],
+        'forbidden': <TypeDefinition>[],
+        'allowed': <TypeDefinition>[],
       };
     }
 
-    List<Definition> mapConstraints(List<AnnotationConstraint> constraints) {
-      final definitions = <Definition>[];
+    List<TypeDefinition> mapConstraints(List<AnnotationConstraint> constraints) {
+      final definitions = <TypeDefinition>[];
 
       for (final constraint in constraints) {
         for (final type in constraint.types) {
           definitions.add(
-            Definition(
+            TypeDefinition(
               types: [type],
               imports: constraint.import != null ? [constraint.import!] : [],
             ),

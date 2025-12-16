@@ -5,12 +5,12 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
 import 'package:architecture_lints/src/fixes/create_use_case_fix.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/utils/file/path_utils.dart';
 import 'package:architecture_lints/src/utils/nlp/naming_utils.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-class MissingUseCase extends ArchitectureLintRule {
+class MissingUseCase extends ArchitectureRule {
   static const _code = LintCode(
     name: 'missing_use_case',
     problemMessage: 'The repository method `{0}` is missing the corresponding `{1}` UseCase.',

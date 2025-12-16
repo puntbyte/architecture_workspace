@@ -4,14 +4,14 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/models/configs/error_handlers_config.dart';
 import 'package:architecture_lints/src/models/configs/type_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that forbids `throw` and `rethrow` expressions in the presentation layer
 /// based on the `error_handlers` configuration.
-class DisallowThrowingFromPresentation extends ArchitectureLintRule {
+class DisallowThrowingFromPresentation extends ArchitectureRule {
   static const _code = LintCode(
     name: 'disallow_throwing_from_presentation',
     problemMessage: 'Presentation layer must not throw or rethrow exceptions.',

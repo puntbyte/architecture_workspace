@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:architecture_lints/src/engines/template/template_loader.dart';
-import 'package:architecture_lints/src/config/schema/template_definition.dart';
+import 'package:architecture_lints/src/schema/definitions/template_definition.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

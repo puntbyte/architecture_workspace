@@ -1,10 +1,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/config/enums/relationship_kind.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/config/schema/relationship_config.dart';
+import 'package:architecture_lints/src/schema/enums/relationship_kind.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/schema/policies/relationship_policy.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:architecture_lints/src/lints/consistency/logic/relationship_logic.dart';
 import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart';
 import 'package:mocktail/mocktail.dart';
@@ -30,7 +30,7 @@ void main() {
     test('extractCoreName should extract name from pattern', () {
       const context = ComponentContext(
         filePath: '',
-        config: ComponentConfig(
+        config: ComponentDefinition(
           id: 'entity',
           // FIX: Use raw string r'${name}'
           patterns: [r'${name}Entity'],
@@ -42,7 +42,7 @@ void main() {
     });
 
     test('generateTargetClassName should replace placeholders', () {
-      const targetConfig = ComponentConfig(
+      const targetConfig = ComponentDefinition(
         id: 'model',
         patterns: [r'${name}Model'],
       );
@@ -66,12 +66,12 @@ void main() {
         final method = clazz.members.first as MethodDeclaration;
 
         // 2. Setup Config
-        const sourceConfig = ComponentConfig(
+        const sourceConfig = ComponentDefinition(
           id: 'domain.port',
           paths: ['domain/ports'],
           patterns: [r'${name}'], // Naive pattern
         );
-        const targetConfig = ComponentConfig(
+        const targetConfig = ComponentDefinition(
           id: 'domain.usecase',
           paths: ['domain/usecases'],
           patterns: [r'${name}'], // Naive pattern
@@ -80,7 +80,7 @@ void main() {
         const config = ArchitectureConfig(
           components: [sourceConfig, targetConfig],
           relationships: [
-            RelationshipConfig(
+            RelationshipPolicy(
               onIds: ['domain.port'],
               kind: RelationshipKind.method,
               targetComponent: 'domain.usecase',

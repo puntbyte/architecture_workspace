@@ -4,7 +4,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that forbids classes from creating their own "Service-like" dependencies.
@@ -17,7 +17,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 ///
 /// **Allowed:** Instantiating "Data" objects (Entities, Models, States, Events, Failures)
 /// is allowed and expected.
-class DisallowDependencyInstantiation extends ArchitectureLintRule {
+class DisallowDependencyInstantiation extends ArchitectureRule {
   static const _code = LintCode(
     name: 'disallow_dependency_instantiation',
     problemMessage:

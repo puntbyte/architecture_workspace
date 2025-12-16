@@ -3,11 +3,11 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/enums/usage_kind.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/config/schema/usage_config.dart';
-import 'package:architecture_lints/src/config/schema/usage_constraint.dart';
+import 'package:architecture_lints/src/schema/enums/usage_kind.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/schema/policies/usage_policy.dart';
+import 'package:architecture_lints/src/schema/constraints/usage_constraint.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/usages/rules/instantiation_forbidden_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -58,11 +58,11 @@ void main() {
     test('should report error when instantiating a forbidden component', () async {
       const config = ArchitectureConfig(
         components: [
-          ComponentConfig(id: 'usecase', paths: ['domain']),
-          ComponentConfig(id: 'repository', paths: ['data']),
+          ComponentDefinition(id: 'usecase', paths: ['domain']),
+          ComponentDefinition(id: 'repository', paths: ['data']),
         ],
         usages: [
-          UsageConfig(
+          UsagePolicy(
             onIds: ['usecase'],
             forbidden: [
               UsageConstraint(kind: UsageKind.instantiation, components: ['repository']),

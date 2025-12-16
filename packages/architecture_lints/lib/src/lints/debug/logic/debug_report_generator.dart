@@ -1,9 +1,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
 
 class DebugReportGenerator {
   final ArchitectureConfig config;

@@ -1,8 +1,8 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:architecture_lints/src/lints/consistency/logic/relationship_logic.dart';
 import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart';
 import 'package:path/path.dart' as p;
@@ -19,7 +19,7 @@ class RelatedFileResolver with NamingLogic, RelationshipLogic {
     required AnalysisSession session,
   }) async {
     // 1. Find Target Component Config
-    ComponentConfig? targetConfig;
+    ComponentDefinition? targetConfig;
     try {
       targetConfig = config.components.firstWhere((c) => c.id == targetComponentId);
     } catch (_) {

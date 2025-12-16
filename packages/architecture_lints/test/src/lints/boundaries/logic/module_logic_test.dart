@@ -1,4 +1,4 @@
-import 'package:architecture_lints/src/config/schema/module_config.dart';
+import 'package:architecture_lints/src/schema/definitions/module_definition.dart';
 import 'package:architecture_lints/src/lints/boundaries/logic/module_logic.dart';
 import 'package:test/test.dart';
 
@@ -10,8 +10,8 @@ void main() {
 
     // Setup config with ${name} syntax
     final modules = [
-      const ModuleConfig(key: 'feature', path: r'features/${name}'),
-      const ModuleConfig(key: 'core', path: 'core'),
+      const ModuleDefinition(key: 'feature', path: r'features/${name}'),
+      const ModuleDefinition(key: 'core', path: 'core'),
     ];
 
     test(r'should resolve dynamic module using ${name}', () {

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:architecture_lints/src/analysis/layer_resolver.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/lints/contract/enforce_custom_inheritance.dart';
 import 'package:architecture_lints/src/lints/contract/enforce_entity_contract.dart';
 import 'package:architecture_lints/src/lints/contract/enforce_port_contract.dart';
@@ -101,7 +101,7 @@ class CleanArchitectureLintsPlugin extends PluginBase {
     ];
   }
 
-  List<ArchitectureLintRule> _dependencyRules(
+  List<ArchitectureRule> _dependencyRules(
     ArchitectureConfig config,
     LayerResolver resolver,
   ) => [
@@ -114,7 +114,7 @@ class CleanArchitectureLintsPlugin extends PluginBase {
     EnforceLayerIndependence(config: config, layerResolver: resolver),
   ];
 
-  List<ArchitectureLintRule> _contractRules(
+  List<ArchitectureRule> _contractRules(
     ArchitectureConfig config,
     LayerResolver resolver,
   ) => [
@@ -125,7 +125,7 @@ class CleanArchitectureLintsPlugin extends PluginBase {
     EnforceUsecaseContract(config: config, layerResolver: resolver),
   ];
 
-  List<ArchitectureLintRule> _errorHandlingRules(
+  List<ArchitectureRule> _errorHandlingRules(
     ArchitectureConfig config,
     LayerResolver resolver,
   ) => [
@@ -134,14 +134,14 @@ class CleanArchitectureLintsPlugin extends PluginBase {
     EnforceTryCatchInRepository(config: config, layerResolver: resolver),
   ];
 
-  List<ArchitectureLintRule> _locationRules(
+  List<ArchitectureRule> _locationRules(
     ArchitectureConfig config,
     LayerResolver resolver,
   ) => [
     EnforceFileAndFolderLocation(config: config, layerResolver: resolver),
   ];
 
-  List<ArchitectureLintRule> _namingRules(
+  List<ArchitectureRule> _namingRules(
     ArchitectureConfig config,
     LayerResolver resolver,
     LanguageAnalyzer analyzer,
@@ -151,7 +151,7 @@ class CleanArchitectureLintsPlugin extends PluginBase {
     EnforceSemanticNaming(config: config, layerResolver: resolver, analyzer: analyzer),
   ];
 
-  List<ArchitectureLintRule> _purityRules(
+  List<ArchitectureRule> _purityRules(
     ArchitectureConfig config,
     LayerResolver resolver,
   ) => [
@@ -163,7 +163,7 @@ class CleanArchitectureLintsPlugin extends PluginBase {
     RequireToEntityMethod(config: config, layerResolver: resolver),
   ];
 
-  List<ArchitectureLintRule> _structureRules(
+  List<ArchitectureRule> _structureRules(
     ArchitectureConfig config,
     LayerResolver resolver,
   ) => [

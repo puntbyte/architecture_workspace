@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:architecture_lints/src/config/detail/dependency_detail.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/config/schema/dependency_config.dart';
+import 'package:architecture_lints/src/schema/constraints/dependency_constraint.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/schema/policies/dependency_policy.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/boundaries/rules/external_dependency_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -91,13 +91,13 @@ void main() {
     test('should report error when importing forbidden external package', () async {
       final config = ArchitectureConfig(
         components: [
-          const ComponentConfig(id: 'domain', paths: ['domain']),
+          const ComponentDefinition(id: 'domain', paths: ['domain']),
         ],
         dependencies: [
-          DependencyConfig(
+          DependencyPolicy(
             onIds: const ['domain'],
-            allowed: DependencyDetail.empty(),
-            forbidden: const DependencyDetail(imports: ['package:flutter/**']),
+            allowed: DependencyConstraint.empty(),
+            forbidden: const DependencyConstraint(imports: ['package:flutter/**']),
           ),
         ],
       );
@@ -115,13 +115,13 @@ void main() {
     test('should pass when importing allowed external package', () async {
       final config = ArchitectureConfig(
         components: [
-          const ComponentConfig(id: 'domain', paths: ['domain']),
+          const ComponentDefinition(id: 'domain', paths: ['domain']),
         ],
         dependencies: [
-          DependencyConfig(
+          DependencyPolicy(
             onIds: const ['domain'],
-            allowed: const DependencyDetail(imports: ['package:equatable/**']),
-            forbidden: DependencyDetail.empty(),
+            allowed: const DependencyConstraint(imports: ['package:equatable/**']),
+            forbidden: DependencyConstraint.empty(),
           ),
         ],
       );
@@ -138,14 +138,14 @@ void main() {
     test('should report error when importing package not in allowed list (Strict Mode)', () async {
       final config = ArchitectureConfig(
         components: [
-          const ComponentConfig(id: 'domain', paths: ['domain']),
+          const ComponentDefinition(id: 'domain', paths: ['domain']),
         ],
         dependencies: [
-          DependencyConfig(
+          DependencyPolicy(
             onIds: const ['domain'],
             // Only allow bloc, implicitly forbidding flutter
-            allowed: const DependencyDetail(imports: ['package:bloc/**']),
-            forbidden: DependencyDetail.empty(),
+            allowed: const DependencyConstraint(imports: ['package:bloc/**']),
+            forbidden: DependencyConstraint.empty(),
           ),
         ],
       );
@@ -163,13 +163,13 @@ void main() {
     test('should ignore internal project imports in external rule', () async {
       final config = ArchitectureConfig(
         components: [
-          const ComponentConfig(id: 'domain', paths: ['domain']),
+          const ComponentDefinition(id: 'domain', paths: ['domain']),
         ],
         dependencies: [
-          DependencyConfig(
+          DependencyPolicy(
             onIds: const ['domain'],
-            allowed: DependencyDetail.empty(),
-            forbidden: const DependencyDetail(imports: ['package:flutter/**']),
+            allowed: DependencyConstraint.empty(),
+            forbidden: const DependencyConstraint(imports: ['package:flutter/**']),
           ),
         ],
       );

@@ -1,4 +1,4 @@
-// lib/src/lints/architecture_lint_rule.dart
+// lib/src/lints/architecture_rule.dart
 
 import 'package:architecture_lints/src/analysis/layer_resolver.dart';
 import 'package:architecture_lints/src/models/configs/architecture_config.dart';

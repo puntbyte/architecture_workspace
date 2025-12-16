@@ -3,13 +3,13 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/models/configs/inheritances_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// Enforces that Port interfaces (abstract classes in the Domain layer)
 /// extend or implement the configured base class.
-class EnforcePortContract extends ArchitectureLintRule {
+class EnforcePortContract extends ArchitectureRule {
   static const _code = LintCode(
     name: 'enforce_port_contract',
     problemMessage: 'Port interfaces must extend or implement: {0}.',

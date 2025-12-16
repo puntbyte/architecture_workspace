@@ -4,8 +4,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/type_safety_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/policies/type_safety_policy.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/safety/base/type_safety_base_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -25,7 +25,7 @@ class TypeSafetyParamAllowedRule extends TypeSafetyBaseRule {
     required FormalParameter node,
     required DartType type,
     required String paramName,
-    required List<TypeSafetyConfig> rules,
+    required List<TypeSafetyPolicy> rules,
     required ArchitectureConfig config,
     required FileResolver fileResolver,
     required DiagnosticReporter reporter,

@@ -1,9 +1,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:architecture_lints/src/lints/debug/logic/debug_report_generator.dart';
 import 'package:architecture_lints/src/lints/debug/utils/reporter_helper.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';

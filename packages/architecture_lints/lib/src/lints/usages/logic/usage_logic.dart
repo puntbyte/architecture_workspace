@@ -2,10 +2,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 
 mixin UsageLogic {
-  bool matchesDefinition(Identifier node, Definition definition) {
+  bool matchesDefinition(Identifier node, TypeDefinition definition) {
     final element = node.element;
     if (element == null) return false;
 
@@ -34,7 +34,7 @@ mixin UsageLogic {
     return false;
   }
 
-  bool _checkImport(Element? element, Definition definition) {
+  bool _checkImport(Element? element, TypeDefinition definition) {
     if (definition.imports.isEmpty) return true;
     if (element == null) return false;
 

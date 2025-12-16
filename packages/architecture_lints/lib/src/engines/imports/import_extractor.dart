@@ -1,5 +1,5 @@
 import 'package:analyzer/dart/element/type.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:architecture_lints/src/engines/expression/expression.dart';
 
 class ImportExtractor {
@@ -18,7 +18,7 @@ class ImportExtractor {
       _addPathOrUri(value, imports);
     } else if (value is StringWrapper) {
       _addPathOrUri(value.value, imports);
-    } else if (value is Definition) {
+    } else if (value is TypeDefinition) {
       if (value.import != null) _addPathOrUri(value.import!, imports);
       for (final i in value.imports) {
         _addPathOrUri(i, imports);

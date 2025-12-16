@@ -3,9 +3,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/schema/annotation_config.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/schema/policies/annotation_policy.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:architecture_lints/src/lints/metadata/base/annotation_base_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
@@ -22,7 +22,7 @@ class AnnotationRequiredRule extends AnnotationBaseRule {
   @override
   void checkAnnotations({
     required ClassDeclaration node,
-    required List<AnnotationConfig> rules,
+    required List<AnnotationPolicy> rules,
     required ArchitectureConfig config,
     required DiagnosticReporter reporter,
     required ComponentContext component,

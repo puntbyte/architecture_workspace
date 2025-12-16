@@ -1,5 +1,5 @@
 // lib/src/utils/naming_utils.dart
-import 'package:architecture_lints/src/config/constants/config_keys.dart';
+import 'package:architecture_lints/src/schema/constants/config_keys.dart';
 
 class NamingUtils2 {
   const NamingUtils2._();

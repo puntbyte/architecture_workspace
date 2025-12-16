@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/generic_wrapper.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/list_wrapper.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/string_wrapper.dart';
@@ -9,7 +9,7 @@ import 'package:expressions/expressions.dart';
 class TypeWrapper {
   final DartType? type;
   final String rawString;
-  final Map<String, Definition> definitions;
+  final Map<String, TypeDefinition> definitions;
 
   const TypeWrapper(
     this.type, {

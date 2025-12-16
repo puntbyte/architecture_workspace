@@ -1,4 +1,4 @@
-import 'package:architecture_lints/src/config/constants/config_keys.dart';
+import 'package:architecture_lints/src/schema/constants/config_keys.dart';
 // Note: PathMatcher is no longer needed for escaping if we want to support regex syntax
 
 mixin NamingLogic {

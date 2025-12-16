@@ -1,13 +1,13 @@
 // test/domain/component_context_test.dart
 
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
-import 'package:architecture_lints/src/domain/module_context.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
+import 'package:architecture_lints/src/context/module_context.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 // Mocks for the external types
-class _MockComponentConfig extends Mock implements ComponentConfig {}
+class _MockComponentConfig extends Mock implements ComponentDefinition {}
 class _MockModuleContext extends Mock implements ModuleContext {}
 
 void main() {

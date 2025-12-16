@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:architecture_lints/src/config/schema/annotation_constraint.dart';
+import 'package:architecture_lints/src/schema/constraints/annotation_constraint.dart';
 
 mixin AnnotationLogic {
   bool matchesConstraint(Annotation node, AnnotationConstraint constraint) {

@@ -3,7 +3,7 @@
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/analysis/arch_component.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint that forbids any dependency on the Flutter SDK within the domain layer.
@@ -12,7 +12,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 ///
 /// **Reasoning:** The domain layer must be pure and platform-independent to ensure
 /// business logic is decoupled from the UI framework.
-class DisallowFlutterInDomain extends ArchitectureLintRule {
+class DisallowFlutterInDomain extends ArchitectureRule {
   static const _code = LintCode(
     name: 'disallow_flutter_in_domain',
     problemMessage: 'Domain layer purity violation: Do not depend on the Flutter SDK.',

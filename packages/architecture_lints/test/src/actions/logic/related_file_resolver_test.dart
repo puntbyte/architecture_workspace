@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:architecture_lints/src/engines/file/related_file_resolver.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -20,13 +20,13 @@ void main() {
 
       config = const ArchitectureConfig(
         components: [
-          ComponentConfig(
+          ComponentDefinition(
             id: 'domain.entity',
             paths: ['domain/entities'],
             // FIX: Use ${name} syntax to match updated NamingLogic
             patterns: [r'${name}'],
           ),
-          ComponentConfig(
+          ComponentDefinition(
             id: 'data.model',
             paths: ['data/models'],
             patterns: [r'${name}Model'],
@@ -127,9 +127,9 @@ void main() {
         components: [
           // No patterns -> cannot extract core name safely usually,
           // or extraction returns full name 'File'
-          ComponentConfig(id: 'source', paths: ['src'], patterns: []),
+          ComponentDefinition(id: 'source', paths: ['src'], patterns: []),
           // Target expects '${name}Tgt' -> 'FileTgt'
-          ComponentConfig(id: 'target', paths: ['tgt'], patterns: [r'${name}Tgt']),
+          ComponentDefinition(id: 'target', paths: ['tgt'], patterns: [r'${name}Tgt']),
         ],
       );
 

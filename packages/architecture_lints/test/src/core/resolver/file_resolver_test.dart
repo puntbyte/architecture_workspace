@@ -1,6 +1,6 @@
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/config/schema/module_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/schema/definitions/module_definition.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:test/test.dart';
 
@@ -12,40 +12,40 @@ void main() {
     setUp(() {
       mockConfig = const ArchitectureConfig(
         modules: [
-          ModuleConfig(key: 'feature', path: 'features/{{name}}'),
-          ModuleConfig(key: 'core', path: 'core'),
+          ModuleDefinition(key: 'feature', path: 'features/{{name}}'),
+          ModuleDefinition(key: 'core', path: 'core'),
         ],
         components: [
           // 1. Simple Path
-          ComponentConfig(
+          ComponentDefinition(
             id: 'domain.usecase',
             paths: ['domain/usecases'],
             patterns: ['{{name}}UseCase'],
           ),
 
           // 2. Nested Layers (General vs Specific)
-          ComponentConfig(
+          ComponentDefinition(
             id: 'data',
             paths: ['data'], // Short path (length ~4)
           ),
-          ComponentConfig(
+          ComponentDefinition(
             id: 'data.repository',
             paths: ['data/repositories'], // Long path (length ~17)
           ),
 
           // 3. Co-located Components (Same Path)
           // Used to test ID length tie-breaking
-          ComponentConfig(
+          ComponentDefinition(
             id: 'source.interface', // Length 16
             paths: ['data/sources'],
           ),
-          ComponentConfig(
+          ComponentDefinition(
             id: 'source.implementation', // Length 21 (Longer)
             paths: ['data/sources'],
           ),
 
           // 4. Wildcards
-          ComponentConfig(
+          ComponentDefinition(
             id: 'presentation.page',
             paths: ['features/{{name}}/presentation/pages'],
           ),

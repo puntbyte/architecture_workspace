@@ -3,17 +3,17 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/type_safety_config.dart';
-import 'package:architecture_lints/src/config/schema/type_safety_constraint.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/policies/type_safety_policy.dart';
+import 'package:architecture_lints/src/schema/constraints/type_safety_constraint.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.dart';
 import 'package:architecture_lints/src/lints/safety/logic/type_safety_logic.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-abstract class TypeSafetyBaseRule extends ArchitectureLintRule
+abstract class TypeSafetyBaseRule extends ArchitectureRule
     with TypeSafetyLogic, InheritanceLogic {
   const TypeSafetyBaseRule({required super.code});
 
@@ -82,7 +82,7 @@ abstract class TypeSafetyBaseRule extends ArchitectureLintRule
   void checkReturn({
     required MethodDeclaration node,
     required DartType type,
-    required List<TypeSafetyConfig> rules,
+    required List<TypeSafetyPolicy> rules,
     required ArchitectureConfig config,
     required FileResolver fileResolver,
     required DiagnosticReporter reporter,
@@ -93,7 +93,7 @@ abstract class TypeSafetyBaseRule extends ArchitectureLintRule
     required FormalParameter node,
     required DartType type,
     required String paramName,
-    required List<TypeSafetyConfig> rules,
+    required List<TypeSafetyPolicy> rules,
     required ArchitectureConfig config,
     required FileResolver fileResolver,
     required DiagnosticReporter reporter,

@@ -2,15 +2,15 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/exception_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/policies/exception_policy.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/lints/safety/logic/exception_logic.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-abstract class ExceptionBaseRule extends ArchitectureLintRule with ExceptionLogic {
+abstract class ExceptionBaseRule extends ArchitectureRule with ExceptionLogic {
   const ExceptionBaseRule({required super.code});
 
   @override
@@ -42,14 +42,14 @@ abstract class ExceptionBaseRule extends ArchitectureLintRule with ExceptionLogi
 
   void checkMethod({
     required MethodDeclaration node,
-    required List<ExceptionConfig> rules,
+    required List<ExceptionPolicy> rules,
     required ArchitectureConfig config,
     required DiagnosticReporter reporter,
   }) {}
 
   void checkCatch({
     required CatchClause node,
-    required List<ExceptionConfig> rules,
+    required List<ExceptionPolicy> rules,
     required ArchitectureConfig config,
     required DiagnosticReporter reporter,
   }) {}

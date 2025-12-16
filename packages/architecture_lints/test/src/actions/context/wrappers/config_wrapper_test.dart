@@ -1,9 +1,9 @@
 import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/config_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/list_wrapper.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:expressions/expressions.dart';
 import 'package:test/test.dart';
 
@@ -17,13 +17,13 @@ void main() {
 
       const config = ArchitectureConfig(
         components: [
-          ComponentConfig(
+          ComponentDefinition(
             id: 'domain.usecase',
             patterns: [r'${name}UseCase'],
           ),
         ],
         definitions: {
-          'usecase.base': Definition(types: ['BaseUseCase']),
+          'usecase.base': TypeDefinition(types: ['BaseUseCase']),
         },
       );
       configWrapper = const ConfigWrapper(config);

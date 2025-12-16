@@ -1,10 +1,10 @@
-import 'package:architecture_lints/src/config/schema/component_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 
 class MessageUtilsOld {
   const MessageUtilsOld._();
 
   /// Converts 'domain.usecase' -> 'Domain UseCase'.
-  static String humanizeComponent(ComponentConfig component) {
+  static String humanizeComponent(ComponentDefinition component) {
     if (component.name != null) return component.name!;
 
     // Fallback: Capitalize ID segments

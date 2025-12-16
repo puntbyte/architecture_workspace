@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/consistency/rules/orphan_file_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -41,7 +41,7 @@ void main() {
 
     test('should report orphan if file matches no component', () async {
       const config = ArchitectureConfig(components: [
-        ComponentConfig(id: 'domain', paths: ['domain']),
+        ComponentDefinition(id: 'domain', paths: ['domain']),
       ]);
 
       // File is in 'presentation', so it is an orphan
@@ -52,7 +52,7 @@ void main() {
 
     test('should NOT report if file matches a component', () async {
       const config = ArchitectureConfig(components: [
-        ComponentConfig(id: 'domain', paths: ['domain']),
+        ComponentDefinition(id: 'domain', paths: ['domain']),
       ]);
 
       // File matches 'domain' path

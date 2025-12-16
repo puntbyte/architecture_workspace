@@ -5,7 +5,7 @@ import 'package:architecture_lints/src/actions/context/wrappers/node_wrapper.dar
 import 'package:architecture_lints/src/actions/context/wrappers/parameter_wrapper.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/string_wrapper.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/type_wrapper.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -40,7 +40,7 @@ void main() {
 
     test('should extract imports from Definition objects', () {
       final imports = <String>{};
-      const def = Definition(
+      const def = TypeDefinition(
         imports: ['package:c/c.dart', 'package:d/d.dart'],
       );
 

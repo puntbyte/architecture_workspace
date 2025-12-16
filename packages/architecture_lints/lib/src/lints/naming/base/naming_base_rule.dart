@@ -2,15 +2,15 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
-import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
+import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-abstract class NamingBaseRule extends ArchitectureLintRule with InheritanceLogic {
+abstract class NamingBaseRule extends ArchitectureRule with InheritanceLogic {
   const NamingBaseRule({required super.code});
 
   @override
@@ -49,7 +49,7 @@ abstract class NamingBaseRule extends ArchitectureLintRule with InheritanceLogic
 
   void checkName({
     required ClassDeclaration node,
-    required ComponentConfig config,
+    required ComponentDefinition config,
     required DiagnosticReporter reporter,
     required ArchitectureConfig rootConfig,
   });

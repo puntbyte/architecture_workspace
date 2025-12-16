@@ -2,16 +2,16 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:architecture_lints/src/config/enums/component_kind.dart';
-import 'package:architecture_lints/src/config/enums/component_mode.dart';
-import 'package:architecture_lints/src/config/enums/component_modifier.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
-import 'package:architecture_lints/src/config/schema/inheritance_config.dart';
+import 'package:architecture_lints/src/schema/enums/component_kind.dart';
+import 'package:architecture_lints/src/schema/enums/component_mode.dart';
+import 'package:architecture_lints/src/schema/enums/component_modifier.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
+import 'package:architecture_lints/src/schema/policies/inheritance_policy.dart';
 import 'package:architecture_lints/src/engines/component/component_refiner.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -54,7 +54,7 @@ void main() {
     }) {
       return Candidate(
         // FIX: Use named parameters
-        component: ComponentConfig(
+        component: ComponentDefinition(
           id: id,
           paths: paths,
           patterns: patterns,
@@ -175,9 +175,9 @@ void main() {
       final config = ArchitectureConfig(
         components: [cInterface.component, cImpl.component],
         inheritances: [
-          const InheritanceConfig(
+          const InheritancePolicy(
             onIds: ['data.source.implementation'],
-            required: [Definition(component: 'data.source.interface')],
+            required: [TypeDefinition(component: 'data.source.interface')],
             allowed: [],
             forbidden: [],
           ),

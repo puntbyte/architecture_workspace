@@ -1,5 +1,5 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/method_wrapper.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/parameter_wrapper.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/string_wrapper.dart';
@@ -7,14 +7,14 @@ import 'package:expressions/expressions.dart' hide Identifier;
 
 class NodeWrapper {
   final AstNode node;
-  final Map<String, Definition> definitions;
+  final Map<String, TypeDefinition> definitions;
 
   const NodeWrapper(
     this.node, {
     this.definitions = const {},
   });
 
-  factory NodeWrapper.create(AstNode node, [Map<String, Definition> definitions = const {}]) {
+  factory NodeWrapper.create(AstNode node, [Map<String, TypeDefinition> definitions = const {}]) {
     if (node is MethodDeclaration) return MethodWrapper(node, definitions: definitions);
     if (node is FormalParameter) return ParameterWrapper(node, definitions: definitions);
     return NodeWrapper(node, definitions: definitions);

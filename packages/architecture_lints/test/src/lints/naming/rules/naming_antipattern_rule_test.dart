@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/naming/rules/naming_antipattern_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -65,7 +65,7 @@ void main() {
     test('should report warning when class name matches antipattern', () async {
       const config = ArchitectureConfig(
         components: [
-          ComponentConfig(
+          ComponentDefinition(
             id: 'entity',
             paths: ['domain/entities'],
             antipatterns: ['{{name}}Entity'],
@@ -87,7 +87,7 @@ void main() {
     test('should pass if class name matches NO antipattern', () async {
       const config = ArchitectureConfig(
         components: [
-          ComponentConfig(
+          ComponentDefinition(
             id: 'entity',
             paths: ['domain/entities'],
             antipatterns: ['{{name}}Entity'],
@@ -107,7 +107,7 @@ void main() {
     test('should support multiple antipatterns', () async {
       const config = ArchitectureConfig(
         components: [
-          ComponentConfig(
+          ComponentDefinition(
             id: 'port',
             paths: ['domain/ports'],
             antipatterns: ['{{name}}Interface', 'Abstract{{name}}'],

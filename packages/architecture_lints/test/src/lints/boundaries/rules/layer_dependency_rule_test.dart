@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:architecture_lints/src/config/detail/dependency_detail.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/config/schema/dependency_config.dart';
+import 'package:architecture_lints/src/schema/constraints/dependency_constraint.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/schema/policies/dependency_policy.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/boundaries/rules/component_dependency_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -97,15 +97,15 @@ void main() {
     test('should report error when importing forbidden component', () async {
       final config = ArchitectureConfig(
         components: [
-          const ComponentConfig(id: 'domain', paths: ['domain']),
-          const ComponentConfig(id: 'data', paths: ['data']),
+          const ComponentDefinition(id: 'domain', paths: ['domain']),
+          const ComponentDefinition(id: 'data', paths: ['data']),
         ],
         dependencies: [
-          DependencyConfig(
+          DependencyPolicy(
             onIds: const ['domain'],
-            allowed: DependencyDetail.empty(),
+            allowed: DependencyConstraint.empty(),
             // Domain cannot import Data
-            forbidden: const DependencyDetail(components: ['data']),
+            forbidden: const DependencyConstraint(components: ['data']),
           ),
         ],
       );
@@ -126,15 +126,15 @@ void main() {
     test('should pass when importing allowed component', () async {
       final config = ArchitectureConfig(
         components: [
-          const ComponentConfig(id: 'usecase', paths: ['domain/usecases']),
-          const ComponentConfig(id: 'entity', paths: ['domain/entities']),
+          const ComponentDefinition(id: 'usecase', paths: ['domain/usecases']),
+          const ComponentDefinition(id: 'entity', paths: ['domain/entities']),
         ],
         dependencies: [
-          DependencyConfig(
+          DependencyPolicy(
             onIds: const ['usecase'],
             // UseCase can import Entity
-            allowed: const DependencyDetail(components: ['entity']),
-            forbidden: DependencyDetail.empty(),
+            allowed: const DependencyConstraint(components: ['entity']),
+            forbidden: DependencyConstraint.empty(),
           ),
         ],
       );
@@ -154,15 +154,15 @@ void main() {
     test('should report error if component is not in allowed list (Strict Mode)', () async {
       final config = ArchitectureConfig(
         components: [
-          const ComponentConfig(id: 'domain', paths: ['domain']),
-          const ComponentConfig(id: 'presentation', paths: ['presentation']),
+          const ComponentDefinition(id: 'domain', paths: ['domain']),
+          const ComponentDefinition(id: 'presentation', paths: ['presentation']),
         ],
         dependencies: [
-          DependencyConfig(
+          DependencyPolicy(
             onIds: const ['domain'],
             // Strict allow: Only allow self (domain)
-            allowed: const DependencyDetail(components: ['domain']),
-            forbidden: DependencyDetail.empty(),
+            allowed: const DependencyConstraint(components: ['domain']),
+            forbidden: DependencyConstraint.empty(),
           ),
         ],
       );
@@ -182,13 +182,13 @@ void main() {
     test('should allow importing from same component layer', () async {
       final config = ArchitectureConfig(
         components: [
-          const ComponentConfig(id: 'domain', paths: ['domain']),
+          const ComponentDefinition(id: 'domain', paths: ['domain']),
         ],
         dependencies: [
-          DependencyConfig(
+          DependencyPolicy(
             onIds: const ['domain'],
-            allowed: const DependencyDetail(components: ['domain']),
-            forbidden: DependencyDetail.empty(),
+            allowed: const DependencyConstraint(components: ['domain']),
+            forbidden: DependencyConstraint.empty(),
           ),
         ],
       );

@@ -1,8 +1,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/string_wrapper.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:test/test.dart';
 
 import '../../../helpers/test_resolver.dart';
@@ -28,7 +28,7 @@ void main() {
       mockConfig = const ArchitectureConfig(
         components: [],
         definitions: {
-          'core.base': Definition(types: ['BaseClass']),
+          'core.base': TypeDefinition(types: ['BaseClass']),
         },
       );
 
@@ -76,7 +76,7 @@ void main() {
       });
 
       test('should unwrap Definition to Map', () {
-        const def = Definition(types: ['MyType']);
+        const def = TypeDefinition(types: ['MyType']);
         final result = engine.unwrap(def);
 
         expect(result, isA<Map>());

@@ -1,10 +1,10 @@
-import 'package:architecture_lints/src/config/constants/config_keys.dart';
-import 'package:architecture_lints/src/config/schema/module_config.dart';
+import 'package:architecture_lints/src/schema/constants/config_keys.dart';
+import 'package:architecture_lints/src/schema/definitions/module_definition.dart';
 import 'package:architecture_lints/src/engines/file/path_matcher.dart';
-import 'package:architecture_lints/src/domain/module_context.dart';
+import 'package:architecture_lints/src/context/module_context.dart';
 
 mixin ModuleLogic {
-  ModuleContext? resolveModuleContext(String filePath, List<ModuleConfig> modules) {
+  ModuleContext? resolveModuleContext(String filePath, List<ModuleDefinition> modules) {
     final normalizedFile = filePath.replaceAll(r'\', '/');
 
     // ConfigKeys.placeholder.name is now r'${name}'

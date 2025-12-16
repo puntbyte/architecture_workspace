@@ -1,4 +1,4 @@
-// lib/src/models/configs/module_config.dart
+// lib/src/models/configs/module_definition.dart
 
 import 'package:architecture_lints/src/utils_old/config/config_keys.dart';
 import 'package:architecture_lints/src/utils_old/extensions/json_map_extension.dart';

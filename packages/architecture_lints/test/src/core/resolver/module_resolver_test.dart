@@ -1,6 +1,6 @@
-import 'package:architecture_lints/src/config/constants/config_keys.dart';
-import 'package:architecture_lints/src/config/schema/module_config.dart';
-import 'package:architecture_lints/src/core/resolver/module_resolver.dart';
+import 'package:architecture_lints/src/schema/constants/config_keys.dart';
+import 'package:architecture_lints/src/schema/definitions/module_definition.dart';
+import 'package:architecture_lints/src/engines/file/module_resolver.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -10,17 +10,17 @@ void main() {
     final namePlaceholder = ConfigKeys.placeholder.name;
 
     final modules = [
-      ModuleConfig(
+      ModuleDefinition(
         key: 'feature',
         path: 'features/$namePlaceholder', // e.g. 'features/{{name}}'
         strict: true,
       ),
-      const ModuleConfig(
+      const ModuleDefinition(
         key: 'core',
         path: 'core',
         strict: false,
       ),
-      const ModuleConfig(
+      const ModuleDefinition(
         key: 'shared',
         path: 'shared',
         strict: false,
@@ -84,8 +84,8 @@ void main() {
 
     test('should distinguish between similar static module names', () {
       final complexModules = [
-        const ModuleConfig(key: 'core_ui', path: 'core_ui'),
-        const ModuleConfig(key: 'core', path: 'core'),
+        const ModuleDefinition(key: 'core_ui', path: 'core_ui'),
+        const ModuleDefinition(key: 'core', path: 'core'),
       ];
       final complexResolver = ModuleResolver(complexModules);
 

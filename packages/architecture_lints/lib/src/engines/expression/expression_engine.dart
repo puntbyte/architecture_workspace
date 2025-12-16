@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/ast/ast.dart' hide Expression;
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/definition.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/config_wrapper.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/generic_wrapper.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/list_wrapper.dart';
@@ -87,7 +87,7 @@ class ExpressionEngine {
   dynamic unwrap(dynamic value) {
     if (value == null) return null;
 
-    if (value is Definition) return value.toMap();
+    if (value is TypeDefinition) return value.toMap();
 
     if (value is StringWrapper) return value.value;
     if (value is String || value is bool || value is num) return value;

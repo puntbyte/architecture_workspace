@@ -1,9 +1,9 @@
 import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
 import 'package:architecture_lints/src/engines/variable/handlers/set_handler.dart';
 import 'package:architecture_lints/src/engines/variable/variable_resolver.dart';
-import 'package:architecture_lints/src/config/enums/variable_type.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/variable_config.dart';
+import 'package:architecture_lints/src/schema/enums/variable_type.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
 import 'package:test/test.dart';
 
 import '../../../../helpers/test_resolver.dart';
@@ -29,7 +29,7 @@ void main() {
     });
 
     test('should deduplicate simple values', () {
-      const config = VariableConfig(
+      const config = VariableDefinition(
         type: VariableType.set,
         values: ["'a'", "'b'", "'a'"], // 'a' repeated
       );
@@ -40,7 +40,7 @@ void main() {
     });
 
     test('should flatten iterables from spread', () {
-      const config = VariableConfig(
+      const config = VariableDefinition(
         type: VariableType.set,
         spread: ['list1', 'list2'],
       );

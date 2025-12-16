@@ -1,13 +1,13 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:architecture_lints/src/engines/generator/code_generator.dart';
 import 'package:architecture_lints/src/engines/template/template_loader.dart';
-import 'package:architecture_lints/src/config/enums/action_scope.dart';
-import 'package:architecture_lints/src/config/enums/variable_type.dart';
+import 'package:architecture_lints/src/schema/enums/action_scope.dart';
+import 'package:architecture_lints/src/schema/enums/variable_type.dart';
 import 'package:architecture_lints/src/config/enums/write_strategy.dart';
-import 'package:architecture_lints/src/config/schema/action_config.dart';
-import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/config/schema/template_definition.dart';
-import 'package:architecture_lints/src/config/schema/variable_config.dart';
+import 'package:architecture_lints/src/schema/definitions/action_definition.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/template_definition.dart';
+import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -30,12 +30,12 @@ void main() {
     });
 
     // Helper to create a minimal valid ActionConfig
-    ActionConfig createAction({
+    ActionDefinition createAction({
       required String templateId,
-      Map<String, VariableConfig> variables = const {},
+      Map<String, VariableDefinition> variables = const {},
       bool debug = false,
     }) {
-      return ActionConfig(
+      return ActionDefinition(
         id: 'test_action',
         description: 'Test',
         trigger: const ActionTrigger(),
@@ -94,7 +94,7 @@ void main() {
       final action = createAction(
         templateId: 'simple_template',
         variables: {
-          'name': const VariableConfig(
+          'name': const VariableDefinition(
             type: VariableType.string,
             value: r'${source.name}', // Resolves to "User"
           ),
@@ -113,7 +113,7 @@ void main() {
       final action = createAction(
         templateId: 'simple_template',
         variables: {
-          'name': const VariableConfig(
+          'name': const VariableDefinition(
             type: VariableType.string,
             value: r'${source.name.snakeCase}', // Resolves to "user"
           ),
@@ -132,7 +132,7 @@ void main() {
         templateId: 'simple_template',
         debug: true,
         variables: {
-          'name': const VariableConfig(type: VariableType.string, value: "'DebugUser'"),
+          'name': const VariableDefinition(type: VariableType.string, value: "'DebugUser'"),
         },
       );
 
@@ -150,10 +150,10 @@ void main() {
         templateId: 'simple_template',
         debug: true,
         variables: {
-          'config': const VariableConfig(
+          'config': const VariableDefinition(
             type: VariableType.map,
             children: {
-              'key': VariableConfig(type: VariableType.string, value: "'value'"),
+              'key': VariableDefinition(type: VariableType.string, value: "'value'"),
             },
           ),
         },
