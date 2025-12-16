@@ -1,3 +1,5 @@
+// lib/src/lints/architecture_fix.dart
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -64,7 +66,6 @@ class ArchitectureFix extends DartFix {
     if (unitResult == null) return;
 
     final errorCode = analysisError.diagnosticCode.name;
-
 
     final actions = config.getActionsForError(errorCode);
 
@@ -221,23 +222,26 @@ class ArchitectureFix extends DartFix {
     required AstNode sourceNode,
     required ResolvedUnitResult unitResult,
   }) {
-    final changeBuilder =
-        reporter.createChangeBuilder(
-          message: action.description,
-          priority: 100,
-        )..addDartFileEdit((builder) {
-          switch (action.write.strategy) {
-            case WriteStrategy.file:
-              _applyFileEdit(builder, code, targetPath, currentPath, unitResult);
-            case WriteStrategy.inject:
-              _applyInjectionEdit(builder, code, sourceNode, action.write.placement);
-            case WriteStrategy.replace:
-              builder.addReplacement(
-                SourceRange(sourceNode.offset, sourceNode.length),
-                (editBuilder) => editBuilder.write(code),
-              );
-          }
-        }, customPath: targetPath);
+    // choose the file path the change builder should operate on:
+    // - for "file" strategy use the resolved targetPath (may be null)
+    // - for other strategies operate on the current file
+    final editPath = action.write.strategy == WriteStrategy.file ? targetPath : currentPath;
+
+    reporter.createChangeBuilder(message: action.description, priority: 100).addDartFileEdit((
+      builder,
+    ) {
+      switch (action.write.strategy) {
+        case WriteStrategy.file:
+          _applyFileEdit(builder, code, targetPath, currentPath, unitResult);
+        case WriteStrategy.inject:
+          _applyInjectionEdit(builder, code, sourceNode, action.write.placement);
+        case WriteStrategy.replace:
+          builder.addReplacement(
+            SourceRange(sourceNode.offset, sourceNode.length),
+            (editBuilder) => editBuilder.write(code),
+          );
+      }
+    }, customPath: editPath);
   }
 
   void _applyFileEdit(

@@ -1,3 +1,5 @@
+// lib/src/schema/enums/write_strategy.dart
+
 import 'package:collection/collection.dart';
 
 enum WriteStrategy {

@@ -1,3 +1,5 @@
+// lib/src/engines/expression/
+
 import 'package:expressions/expressions.dart';
 import 'package:meta/meta.dart';
 import 'package:recase/recase.dart';
@@ -12,6 +14,7 @@ class StringWrapper {
       const MemberAccessor<StringWrapper>.fallback(_getMember);
 
   static dynamic _getMember(StringWrapper obj, String name) => switch (name) {
+    // Properties
     'pascalCase' => obj.pascalCase,
     'snakeCase' => obj.snakeCase,
     'camelCase' => obj.camelCase,
@@ -26,45 +29,87 @@ class StringWrapper {
     'isEmpty' => obj.isEmpty,
     'isNotEmpty' => obj.isNotEmpty,
     'value' => obj.value,
-    'toString' => obj.toString,
+
+    // Methods (Return functions)
     'replace' => obj.replace,
-    _ => throw ArgumentError('Unknown StringWrapper property => $name'),
+    'replaceAll' => obj.replaceAll,
+    'substring' => obj.substring,
+    'toLowerCase' => obj.toLowerCase,
+    'toUpperCase' => obj.toUpperCase,
+    'trim' => obj.trim,
+    'contains' => obj.contains,
+    'startsWith' => obj.startsWith,
+    'endsWith' => obj.endsWith,
+    'toString' => obj.toString,
+
+    _ => throw ArgumentError('Unknown StringWrapper property/method: $name'),
   };
 
-  String get pascalCase => ReCase(value).pascalCase;
+  // --- ReCase Properties ---
+  StringWrapper get pascalCase => StringWrapper(ReCase(value).pascalCase);
 
-  String get snakeCase => ReCase(value).snakeCase;
+  StringWrapper get snakeCase => StringWrapper(ReCase(value).snakeCase);
 
-  String get camelCase => ReCase(value).camelCase;
+  StringWrapper get camelCase => StringWrapper(ReCase(value).camelCase);
 
-  String get constantCase => ReCase(value).constantCase;
+  StringWrapper get constantCase => StringWrapper(ReCase(value).constantCase);
 
-  String get dotCase => ReCase(value).dotCase;
+  StringWrapper get dotCase => StringWrapper(ReCase(value).dotCase);
 
-  String get pathCase => ReCase(value).pathCase;
+  StringWrapper get pathCase => StringWrapper(ReCase(value).pathCase);
 
-  String get paramCase => ReCase(value).paramCase;
+  StringWrapper get paramCase => StringWrapper(ReCase(value).paramCase);
 
-  String get headerCase => ReCase(value).headerCase;
+  StringWrapper get headerCase => StringWrapper(ReCase(value).headerCase);
 
-  String get titleCase => ReCase(value).titleCase;
+  StringWrapper get titleCase => StringWrapper(ReCase(value).titleCase);
 
-  String get sentenceCase => ReCase(value).sentenceCase;
+  StringWrapper get sentenceCase => StringWrapper(ReCase(value).sentenceCase);
 
+  // --- Standard Properties ---
   bool get isEmpty => value.isEmpty;
 
   bool get isNotEmpty => value.isNotEmpty;
 
   int get length => value.length;
 
-  String replace(String from, String replace) => value.replaceAll(from, replace);
+  // --- Methods (Exposed to Expression Engine) ---
+  StringWrapper replace(String from, String replace) =>
+      StringWrapper(value.replaceAll(from, replace)); // Alias for replaceAll
 
+  StringWrapper replaceAll(Pattern from, String replace) =>
+      StringWrapper(value.replaceAll(from, replace));
+
+  StringWrapper substring(int start, [int? end]) => StringWrapper(value.substring(start, end));
+
+  StringWrapper toLowerCase() => StringWrapper(value.toLowerCase());
+
+  StringWrapper toUpperCase() => StringWrapper(value.toUpperCase());
+
+  StringWrapper trim() => StringWrapper(value.trim());
+
+  bool contains(Pattern other) => value.contains(other);
+
+  bool startsWith(Pattern other) => value.startsWith(other);
+
+  bool endsWith(String other) => value.endsWith(other);
+
+  /// Helper for debugging and templates: returns a plain Map of useful string forms.
   Map<String, dynamic> toMap() => {
     'value': value,
-    'pascalCase': pascalCase,
-    'snakeCase': snakeCase,
-    'camelCase': camelCase,
+    'pascalCase': pascalCase.value,
+    'snakeCase': snakeCase.value,
+    'camelCase': camelCase.value,
+    'constantCase': constantCase.value,
+    'dotCase': dotCase.value,
+    'pathCase': pathCase.value,
+    'paramCase': paramCase.value,
+    'headerCase': headerCase.value,
+    'titleCase': titleCase.value,
+    'sentenceCase': sentenceCase.value,
     'length': length,
+    'isEmpty': isEmpty,
+    'isNotEmpty': isNotEmpty,
   };
 
   @override

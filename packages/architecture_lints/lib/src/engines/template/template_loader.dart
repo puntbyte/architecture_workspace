@@ -1,3 +1,5 @@
+// lib/src/engines/template/template_loader.dart
+
 import 'dart:io';
 import 'package:architecture_lints/src/schema/definitions/template_definition.dart';
 import 'package:path/path.dart' as p;

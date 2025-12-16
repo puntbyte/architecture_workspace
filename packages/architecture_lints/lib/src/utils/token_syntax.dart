@@ -1,3 +1,5 @@
+// lib/src/utils/token_syntax.dart
+
 class TokenSyntax {
   const TokenSyntax._(); // Private constructor to prevent instantiation
 
@@ -23,7 +25,5 @@ class TokenSyntax {
   }
 
   /// Helper to check if a string is a token.
-  static bool isWrapped(String value) {
-    return value.startsWith(open) && value.endsWith(close);
-  }
+  static bool isWrapped(String value) => value.startsWith(open) && value.endsWith(close);
 }

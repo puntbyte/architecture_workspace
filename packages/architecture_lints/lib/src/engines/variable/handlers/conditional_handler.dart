@@ -1,3 +1,5 @@
+// lib/src/engines/variable/handlers/conditional_handler.dart
+
 import 'package:architecture_lints/src/engines/expression/expression.dart';
 import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
 import 'package:architecture_lints/src/schema/descriptors/variable_select.dart';

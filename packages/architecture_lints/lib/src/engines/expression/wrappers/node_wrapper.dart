@@ -1,8 +1,8 @@
+// lib/src/engines/expression/wrappers/node_wrapper.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:architecture_lints/src/engines/expression/expression.dart';
 import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
-import 'package:architecture_lints/src/engines/expression/wrappers/method_wrapper.dart';
-import 'package:architecture_lints/src/engines/expression/wrappers/parameter_wrapper.dart';
-import 'package:architecture_lints/src/engines/expression/wrappers/string_wrapper.dart';
 import 'package:expressions/expressions.dart' hide Identifier;
 
 class NodeWrapper {
@@ -62,8 +62,9 @@ class NodeWrapper {
   String toString() => name.value;
 
   Map<String, dynamic> toMap() => {
-    'name': name,
-    'parent': parent,
-    'file': {'path': filePath},
+    // Convert wrapper fields to plain maps/primitives for templates
+    'name': name.toMap(),
+    'parent': parent?.toMap(),
+    'file': {'path': filePath.value},
   };
 }

@@ -1,4 +1,4 @@
-// lib/src/actions/logic/mustache_renderer.dart
+// lib/src/engines/template/mustache_renderer.dart
 
 import 'package:mustache_template/mustache_template.dart';
 

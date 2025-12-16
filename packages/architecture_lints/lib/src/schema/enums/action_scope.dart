@@ -1,3 +1,5 @@
+// lib/src/schema/enums/action_scope.dart
+
 enum ActionScope {
   /// The file/node where the error occurred.
   current,

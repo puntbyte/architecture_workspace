@@ -1,6 +1,8 @@
+// lib/src/engines/imports/import_extractor.dart
+
 import 'package:analyzer/dart/element/type.dart';
-import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:architecture_lints/src/engines/expression/expression.dart';
+import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 
 class ImportExtractor {
   final String packageName;

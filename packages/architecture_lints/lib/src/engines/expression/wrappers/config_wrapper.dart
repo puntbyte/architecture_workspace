@@ -1,3 +1,4 @@
+// lib/src/engines/expression/wrappers/config_wrapper.dart
 
 import 'package:architecture_lints/src/engines/expression/expression.dart';
 import 'package:architecture_lints/src/schema/config/architecture_config.dart';

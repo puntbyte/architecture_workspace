@@ -1,7 +1,7 @@
+// lib/src/engines/expression/wrappers/parameter_wrapper.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/engines/expression/wrappers/node_wrapper.dart';
-import 'package:architecture_lints/src/engines/expression/wrappers/string_wrapper.dart';
-import 'package:architecture_lints/src/engines/expression/wrappers/type_wrapper.dart';
+import 'package:architecture_lints/src/engines/expression/expression.dart';
 import 'package:expressions/expressions.dart';
 
 class ParameterWrapper extends NodeWrapper {

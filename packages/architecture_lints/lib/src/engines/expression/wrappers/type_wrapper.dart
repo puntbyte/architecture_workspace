@@ -1,9 +1,9 @@
+// lib/src/engines/expression/wrappers/type_wrapper.dart
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:architecture_lints/src/engines/expression/expression.dart';
 import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
-import 'package:architecture_lints/src/engines/expression/wrappers/generic_wrapper.dart';
-import 'package:architecture_lints/src/engines/expression/wrappers/list_wrapper.dart';
-import 'package:architecture_lints/src/engines/expression/wrappers/string_wrapper.dart';
 import 'package:expressions/expressions.dart';
 
 class TypeWrapper {
@@ -30,9 +30,9 @@ class TypeWrapper {
     _ => throw ArgumentError('Unknown TypeWrapper property: $name'),
   };
 
+  // Returns StringWrapper because name itself has properties (pascalCase)
   StringWrapper get name {
     final t = type;
-
     if (t != null && t.alias != null) {
       final aliasName = t.alias!.element.name;
       var typeArgs = '';
@@ -41,10 +41,8 @@ class TypeWrapper {
         final args = aliasArgs.map((e) => e.getDisplayString()).join(', ');
         typeArgs = '<$args>';
       }
-
       return StringWrapper('$aliasName$typeArgs');
     }
-
     return StringWrapper(t?.getDisplayString() ?? rawString);
   }
 
@@ -141,6 +139,4 @@ class TypeWrapper {
 
   @override
   String toString() => name.value;
-
-  String operator +(Object other) => toString() + other.toString();
 }

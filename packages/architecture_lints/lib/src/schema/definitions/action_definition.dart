@@ -41,8 +41,9 @@ class ActionDefinition {
     write: ActionWrite.fromMap(map.getMap('write')),
     variables: _parseVariables(map['variables']),
     templateId: map.mustGetString('template_id'),
-    debug: map.getBool('debug', fallback: false),
+    debug: map.getBool('debug'),
   );
+
 
   static List<ActionDefinition> parseMap(Map<String, dynamic> map) =>
       map.entries.map((e) => ActionDefinition.fromMap(e.key, e.value as Map)).toList();

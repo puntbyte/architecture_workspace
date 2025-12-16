@@ -1,4 +1,5 @@
-//GENERATED BARREL FILE
+// lib/src/engines/expression/expression.dart
+
 export './wrappers/config_wrapper.dart';
 export './wrappers/generic_wrapper.dart'; 
 export './wrappers/list_wrapper.dart'; 

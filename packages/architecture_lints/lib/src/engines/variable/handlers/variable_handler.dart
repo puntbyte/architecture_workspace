@@ -1,8 +1,8 @@
-// lib/src/actions/context/handlers/variable_handler.dart
+// lib/src/engines/variable/handlers/variable_handler.dart
 
+import 'package:architecture_lints/src/engines/expression/expression.dart';
+import 'package:architecture_lints/src/engines/variable/variable.dart';
 import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
-import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
-import 'package:architecture_lints/src/engines/variable/variable_resolver.dart';
 
 abstract class VariableHandler {
   final ExpressionEngine engine;

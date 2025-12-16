@@ -1,4 +1,4 @@
-// lib/src/config/schema/module_definition.dart
+// lib/src/schema/definitions/module_definition.dart
 
 import 'package:architecture_lints/src/schema/constants/config_keys.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';

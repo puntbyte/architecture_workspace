@@ -1,3 +1,5 @@
+// lib/src/schema/descriptors/write_placement.dart
+
 import 'package:collection/collection.dart';
 
 enum WritePlacement {

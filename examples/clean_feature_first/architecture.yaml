@@ -1293,7 +1293,6 @@ vocabulary:
 # Standard Mustache template string.
 # --------------------------------------------------------------------------------------------------
 actions:
-
   # ------------------------------------------------------------------------------------------------
   # Action: Create UseCase
   # Triggered when a method in a Port (Repository Interface) exists, but the UseCase file is missing.
@@ -1302,6 +1301,7 @@ actions:
     description: 'Generate Functional UseCase'
     template_id: 'usecase_functional'
     debug: true
+
     # [A] Trigger: When does this appear?
     trigger:
       error_code: 'arch_parity_missing'
@@ -1321,9 +1321,10 @@ actions:
 
     # [D] Write Strategy: How to save it?
     # Create a new file (or overwrite).
-    write:
+    write2:
       strategy: file
       filename: '{{source.name.snakeCase}}.dart'
+      #filename: 'test.dart'
 
 
     variables:
@@ -1336,20 +1337,19 @@ actions:
           - else: config.definitionFor('usecase.unary')
 
       baseClassName: '{{baseDef.type}}'
+      usecasePattern: "{{config.namesFor('domain.usecase').pattern.first}}"
 
-      pattern: "config.namesFor('domain.usecase').pattern.first"
-
-      # 2. Return Type Logic
-      methodReturnType: '${source.returnType.name}'
-      usecaseGenericType: '${source.returnType.unwrapped}'
-
-      # 3. Naming
-      usecaseName: "pattern.replace('{{name}}', source.name.pascalCase)"
+      # 1b. Usecase name derived from source name
+      usecaseName: '{{source.name.pascalCase}}'
       repoName: '{{source.parent.name}}'
       repoVar: '_{{source.parent.name.camelCase}}'
       paramsClassName: '_{{usecaseName}}Params'
 
-      # 4. Imports
+      # 2. Return Type Logic
+      methodReturnType: '{{source.returnType.name}}'
+      usecaseGenericType: '{{source.returnType.unwrapped.value}}'
+
+      # 3. Imports
       imports:
         type: set
         transformer: imports
@@ -1361,15 +1361,15 @@ actions:
           - 'package:injectable/injectable.dart'
           - config.annotationsFor('domain.usecase').required
 
-      # 5. Required Annotations
+      # 4. Required Annotations
       requiredAnnotations:
         type: list
         from: config.annotationsFor('domain.usecase').required
         map:
-          .type: item.type
+          .type: item.type.value
           .import: item.import
 
-      # 6. Parameters Logic
+      # 5. Parameters Logic
       params:
         type: map
         .hasMany: source.parameters.length > 1
@@ -1383,8 +1383,8 @@ actions:
             - if: source.parameters.isEmpty
               value: "'void'"
             - if: source.parameters.length == 1
-              # FIX: Access .name to get string "IntId" instead of TypeWrapper object
-              value: source.parameters.first.type.name
+              # use String value of the type
+              value: '{{source.parameters.first.type.name.value}}'
             - else: '_{{source.name.pascalCase}}Params'
 
         # Helper for the 'call' method signature
@@ -1394,31 +1394,27 @@ actions:
             - if: source.parameters.isEmpty
               value: "''"
             - if: source.parameters.length == 1
-              # FIX: Access .name
-              value: '{{source.parameters.first.type.name}} {{source.parameters.first.name}}'
+              value: '{{source.parameters.first.type.name.value}} {{source.parameters.first.name.value}}'
             - else: '_{{source.name.pascalCase}}Params params'
 
         .data:
           type: list
           from: source.parameters
           map:
-            .name: item.name
-            .type: item.type.unwrapped
+            # IMPORTANT: use `.value` for wrapper string properties
+            .name: item.name.value
+            .type: item.type.unwrapped.value
             .isNamed: item.isNamed
 
-      # 7. Class Generics Construction (NEW)
-      # Handles the difference between Nullary<T> and Unary<T, P>
+      # 6. Class Generics Construction
       classGenerics:
         type: string
         select:
           - if: source.parameters.isEmpty
-            # Nullary: Just the return type (or <T, void> if your base class requires 2)
-            # Assuming NullaryUsecase<T>
             value: '{{usecaseGenericType}}'
-            # If your NullaryUsecase requires 2 args, use: '${usecaseGenericType}, void'
           - else:
-            # Unary: <T, Params>
             value: '{{usecaseGenericType}}, {{params.type}}'
+
 
   create_to_entity:
     description: 'Generate toEntity() method'
@@ -1444,7 +1440,6 @@ actions:
     write:
       strategy: inject
       placement: end # Insert before the closing brace '}'
-
 
     variables:
       # source.name is now the Entity name (e.g. "User")

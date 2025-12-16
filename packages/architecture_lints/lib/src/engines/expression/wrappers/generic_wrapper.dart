@@ -1,6 +1,6 @@
-import 'package:architecture_lints/src/engines/expression/wrappers/list_wrapper.dart';
-import 'package:architecture_lints/src/engines/expression/wrappers/string_wrapper.dart';
-import 'package:architecture_lints/src/engines/expression/wrappers/type_wrapper.dart';
+// lib/src/engines/expression/wrappers/generic_wrapper.dart
+
+import 'package:architecture_lints/src/engines/expression/expression.dart';
 import 'package:expressions/expressions.dart';
 
 class GenericWrapper {

@@ -1,5 +1,6 @@
-//GENERATED BARREL FILE 
-export './handlers/conditional_handler.dart'; 
+// lib/src/engines/variable/variable.dart
+
+export './handlers/conditional_handler.dart';
 export './handlers/list_handler.dart'; 
 export './handlers/map_handler.dart'; 
 export './handlers/set_handler.dart'; 

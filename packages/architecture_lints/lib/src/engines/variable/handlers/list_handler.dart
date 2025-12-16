@@ -1,9 +1,10 @@
+// lib/src/engines/variable/handlers/list_handler.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
 import 'package:architecture_lints/src/engines/expression/expression.dart';
-import 'package:architecture_lints/src/engines/variable/handlers/variable_handler.dart';
-import 'package:architecture_lints/src/engines/variable/variable_resolver.dart';
+import 'package:architecture_lints/src/engines/variable/variable.dart';
+import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
 
 class ListHandler extends VariableHandler {
   const ListHandler(super.engine);

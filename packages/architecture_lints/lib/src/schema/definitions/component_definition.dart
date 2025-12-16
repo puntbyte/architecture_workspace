@@ -1,11 +1,11 @@
 // lib/src/config/schema/component_definition.dart
 
+import 'package:architecture_lints/src/engines/configuration/hierarchy_parser.dart';
 import 'package:architecture_lints/src/schema/constants/config_keys.dart';
+import 'package:architecture_lints/src/schema/definitions/module_definition.dart';
 import 'package:architecture_lints/src/schema/enums/component_kind.dart';
 import 'package:architecture_lints/src/schema/enums/component_mode.dart';
 import 'package:architecture_lints/src/schema/enums/component_modifier.dart';
-import 'package:architecture_lints/src/engines/configuration/hierarchy_parser.dart';
-import 'package:architecture_lints/src/schema/definitions/module_definition.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';

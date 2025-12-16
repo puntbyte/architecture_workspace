@@ -1,3 +1,5 @@
+// lib/src/schema/enums/variable_type.dart
+
 import 'package:collection/collection.dart';
 
 enum VariableType {

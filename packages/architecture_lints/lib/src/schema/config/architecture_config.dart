@@ -2,19 +2,19 @@
 
 import 'package:architecture_lints/src/schema/constants/config_keys.dart';
 import 'package:architecture_lints/src/schema/definitions/action_definition.dart';
-import 'package:architecture_lints/src/schema/policies/annotation_policy.dart';
 import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/schema/definitions/module_definition.dart';
+import 'package:architecture_lints/src/schema/definitions/template_definition.dart';
 import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
+import 'package:architecture_lints/src/schema/definitions/vocabulary_definition.dart';
+import 'package:architecture_lints/src/schema/policies/annotation_policy.dart';
 import 'package:architecture_lints/src/schema/policies/dependency_policy.dart';
 import 'package:architecture_lints/src/schema/policies/exception_policy.dart';
 import 'package:architecture_lints/src/schema/policies/inheritance_policy.dart';
 import 'package:architecture_lints/src/schema/policies/member_policy.dart';
-import 'package:architecture_lints/src/schema/definitions/module_definition.dart';
 import 'package:architecture_lints/src/schema/policies/relationship_policy.dart';
-import 'package:architecture_lints/src/schema/definitions/template_definition.dart';
 import 'package:architecture_lints/src/schema/policies/type_safety_policy.dart';
 import 'package:architecture_lints/src/schema/policies/usage_policy.dart';
-import 'package:architecture_lints/src/schema/definitions/vocabulary_definition.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
 
 class ArchitectureConfig {
@@ -71,7 +71,10 @@ class ArchitectureConfig {
     return ArchitectureConfig(
       filePath: filePath,
       modules: modules,
-      components: ComponentDefinition.parseMap(yaml.mustGetMap(ConfigKeys.root.components), modules),
+      components: ComponentDefinition.parseMap(
+        yaml.mustGetMap(ConfigKeys.root.components),
+        modules,
+      ),
       definitions: TypeDefinition.parseRegistry(yaml.mustGetMap(ConfigKeys.root.definitions)),
 
       dependencies: DependencyPolicy.parseList(yaml.mustGetMapList(ConfigKeys.root.dependencies)),

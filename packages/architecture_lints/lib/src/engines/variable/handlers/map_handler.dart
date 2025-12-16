@@ -1,8 +1,7 @@
-// lib/src/actions/context/handlers/map_handler.dart
+// lib/src/engines/variable/handlers/map_handler.dart
 
+import 'package:architecture_lints/src/engines/variable/variable.dart';
 import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
-import 'package:architecture_lints/src/engines/variable/handlers/variable_handler.dart';
-import 'package:architecture_lints/src/engines/variable/variable_resolver.dart';
 
 class MapHandler extends VariableHandler {
   const MapHandler(super.engine);

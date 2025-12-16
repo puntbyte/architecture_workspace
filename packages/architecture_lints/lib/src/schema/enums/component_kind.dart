@@ -1,4 +1,4 @@
-// lib/src/config/enums/component_kind.dart
+// lib/src/schema/enums/component_kind.dart
 
 import 'package:collection/collection.dart';
 
