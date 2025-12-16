@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:architecture_lints/src/actions/logic/related_file_resolver.dart';
+import 'package:architecture_lints/src/engines/file/related_file_resolver.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';

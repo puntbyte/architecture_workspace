@@ -8,7 +8,7 @@ import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/config/schema/usage_config.dart';
 import 'package:architecture_lints/src/config/schema/usage_constraint.dart';
-import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/usages/rules/instantiation_forbidden_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:path/path.dart' as p;

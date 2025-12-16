@@ -1,10 +1,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/actions/context/helpers/import_extractor.dart';
+import 'package:architecture_lints/src/engines/imports/import_extractor.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/list_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/node_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/parameter_wrapper.dart';
-import 'package:architecture_lints/src/actions/context/wrappers/string_wrapper.dart';
-import 'package:architecture_lints/src/actions/context/wrappers/type_wrapper.dart';
+import 'package:architecture_lints/src/engines/expression/wrappers/string_wrapper.dart';
+import 'package:architecture_lints/src/engines/expression/wrappers/type_wrapper.dart';
 import 'package:architecture_lints/src/config/schema/definition.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';

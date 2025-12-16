@@ -32,9 +32,11 @@ class UserEntity extends Entity { //! <-- LINT WARNING
 
   // LINT: [7] arch_dep_component
   // REASON: Entities must not reference Data Models; use domain objects only.
-  final UserModel linkedAccount; //! <-- LINT WARNING
+  final UserModel? linkedAccount; //! <-- LINT WARNING
 
-  const UserEntity({required this.id, required this.profileColor, required this.linkedAccount});
+  const UserEntity({required this.id, required this.profileColor, this.linkedAccount});
+
+  const UserEntity.empty() : this(id: '', profileColor: Colors.black);
 }
 
 // LINT: [8] arch_type_missing_base

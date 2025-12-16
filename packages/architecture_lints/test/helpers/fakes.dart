@@ -1,5 +1,6 @@
 // test/helpers/fakes.dart
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/source.dart';
@@ -8,6 +9,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
+
+import 'mocks.dart';
 
 /// Fake implementation of [CustomLintContext].
 /// Easier to use than a Mock because it holds real data state.
@@ -18,7 +21,19 @@ class FakeCustomLintContext extends Fake implements CustomLintContext {
   @override
   final Pubspec pubspec;
 
-  FakeCustomLintContext({String packageName = 'test_project'}) : pubspec = Pubspec(packageName);
+  final LintRuleNodeRegistry _registry = MockLintRuleNodeRegistry();
+
+  @override
+  LintRuleNodeRegistry get registry => _registry;
+
+  FakeCustomLintContext({String packageName = 'test_project'})
+      : pubspec = Pubspec(packageName);
+
+  @override
+  void addPostRunCallback(void Function() cb) {
+    // No-op for unit tests that check startUp logic.
+    // In integration tests, you might want to execute 'cb' manually.
+  }
 }
 
 /// A Fake Builder to capture writes from the callback-based API.

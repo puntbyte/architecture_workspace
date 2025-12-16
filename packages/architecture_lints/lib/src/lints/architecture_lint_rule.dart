@@ -1,10 +1,10 @@
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/config/parsing/config_loader.dart';
+import 'package:architecture_lints/src/engines/configuration/config_loader.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/core/resolver/component_refiner.dart';
-import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
-import 'package:architecture_lints/src/core/resolver/path_matcher.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
+import 'package:architecture_lints/src/engines/component/component_refiner.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
+import 'package:architecture_lints/src/engines/file/path_matcher.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 abstract class ArchitectureLintRule extends DartLintRule {
@@ -12,24 +12,27 @@ abstract class ArchitectureLintRule extends DartLintRule {
 
   @override
   Future<void> startUp(
-    CustomLintResolver resolver,
-    CustomLintContext context,
-  ) async {
-    // 1. Check Cache
+      CustomLintResolver resolver,
+      CustomLintContext context,
+      ) async {
     if (context.sharedState.containsKey(ArchitectureConfig)) {
       await super.startUp(resolver, context);
       return;
     }
 
-    // 2. Load Config
+    if (context.sharedState.containsKey('arch_config_error')) {
+      await super.startUp(resolver, context);
+      return;
+    }
+
     try {
       final config = await ConfigLoader.loadFromContext(resolver.path);
+
       if (config != null) {
         final fileResolver = FileResolver(config);
         context.sharedState[ArchitectureConfig] = config;
         context.sharedState[FileResolver] = fileResolver;
 
-        // 3. Attempt Refinement (AST-based resolution)
         try {
           final unit = await resolver.getResolvedUnitResult();
           final refiner = ComponentRefiner(config, fileResolver);
@@ -41,12 +44,15 @@ abstract class ArchitectureLintRule extends DartLintRule {
             context.sharedState[ComponentContext] = refinedComponent;
           }
         } catch (e, stack) {
-          // Store error to report in Debug Rule
-          context.sharedState['arch_refiner_error'] = '$e\n$stack';
+          context.sharedState['arch_refiner_error'] = 'Refinement Error:\n$e\n$stack';
         }
+      } else {
+        // Config file not found via findRootPath
+        context.sharedState['arch_config_status'] = 'NOT_FOUND';
       }
-    } catch (e) {
-      context.sharedState['arch_config_error'] = e.toString();
+    } catch (e, stack) {
+      // Capture the error thrown by ConfigLoader
+      context.sharedState['arch_config_error'] = 'Configuration Error:\n$e\n$stack';
     }
 
     await super.startUp(resolver, context);

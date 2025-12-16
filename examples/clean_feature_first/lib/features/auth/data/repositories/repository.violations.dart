@@ -94,4 +94,10 @@ class BadErrorHandlingRepository implements AuthPort {
   // Lint: arch_exception_missing
   @override
   FutureEither<void> logout() => throw UnimplementedError();
+
+  @override
+  FutureEither<User> currentUser(int id) {
+    // TODO: implement currentUser
+    throw UnimplementedError();
+  }
 }

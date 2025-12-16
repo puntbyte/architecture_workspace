@@ -6,7 +6,7 @@ import 'package:architecture_lints/src/config/enums/relationship_kind.dart';
 import 'package:architecture_lints/src/config/enums/relationship_visibility.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart';
 import 'package:path/path.dart' as p;

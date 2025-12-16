@@ -5,7 +5,7 @@ import 'package:architecture_lints/src/lints/boundaries/rules/external_dependenc
 import 'package:architecture_lints/src/lints/boundaries/rules/module_dependency_rule.dart';
 import 'package:architecture_lints/src/lints/consistency/rules/orphan_file_rule.dart';
 import 'package:architecture_lints/src/lints/consistency/rules/parity_missing_rule.dart';
-import 'package:architecture_lints/src/lints/debug_component_identity.dart';
+import 'package:architecture_lints/src/lints/debug/rules/debug_component_identity.dart';
 import 'package:architecture_lints/src/lints/identity/rules/inheritance_allowed_rule.dart';
 import 'package:architecture_lints/src/lints/identity/rules/inheritance_forbidden_rule.dart';
 import 'package:architecture_lints/src/lints/identity/rules/inheritance_required_rule.dart';
@@ -34,45 +34,43 @@ PluginBase createPlugin() => _ArchitectureLintsPlugin();
 
 class _ArchitectureLintsPlugin extends PluginBase {
   @override
-  List<LintRule> getLintRules(CustomLintConfigs configs) {
-    return [
-      const DebugComponentIdentity(),
+  List<LintRule> getLintRules(CustomLintConfigs configs) => [
+    //const DebugComponentIdentity(),
 
-      const OrphanFileRule(),
+    const OrphanFileRule(),
 
-      const NamingPatternRule(),
-      const NamingAntipatternRule(),
-      const GrammarRule(),
-      const MisplacedComponentRule(),
+    const NamingPatternRule(),
+    const NamingAntipatternRule(),
+    const GrammarRule(),
+    const MisplacedComponentRule(),
 
-      const ComponentDependencyRule(),
-      const ExternalDependencyRule(),
-      const ModuleDependencyRule(),
+    const ComponentDependencyRule(),
+    const ExternalDependencyRule(),
+    const ModuleDependencyRule(),
 
-      const InheritanceRequiredRule(),
-      const InheritanceAllowedRule(),
-      const InheritanceForbiddenRule(),
+    const InheritanceRequiredRule(),
+    const InheritanceAllowedRule(),
+    const InheritanceForbiddenRule(),
 
-      const TypeSafetyReturnAllowedRule(),
-      const TypeSafetyReturnForbiddenRule(),
-      const TypeSafetyParamAllowedRule(),
-      const TypeSafetyParamForbiddenRule(),
+    const TypeSafetyReturnAllowedRule(),
+    const TypeSafetyReturnForbiddenRule(),
+    const TypeSafetyParamAllowedRule(),
+    const TypeSafetyParamForbiddenRule(),
 
-      const ExceptionForbiddenRule(),
-      const ExceptionRequiredRule(),
-      const ExceptionConversionRule(),
+    const ExceptionForbiddenRule(),
+    const ExceptionRequiredRule(),
+    const ExceptionConversionRule(),
 
-      const MemberRequiredRule(),
-      const MemberForbiddenRule(),
+    const MemberRequiredRule(),
+    const MemberForbiddenRule(),
 
-      const GlobalAccessForbiddenRule(),
-      const InstantiationForbiddenRule(),
+    const GlobalAccessForbiddenRule(),
+    const InstantiationForbiddenRule(),
 
-      const AnnotationRequiredRule(),
-      const AnnotationForbiddenRule(),
-      const AnnotationStrictRule(),
+    const AnnotationRequiredRule(),
+    const AnnotationForbiddenRule(),
+    const AnnotationStrictRule(),
 
-      const ParityMissingRule(),
-    ];
-  }
+    const ParityMissingRule(),
+  ];
 }

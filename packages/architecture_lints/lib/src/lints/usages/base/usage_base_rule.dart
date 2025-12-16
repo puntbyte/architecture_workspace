@@ -3,7 +3,7 @@
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/usage_config.dart';
-import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';

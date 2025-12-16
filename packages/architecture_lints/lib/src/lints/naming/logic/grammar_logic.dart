@@ -1,6 +1,6 @@
 import 'package:architecture_lints/src/config/constants/grammar_token.dart';
 import 'package:architecture_lints/src/utils/extensions/string_extension.dart';
-import 'package:architecture_lints/src/utils/nlp/language_analyzer.dart';
+import 'package:architecture_lints/src/engines/language/language_analyzer.dart';
 
 mixin GrammarLogic {
   /// Validates [className] against a [grammar] string using the [analyzer].
@@ -116,7 +116,7 @@ mixin GrammarLogic {
       final escapedTemplate = RegExp.escape(token.template);
       // Use non-greedy match for parts before the last token, greedy for the rest?
       // Simple (.*) usually works if structure is simple Prefix${token}Suffix
-      regexStr = regexStr.replaceAll(escapedTemplate, r'(.*)');
+      regexStr = regexStr.replaceAll(escapedTemplate, '(.*)');
     }
 
     final regex = RegExp('^$regexStr\$');

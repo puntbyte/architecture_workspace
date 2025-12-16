@@ -5,7 +5,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:architecture_lints/src/config/schema/definition.dart';
 import 'package:architecture_lints/src/config/schema/type_safety_config.dart';
 import 'package:architecture_lints/src/config/schema/type_safety_constraint.dart';
-import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 
 enum MatchSpecificity { none, canonical, alias }
 

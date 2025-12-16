@@ -1,5 +1,5 @@
 // test/hierarchy_parser_test.dart
-import 'package:architecture_lints/src/config/parsing/hierarchy_parser.dart';
+import 'package:architecture_lints/src/engines/configuration/hierarchy_parser.dart';
 import 'package:test/test.dart';
 
 void main() {

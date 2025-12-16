@@ -8,7 +8,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/definition.dart';
 import 'package:architecture_lints/src/config/schema/inheritance_config.dart';
-import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 mixin InheritanceLogic {

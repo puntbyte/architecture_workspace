@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/actions/code_generator.dart';
-import 'package:architecture_lints/src/actions/logic/template_loader.dart';
+import 'package:architecture_lints/src/engines/generator/code_generator.dart';
+import 'package:architecture_lints/src/engines/template/template_loader.dart';
 import 'package:architecture_lints/src/config/enums/action_scope.dart';
 import 'package:architecture_lints/src/config/enums/variable_type.dart';
 import 'package:architecture_lints/src/config/enums/write_strategy.dart';

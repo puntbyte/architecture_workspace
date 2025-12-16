@@ -1,4 +1,4 @@
-import 'package:architecture_lints/src/actions/context/expression_engine.dart';
+import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/list_wrapper.dart';
 import 'package:expressions/expressions.dart';
 import 'package:test/test.dart';

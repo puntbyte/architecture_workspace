@@ -25,6 +25,7 @@ class UserDTO extends User { //! <-- LINT WARNING
 // ignore: arch_member_missing
 class OrphanUserModel { //! <-- LINT WARNING
   final String id;
+
   const OrphanUserModel(this.id);
 
   // Even if it has the method, it fails if it doesn't extend the Entity class.

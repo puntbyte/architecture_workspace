@@ -1,6 +1,6 @@
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/config/schema/module_config.dart';
-import 'package:architecture_lints/src/core/resolver/path_matcher.dart';
+import 'package:architecture_lints/src/engines/file/path_matcher.dart';
 import 'package:architecture_lints/src/domain/module_context.dart';
 
 mixin ModuleLogic {

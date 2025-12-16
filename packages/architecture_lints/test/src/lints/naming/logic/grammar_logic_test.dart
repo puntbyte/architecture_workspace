@@ -1,5 +1,5 @@
 import 'package:architecture_lints/src/lints/naming/logic/grammar_logic.dart';
-import 'package:architecture_lints/src/utils/nlp/language_analyzer.dart';
+import 'package:architecture_lints/src/engines/language/language_analyzer.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 

@@ -1,5 +1,5 @@
 import 'package:architecture_lints/src/config/constants/config_keys.dart';
-import 'package:architecture_lints/src/config/parsing/hierarchy_parser.dart';
+import 'package:architecture_lints/src/engines/configuration/hierarchy_parser.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
 import 'package:meta/meta.dart';
 

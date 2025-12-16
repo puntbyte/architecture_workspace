@@ -9,7 +9,7 @@ import 'package:architecture_lints/src/config/schema/annotation_config.dart';
 import 'package:architecture_lints/src/config/schema/annotation_constraint.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
-import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/metadata/rules/annotation_forbidden_rule.dart';
 import 'package:architecture_lints/src/lints/metadata/rules/annotation_required_rule.dart';
 import 'package:architecture_lints/src/lints/metadata/rules/annotation_strict_rule.dart';

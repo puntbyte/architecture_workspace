@@ -1,6 +1,6 @@
 // test/src/utils/nlp/language_analyzer_test.dart
 
-import 'package:architecture_lints/src/utils/nlp/language_analyzer.dart';
+import 'package:architecture_lints/src/engines/language/language_analyzer.dart';
 import 'package:test/test.dart';
 
 void main() {

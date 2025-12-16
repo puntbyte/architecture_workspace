@@ -1,9 +1,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/actions/context/variable_resolver.dart';
 import 'package:architecture_lints/src/config/enums/variable_type.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/definition.dart';
 import 'package:architecture_lints/src/config/schema/variable_config.dart';
+import 'package:architecture_lints/src/engines/variable/variable_resolver.dart';
 import 'package:test/test.dart';
 
 import '../../../helpers/test_resolver.dart';
@@ -16,10 +16,10 @@ void main() {
     // Helper to get a resolver for a specific method
     VariableResolver getResolverForMethod(String methodName) {
       final clazz = unit.declarations.whereType<ClassDeclaration>().firstWhere(
-            (c) => c.name.lexeme == 'AuthPort',
+        (c) => c.name.lexeme == 'AuthPort',
       );
       final method = clazz.members.whereType<MethodDeclaration>().firstWhere(
-            (m) => m.name.lexeme == methodName,
+        (m) => m.name.lexeme == methodName,
       );
 
       return VariableResolver(
@@ -65,17 +65,17 @@ void main() {
     });
 
     group('Expressions & Strings', () {
-      test('should resolve string interpolation', () {
+      test('should resolve string interpolation ({{...}})', () {
         final resolver = getResolverForMethod('login');
 
         final variables = {
           'methodName': const VariableConfig(
             type: VariableType.string,
-            value: r'${source.name}',
+            value: '{{source.name}}',
           ),
           'className': const VariableConfig(
             type: VariableType.string,
-            value: r'${source.parent.name}',
+            value: '{{source.parent.name}}',
           ),
         };
 
@@ -85,17 +85,17 @@ void main() {
         expect(result['className'], 'AuthPort');
       });
 
-      test('should resolve casing properties', () {
+      test('should resolve casing properties via expressions', () {
         final resolver = getResolverForMethod('login');
 
         final variables = {
           'pascal': const VariableConfig(
-              type: VariableType.string,
-              value: r'${source.name.pascalCase}'
+            type: VariableType.string,
+            value: '{{source.name.pascalCase}}',
           ),
           'constant': const VariableConfig(
-              type: VariableType.string,
-              value: r'${source.name.constantCase}'
+            type: VariableType.string,
+            value: '{{source.name.constantCase}}',
           ),
         };
 
@@ -114,12 +114,12 @@ void main() {
           // Future
           'base': const VariableConfig(
             type: VariableType.string,
-            value: r'${source.returnType.generics.base.value}',
+            value: '{{source.returnType.generics.base.value}}',
           ),
           // User
           'inner': const VariableConfig(
             type: VariableType.string,
-            value: r'${source.returnType.generics.first.name.value}',
+            value: '{{source.returnType.generics.first.name.value}}',
           ),
           'isFuture': const VariableConfig(
             type: VariableType.bool,
@@ -227,7 +227,7 @@ void main() {
               'source.returnType', // Future<User> -> extracts User
               "'package:deep/src/internal.dart'", // Raw string -> Should be rewritten
             ],
-          )
+          ),
         };
 
         final result = resolver.resolveMap(variables);
@@ -236,9 +236,9 @@ void main() {
 
         // 1. User import (converted from local path)
         expect(
-            items.any((i) => i.toString().contains('package:test_project/test.dart')),
-            isTrue,
-            reason: 'Expected package:test_project/test.dart in $items'
+          items.any((i) => i.toString().contains('package:test_project/test.dart')),
+          isTrue,
+          reason: 'Expected package:test_project/test.dart in $items',
         );
 
         // 2. Rewrite check: 'deep/src/internal.dart' -> 'deep/public.dart' (from mockConfig)
@@ -256,7 +256,7 @@ void main() {
             type: VariableType.string,
             // Access definition via helper method on ConfigWrapper
             // The method returns a Map, so we can access .type
-            value: r"${config.definitionFor('usecase.base').type}",
+            value: "config.definitionFor('usecase.base').type",
           ),
         };
 

@@ -1,5 +1,5 @@
-import 'package:architecture_lints/src/actions/context/expression_engine.dart';
-import 'package:architecture_lints/src/actions/context/wrappers/config_wrapper.dart';
+import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
+import 'package:architecture_lints/src/engines/expression/wrappers/config_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/list_wrapper.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';

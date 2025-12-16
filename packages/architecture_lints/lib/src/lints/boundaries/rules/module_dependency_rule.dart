@@ -2,7 +2,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/boundaries/base/boundary_base_rule.dart';
 import 'package:architecture_lints/src/lints/boundaries/logic/module_logic.dart';

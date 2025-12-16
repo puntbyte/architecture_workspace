@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/actions/context/expression_engine.dart';
-import 'package:architecture_lints/src/actions/context/handlers/conditional_handler.dart';
+import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
+import 'package:architecture_lints/src/engines/variable/handlers/conditional_handler.dart';
 import 'package:architecture_lints/src/config/enums/variable_type.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/variable_config.dart';

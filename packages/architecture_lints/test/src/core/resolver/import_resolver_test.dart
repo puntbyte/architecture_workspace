@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/core/resolver/import_resolver.dart';
+import 'package:architecture_lints/src/engines/imports/import_resolver.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

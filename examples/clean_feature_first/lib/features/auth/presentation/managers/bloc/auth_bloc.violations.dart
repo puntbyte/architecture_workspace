@@ -1,4 +1,5 @@
-// example/lib/features/auth/presentation/bloc/auth_bloc.violations.dart
+// /lib/features/auth/presentation/bloc/auth_bloc.violations.dart
+
 import 'package:bloc/bloc.dart';
 
 import 'package:bloc/bloc.dart';

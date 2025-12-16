@@ -2,7 +2,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/annotation_config.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
 import 'package:architecture_lints/src/lints/metadata/logic/annotation_logic.dart';

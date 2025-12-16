@@ -1,5 +1,5 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/core/resolver/path_matcher.dart';
+import 'package:architecture_lints/src/engines/file/path_matcher.dart';
 
 mixin PackageLogic {
   /// Checks if the [uri] is an external package (not dart: and not the current project).

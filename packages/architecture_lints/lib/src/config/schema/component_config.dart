@@ -4,7 +4,7 @@ import 'package:architecture_lints/src/config/constants/config_keys.dart';
 import 'package:architecture_lints/src/config/enums/component_kind.dart';
 import 'package:architecture_lints/src/config/enums/component_mode.dart';
 import 'package:architecture_lints/src/config/enums/component_modifier.dart';
-import 'package:architecture_lints/src/config/parsing/hierarchy_parser.dart';
+import 'package:architecture_lints/src/engines/configuration/hierarchy_parser.dart';
 import 'package:architecture_lints/src/config/schema/module_config.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
 import 'package:collection/collection.dart';

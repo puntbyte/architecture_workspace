@@ -5,7 +5,7 @@ import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/lints/naming/base/naming_base_rule.dart';
 import 'package:architecture_lints/src/lints/naming/logic/grammar_logic.dart';
-import 'package:architecture_lints/src/utils/nlp/language_analyzer.dart';
+import 'package:architecture_lints/src/engines/language/language_analyzer.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class GrammarRule extends NamingBaseRule with GrammarLogic {

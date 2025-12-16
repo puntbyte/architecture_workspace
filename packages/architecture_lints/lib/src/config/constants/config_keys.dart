@@ -1,5 +1,14 @@
 // lib/src/constants/config_keys.dart
 
+enum Delimiter {
+  start,
+  end;
+
+  String get value => this == Delimiter.start ? '{{' : '}}';
+
+  static String apply(String value) => '${Delimiter.start.value}$value${Delimiter.end.value}';
+}
+
 abstract class ConfigKeys {
   const ConfigKeys._();
 
@@ -260,8 +269,8 @@ class _VocabularyKeys {
 class _PlaceholderKeys {
   const _PlaceholderKeys();
 
-  String get name => r'${name}';
-  String get affix => r'${affix}';
+  String get name => Delimiter.apply('name');
+  String get affix => Delimiter.apply('affix');
 }
 
 class _RegexKeys {

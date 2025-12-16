@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/actions/context/expression_engine.dart';
-import 'package:architecture_lints/src/actions/context/wrappers/string_wrapper.dart';
+import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
+import 'package:architecture_lints/src/engines/expression/wrappers/string_wrapper.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/definition.dart';
 import 'package:test/test.dart';
@@ -44,7 +44,7 @@ void main() {
       });
 
       test('should evaluate string interpolation', () {
-        final result = engine.evaluate(r'Use case: ${source.name.snakeCase}.dart', {});
+        final result = engine.evaluate('Use case: {{source.name.snakeCase}}.dart', {});
         expect(result, 'Use case: login.dart');
       });
 

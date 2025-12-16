@@ -7,7 +7,7 @@ import 'package:architecture_lints/src/config/schema/architecture_config.dart';
 import 'package:architecture_lints/src/config/schema/component_config.dart';
 import 'package:architecture_lints/src/config/schema/definition.dart';
 import 'package:architecture_lints/src/config/schema/inheritance_config.dart';
-import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.dart';
 import 'package:mocktail/mocktail.dart';

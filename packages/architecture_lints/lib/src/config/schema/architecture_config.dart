@@ -18,6 +18,8 @@ import 'package:architecture_lints/src/config/schema/vocabulary_config.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
 
 class ArchitectureConfig {
+  final String? filePath;
+
   final List<ModuleConfig> modules;
   final List<ComponentConfig> components;
   final Map<String, Definition> definitions;
@@ -56,15 +58,18 @@ class ArchitectureConfig {
 
     this.excludes = const [],
     this.vocabulary = const VocabularyConfig(),
+
+    this.filePath,
   });
 
   factory ArchitectureConfig.empty() => const ArchitectureConfig(components: []);
 
-  factory ArchitectureConfig.fromYaml(Map<dynamic, dynamic> yaml) {
+  factory ArchitectureConfig.fromYaml(Map<dynamic, dynamic> yaml, {String? filePath}) {
     // Modules
     final modules = ModuleConfig.parseMap(yaml.mustGetMap(ConfigKeys.root.modules));
 
     return ArchitectureConfig(
+      filePath: filePath,
       modules: modules,
       components: ComponentConfig.parseMap(yaml.mustGetMap(ConfigKeys.root.components), modules),
       definitions: Definition.parseRegistry(yaml.mustGetMap(ConfigKeys.root.definitions)),

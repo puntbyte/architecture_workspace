@@ -1,4 +1,4 @@
-import 'package:architecture_lints/src/actions/logic/mustache_renderer.dart';
+import 'package:architecture_lints/src/engines/template/mustache_renderer.dart';
 import 'package:test/test.dart';
 
 void main() {

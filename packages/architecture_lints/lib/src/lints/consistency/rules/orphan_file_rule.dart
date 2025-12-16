@@ -2,8 +2,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
 import 'package:architecture_lints/src/config/schema/architecture_config.dart';
-import 'package:architecture_lints/src/core/resolver/file_resolver.dart';
-import 'package:architecture_lints/src/core/resolver/path_matcher.dart'; // Import PathMatcher
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
+import 'package:architecture_lints/src/engines/file/path_matcher.dart'; // Import PathMatcher
 import 'package:architecture_lints/src/domain/component_context.dart';
 import 'package:architecture_lints/src/lints/architecture_lint_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
