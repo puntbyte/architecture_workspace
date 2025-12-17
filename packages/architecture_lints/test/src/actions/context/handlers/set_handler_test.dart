@@ -1,4 +1,4 @@
-import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
+import 'package:architecture_lints/src/engines/expression/expression_resolver.dart';
 import 'package:architecture_lints/src/engines/variable/handlers/set_handler.dart';
 import 'package:architecture_lints/src/engines/variable/variable_resolver.dart';
 import 'package:architecture_lints/src/schema/enums/variable_type.dart';
@@ -18,7 +18,7 @@ void main() {
       final node = unit.unit.declarations.first;
       final config = ArchitectureConfig.empty();
 
-      final engine = ExpressionEngine(node: node, config: config);
+      final engine = ExpressionResolver(node: node, config: config);
 
       // SetHandler usually needs ImportExtractor for the resolver's context,
       // but the SetHandler logic itself just aggregates.

@@ -1,3 +1,5 @@
+// lib/src/engines/configuration/yaml_merger.dart
+
 import 'dart:io';
 import 'package:architecture_lints/src/engines/configuration/package_path_resolver.dart';
 import 'package:path/path.dart' as p;

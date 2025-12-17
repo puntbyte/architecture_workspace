@@ -1,3 +1,5 @@
+// lib/src/engines/component/refinement/score_weight.dart
+
 /// Standardized weights for component resolution.
 enum ScoreWeight {
   /// Defines a "Must Have". If failed, practically disqualifies the candidate.

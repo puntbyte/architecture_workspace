@@ -1,14 +1,14 @@
 // lib/src/lints/consistency/logic/relationship_logic.dart
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
+import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/schema/constants/config_keys.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:architecture_lints/src/schema/enums/relationship_kind.dart';
 import 'package:architecture_lints/src/schema/enums/relationship_visibility.dart';
-import 'package:architecture_lints/src/schema/config/architecture_config.dart';
-import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
-import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/context/component_context.dart';
-import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart';
 import 'package:path/path.dart' as p;
 
 mixin RelationshipLogic on NamingLogic {

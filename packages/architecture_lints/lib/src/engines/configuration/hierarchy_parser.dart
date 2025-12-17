@@ -1,4 +1,4 @@
-// lib/src/config/parsing/hierarchy_parser.dart
+// lib/src/engines/configuration/hierarchy_parser.dart
 
 typedef _JsonMap = Map<String, dynamic>;
 typedef _NodeFactory<T> = T Function(String id, dynamic value);

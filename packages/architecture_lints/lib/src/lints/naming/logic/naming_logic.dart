@@ -1,7 +1,7 @@
-import 'package:architecture_lints/src/schema/constants/config_keys.dart';
+// lib/src/lints/naming/logic/naming_logic.dart
+
 import 'package:architecture_lints/src/schema/constants/regexps.dart';
 import 'package:architecture_lints/src/schema/enums/placeholder_token.dart';
-// Note: PathMatcher is no longer needed for escaping if we want to support regex syntax
 
 mixin NamingLogic {
   static final Map<String, RegExp> _regexCache = {};

@@ -9,4 +9,4 @@ export './wrappers/node_wrapper.dart';
 export './wrappers/parameter_wrapper.dart'; 
 export './wrappers/string_wrapper.dart'; 
 export './wrappers/type_wrapper.dart'; 
-export 'expression_engine.dart'; 
+export 'expression_resolver.dart';

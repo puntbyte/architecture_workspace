@@ -8,7 +8,7 @@ import '../../../helpers/test_resolver.dart';
 
 void main() {
   group('ExpressionEngine Integration', () {
-    late ExpressionEngine engine;
+    late ExpressionResolver engine;
     late ArchitectureConfig mockConfig;
 
     setUp(() async {
@@ -32,7 +32,7 @@ void main() {
       );
 
       // 3. Initialize Engine with Method Node
-      engine = ExpressionEngine(node: method, config: mockConfig);
+      engine = ExpressionResolver(node: method, config: mockConfig);
     });
 
     // =========================================================================

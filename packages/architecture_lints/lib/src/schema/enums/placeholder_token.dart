@@ -1,3 +1,5 @@
+// lib/src/schema/enums/placeholder_token.dart
+
 import 'package:architecture_lints/src/utils/token_syntax.dart';
 import 'package:collection/collection.dart';
 

@@ -1,4 +1,4 @@
-// lib/src/core/resolver/import_resolver.dart
+// lib/src/engines/imports/import_resolver.dart
 
 import 'package:analyzer/dart/ast/ast.dart';
 

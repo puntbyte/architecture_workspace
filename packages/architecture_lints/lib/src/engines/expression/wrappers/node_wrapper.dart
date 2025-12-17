@@ -2,11 +2,12 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:architecture_lints/src/engines/expression/expression.dart';
+import 'package:architecture_lints/src/engines/expression/wrappers/class_wrapper.dart';
 import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:expressions/expressions.dart' hide Identifier;
 
 class NodeWrapper {
-  final AstNode node;
+  final AstNode? node;
   final Map<String, TypeDefinition> definitions;
 
   const NodeWrapper(
@@ -14,10 +15,21 @@ class NodeWrapper {
     this.definitions = const {},
   });
 
+  // Constructor for wrappers that don't have a source AST node (e.g. FieldElement)
+  const NodeWrapper.withoutNode({
+    this.definitions = const {},
+  }) : node = null;
+
   factory NodeWrapper.create(AstNode node, [Map<String, TypeDefinition> definitions = const {}]) {
+    if (node is ClassDeclaration) return ClassWrapper(node, definitions: definitions);
     if (node is MethodDeclaration) return MethodWrapper(node, definitions: definitions);
     if (node is FormalParameter) return ParameterWrapper(node, definitions: definitions);
+
     if (node is VariableDeclaration) return FieldWrapper(node, definitions: definitions);
+    if (node is FieldDeclaration && node.fields.variables.isNotEmpty) {
+      return FieldWrapper(node.fields.variables.first, definitions: definitions);
+    }
+
     return NodeWrapper(node, definitions: definitions);
   }
 
@@ -36,19 +48,23 @@ class NodeWrapper {
     String? id;
     final n = node;
 
-    if (n is Declaration) id = n.declaredFragment?.element.name;
+    if (n != null) {
+      if (n is Declaration) id = n.declaredFragment?.element.name;
 
-    if (id == null) {
-      if (n is MethodDeclaration) id = n.name.lexeme;
-      if (n is ClassDeclaration) id = n.name.lexeme;
-      if (n is Identifier) id = n.name;
+      if (id == null) {
+        if (n is MethodDeclaration) id = n.name.lexeme;
+        if (n is ClassDeclaration) id = n.name.lexeme;
+        if (n is Identifier) id = n.name;
+        if (n is VariableDeclaration) id = n.name.lexeme;
+      }
     }
 
     return StringWrapper(id ?? '');
   }
 
   StringWrapper get filePath {
-    final root = node.root;
+    if (node == null) return const StringWrapper('');
+    final root = node!.root;
     if (root is CompilationUnit) {
       final source = root.declaredFragment?.source;
       return StringWrapper(source?.fullName ?? '');
@@ -56,8 +72,9 @@ class NodeWrapper {
     return const StringWrapper('');
   }
 
-  NodeWrapper? get parent =>
-      node.parent != null ? NodeWrapper.create(node.parent!, definitions) : null;
+  NodeWrapper? get parent => (node != null && node!.parent != null)
+      ? NodeWrapper.create(node!.parent!, definitions)
+      : null;
 
   @override
   String toString() => name.value;

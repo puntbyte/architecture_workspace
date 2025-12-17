@@ -1,10 +1,12 @@
+// lib/src/lints/architecture_rule.dart
+
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/engines/configuration/config_loader.dart';
-import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/context/component_context.dart';
-import 'package:architecture_lints/src/engines/component/component_refiner.dart';
+import 'package:architecture_lints/src/engines/component/component.dart';
+import 'package:architecture_lints/src/engines/configuration/config_loader.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/engines/file/path_matcher.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 abstract class ArchitectureRule extends DartLintRule {
@@ -12,9 +14,9 @@ abstract class ArchitectureRule extends DartLintRule {
 
   @override
   Future<void> startUp(
-      CustomLintResolver resolver,
-      CustomLintContext context,
-      ) async {
+    CustomLintResolver resolver,
+    CustomLintContext context,
+  ) async {
     if (context.sharedState.containsKey(ArchitectureConfig)) {
       await super.startUp(resolver, context);
       return;
@@ -35,7 +37,7 @@ abstract class ArchitectureRule extends DartLintRule {
 
         try {
           final unit = await resolver.getResolvedUnitResult();
-          final refiner = ComponentRefiner(config, fileResolver);
+          final refiner = ComponentResolver(config, fileResolver);
           final refinedComponent = refiner.refine(
             filePath: resolver.path,
             unit: unit,

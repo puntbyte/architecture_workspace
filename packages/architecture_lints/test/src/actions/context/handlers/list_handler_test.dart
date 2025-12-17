@@ -1,5 +1,5 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
+import 'package:architecture_lints/src/engines/expression/expression_resolver.dart';
 import 'package:architecture_lints/src/engines/variable/handlers/list_handler.dart';
 import 'package:architecture_lints/src/engines/variable/variable_resolver.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/list_wrapper.dart';
@@ -12,7 +12,7 @@ import '../../../../helpers/test_resolver.dart';
 
 void main() {
   group('ListHandler', () {
-    late ExpressionEngine engine;
+    late ExpressionResolver engine;
     late ListHandler handler;
     late VariableResolver resolver; // Needed for recursive mapping
 
@@ -27,7 +27,7 @@ void main() {
       final method = clazz.members.whereType<MethodDeclaration>().first;
 
       final config = ArchitectureConfig.empty();
-      engine = ExpressionEngine(node: method, config: config);
+      engine = ExpressionResolver(node: method, config: config);
       handler = ListHandler(engine);
 
       // We need a real resolver because ListHandler calls resolver.resolveConfig recursively

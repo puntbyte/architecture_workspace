@@ -1,3 +1,5 @@
+// lib/src/engines/component/refinement/score_entry.dart
+
 class ScoreEntry {
   final String tag;
   final String description;

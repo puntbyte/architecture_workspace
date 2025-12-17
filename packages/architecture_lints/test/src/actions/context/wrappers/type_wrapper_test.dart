@@ -1,5 +1,5 @@
 import 'package:analyzer/dart/ast/ast.dart' hide Expression;
-import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
+import 'package:architecture_lints/src/engines/expression/expression_resolver.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/generic_wrapper.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/string_wrapper.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/type_wrapper.dart';
@@ -13,7 +13,7 @@ void main() {
     late ExpressionEvaluator evaluator;
 
     setUp(() {
-      evaluator = ExpressionEngine.evaluator();
+      evaluator = ExpressionResolver.evaluator();
     });
 
     Future<TypeWrapper> getType(String code, String className) async {

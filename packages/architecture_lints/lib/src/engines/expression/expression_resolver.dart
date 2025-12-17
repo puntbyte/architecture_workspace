@@ -1,4 +1,4 @@
-// lib/src/engines/expression/expression_engine.dart
+// lib/src/engines/expression/expression_resolver.dart
 
 import 'package:analyzer/dart/ast/ast.dart' hide Expression;
 import 'package:architecture_lints/src/engines/expression/expression.dart';
@@ -7,11 +7,11 @@ import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:architecture_lints/src/utils/token_syntax.dart';
 import 'package:expressions/expressions.dart';
 
-class ExpressionEngine {
+class ExpressionResolver {
   final ExpressionEvaluator _evaluator;
   final Map<String, dynamic> rootContext;
 
-  ExpressionEngine({
+  ExpressionResolver({
     required AstNode node,
     required ArchitectureConfig config,
   }) : _evaluator = evaluator(),

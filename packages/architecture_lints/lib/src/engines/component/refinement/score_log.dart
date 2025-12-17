@@ -1,3 +1,5 @@
+// lib/src/engines/component/refinement/score_log.dart
+
 import 'package:architecture_lints/src/engines/component/refinement/score_entry.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 

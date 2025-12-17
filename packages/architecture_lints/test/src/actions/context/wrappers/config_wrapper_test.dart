@@ -1,4 +1,4 @@
-import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
+import 'package:architecture_lints/src/engines/expression/expression_resolver.dart';
 import 'package:architecture_lints/src/engines/expression/wrappers/config_wrapper.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/list_wrapper.dart';
 import 'package:architecture_lints/src/schema/config/architecture_config.dart';
@@ -13,7 +13,7 @@ void main() {
     late ConfigWrapper configWrapper;
 
     setUp(() {
-      evaluator = ExpressionEngine.evaluator();
+      evaluator = ExpressionResolver.evaluator();
 
       const config = ArchitectureConfig(
         components: [

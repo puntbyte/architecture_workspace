@@ -1,5 +1,5 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
+import 'package:architecture_lints/src/engines/expression/expression_resolver.dart';
 import 'package:architecture_lints/src/engines/variable/handlers/conditional_handler.dart';
 import 'package:architecture_lints/src/schema/enums/variable_type.dart';
 import 'package:architecture_lints/src/schema/config/architecture_config.dart';
@@ -10,7 +10,7 @@ import '../../../../helpers/test_resolver.dart';
 
 void main() {
   group('ConditionalHandler', () {
-    late ExpressionEngine engine;
+    late ExpressionResolver engine;
     late ConditionalHandler handler;
 
     setUp(() async {
@@ -20,7 +20,7 @@ void main() {
           .whereType<MethodDeclaration>()
           .first;
 
-      engine = ExpressionEngine(
+      engine = ExpressionResolver(
         node: method,
         config: ArchitectureConfig.empty(),
       );

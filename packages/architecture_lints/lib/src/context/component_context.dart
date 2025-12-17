@@ -1,7 +1,7 @@
 // lib/src/domain/component_context.dart
 
-import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:architecture_lints/src/context/module_context.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:meta/meta.dart';
 
 @immutable

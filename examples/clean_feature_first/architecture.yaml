@@ -1302,7 +1302,7 @@ actions:
     template_id: 'usecase_functional'
     format: true
     format_line_length: 100
-    debug: false
+    debug: true
 
     # [A] Trigger: When does this appear?
     trigger:
@@ -1431,8 +1431,8 @@ actions:
     # The 'source' variable in templates will now refer to the Entity Class, not the Model.
     source:
       scope: related
-      component: 'domain.entity'
-      element: field # We want the class node from that file
+      component: domain.entity
+      element: class # We want the class node from that file
 
     # TARGET: We write back to the CURRENT file (the Model)
     target:
@@ -1446,7 +1446,7 @@ actions:
     variables:
       # source.name is the Entity name or Model name depending on scope.
       # Try to derive the Entity base name by removing trailing 'Model' if present.
-      entityName: "{{source.name.value.replace('Model','')}}"
+      entityName: "{{source.name}}"
 
       # Build modelName from entityName to avoid doubling 'Model'
       modelName: '{{entityName}}Model'
@@ -1457,7 +1457,6 @@ actions:
         from: source.fields
         map:
           .name: item.name
-          .type: item.type
 
 
   # ------------------------------------------------------------------------------------------------
@@ -1512,16 +1511,9 @@ templates:
     file: 'templates/model_freezed.dart.mustache'
     description: 'Generates a Freezed model with fromEntity/toEntity mappers'
 
-  model_to_entity_method: |
-    @override
-    {{entityName}} toEntity() {
-      return {{entityName}}(
-        {{#fields.items}}
-        {{name}}: {{name}},
-        {{/fields.items}}
-      );
-    }
-  
+  model_to_entity_method:
+    file: 'templates/model_to_entity_method.dart.mustache'
+    description: 'Generates a toEntity() method for the Model'
 
   repository_impl:
     file: 'templates/repository_impl.dart.mustache'

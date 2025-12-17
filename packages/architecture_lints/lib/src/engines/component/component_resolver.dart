@@ -1,3 +1,5 @@
+// lib/src/engines/component/component_resolver.dart
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,11 +15,11 @@ import 'package:architecture_lints/src/schema/enums/component_mode.dart';
 import 'package:architecture_lints/src/schema/enums/component_modifier.dart';
 import 'package:path/path.dart' as p;
 
-class ComponentRefiner with InheritanceLogic, NamingLogic {
+class ComponentResolver with InheritanceLogic, NamingLogic {
   final ArchitectureConfig config;
   final FileResolver resolver;
 
-  const ComponentRefiner(this.config, this.resolver);
+  const ComponentResolver(this.config, this.resolver);
 
   ComponentContext? refine({
     required String filePath,

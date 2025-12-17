@@ -5,7 +5,7 @@ import 'package:architecture_lints/src/engines/variable/variable.dart';
 import 'package:architecture_lints/src/schema/definitions/variable_definition.dart';
 
 abstract class VariableHandler {
-  final ExpressionEngine engine;
+  final ExpressionResolver engine;
 
   const VariableHandler(this.engine);
 

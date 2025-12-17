@@ -5,7 +5,7 @@ import 'package:architecture_lints/src/schema/definitions/variable_definition.da
 import 'package:architecture_lints/src/schema/descriptors/variable_select.dart';
 
 class ConditionalHandler {
-  final ExpressionEngine engine;
+  final ExpressionResolver engine;
 
   ConditionalHandler(this.engine);
 

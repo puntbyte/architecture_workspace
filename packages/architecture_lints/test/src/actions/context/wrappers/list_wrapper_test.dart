@@ -1,4 +1,4 @@
-import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
+import 'package:architecture_lints/src/engines/expression/expression_resolver.dart';
 import 'package:architecture_lints/src/actions/context/wrappers/list_wrapper.dart';
 import 'package:expressions/expressions.dart';
 import 'package:test/test.dart';
@@ -8,7 +8,7 @@ void main() {
     late ExpressionEvaluator evaluator;
 
     setUp(() {
-      evaluator = ExpressionEngine.evaluator();
+      evaluator = ExpressionResolver.evaluator();
     });
 
     dynamic eval(dynamic object, String prop) {

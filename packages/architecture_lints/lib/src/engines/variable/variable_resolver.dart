@@ -1,7 +1,7 @@
 // lib/src/engines/variable/variable_resolver.dart
 
 import 'package:analyzer/dart/ast/ast.dart' hide Expression;
-import 'package:architecture_lints/src/engines/expression/expression_engine.dart';
+import 'package:architecture_lints/src/engines/expression/expression_resolver.dart';
 import 'package:architecture_lints/src/engines/imports/import_extractor.dart';
 import 'package:architecture_lints/src/engines/variable/variable.dart';
 import 'package:architecture_lints/src/schema/config/architecture_config.dart';
@@ -9,7 +9,7 @@ import 'package:architecture_lints/src/schema/definitions/variable_definition.da
 import 'package:architecture_lints/src/schema/enums/variable_type.dart';
 
 class VariableResolver {
-  final ExpressionEngine _engine;
+  final ExpressionResolver _engine;
   final ConditionalHandler _conditionalHandler;
   final ListHandler _listHandler;
   final SetHandler _setHandler;
@@ -20,19 +20,19 @@ class VariableResolver {
     required AstNode sourceNode,
     required ArchitectureConfig config,
     required String packageName,
-  }) : _engine = ExpressionEngine(node: sourceNode, config: config),
+  }) : _engine = ExpressionResolver(node: sourceNode, config: config),
        _importExtractor = ImportExtractor(packageName, rewrites: config.importRewrites),
        _conditionalHandler = ConditionalHandler(
-         ExpressionEngine(node: sourceNode, config: config),
+         ExpressionResolver(node: sourceNode, config: config),
        ),
        _listHandler = ListHandler(
-         ExpressionEngine(node: sourceNode, config: config),
+         ExpressionResolver(node: sourceNode, config: config),
        ),
        _setHandler = SetHandler(
-         ExpressionEngine(node: sourceNode, config: config),
+         ExpressionResolver(node: sourceNode, config: config),
        ),
        _mapHandler = MapHandler(
-         ExpressionEngine(node: sourceNode, config: config),
+         ExpressionResolver(node: sourceNode, config: config),
        );
 
   Map<String, dynamic> resolveMap(Map<String, dynamic> variablesConfig) {
