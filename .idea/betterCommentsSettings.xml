@@ -6,7 +6,6 @@
       <list>
         <CustomTag>
           <option name="color" value="#FF2D00" />
-          <option name="italic" value="true" />
           <option name="type" value="!" />
         </CustomTag>
         <CustomTag>
@@ -25,18 +24,6 @@
         <CustomTag>
           <option name="color" value="#98C379" />
           <option name="type" value="*" />
-        </CustomTag>
-        <CustomTag>
-          <option name="color" value="#33FFFF" />
-          <option name="type" value="---" />
-        </CustomTag>
-        <CustomTag>
-          <option name="color" value="#FFFF66" />
-          <option name="type" value="===" />
-        </CustomTag>
-        <CustomTag>
-          <option name="color" value="#9999FF" />
-          <option name="type" value="≡≡≡" />
         </CustomTag>
       </list>
     </option>
