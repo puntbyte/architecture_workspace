@@ -4,29 +4,8 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a3767faf-9392-4c84-9047-afac6d256402" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/melos_architecture_workspace.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/packages/architecture_clean/melos_architecture_clean.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/packages/architecture_lints/melos_architecture_lints.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/DDGenerateAssetsClassConfig.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/FlutterxFullConfig.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/betterCommentsSettings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/betterCommentsSettings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/clean_architecture_workspace.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/project.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jsonSchemas.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/kotlinc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/melos_flutter_run_example.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/melos_flutter_run_feature_first_example.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/melos_run_generate.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/melos_run_test.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/studiobot.xml" beforeDir="false" />
+    <list default="true" id="a3767faf-9392-4c84-9047-afac6d256402" name="Changes" comment="Chore: Clean up and regenerate IDE project files&#10;&#10;- Deleted numerous outdated IntelliJ IDEA configuration files (`.idea/*.xml`, `.idea/.gitignore`).&#10;- Regenerated project-specific `.iml` files for the root workspace and sub-packages (`architecture_clean`, `architecture_lints`).&#10;- Updated the main project name from `clean_architecture_workspace` to `architecture_workspace`.&#10;- Cleaned up and updated various IDE settings, including module paths, run configurations, and device lists.">
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -76,7 +55,7 @@
     "dart.analysis.tool.window.visible": "false",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
-    "settings.editor.selected.configurable": "com.android.studio.ml.templates",
+    "settings.editor.selected.configurable": "com.android.studio.ml.bot.mainConfigurable",
     "show.migrate.to.gradle.popup": "false"
   }
 }]]></component>
@@ -89,10 +68,20 @@
       <option name="presentableId" value="Default" />
       <updated>1766062290864</updated>
     </task>
+    <task id="LOCAL-00001" summary="Chore: Clean up and regenerate IDE project files&#10;&#10;- Deleted numerous outdated IntelliJ IDEA configuration files (`.idea/*.xml`, `.idea/.gitignore`).&#10;- Regenerated project-specific `.iml` files for the root workspace and sub-packages (`architecture_clean`, `architecture_lints`).&#10;- Updated the main project name from `clean_architecture_workspace` to `architecture_workspace`.&#10;- Cleaned up and updated various IDE settings, including module paths, run configurations, and device lists.">
+      <option name="closed" value="true" />
+      <created>1766062875409</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1766062875409</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Refactor and consolidate linting packages&#10;&#10;- Merged the functionality of `clean_architecture_kit` and `clean_architecture_lints_experimental` into a single, unified `architecture_lints` package.&#10;- Renamed `clean_architecture_core` to `architecture_clean` to align with the new package naming scheme.&#10;- Deleted all source, test, and configuration files from the now-obsolete `clean_architecture_kit` and `clean_architecture_lints_experimental` packages.&#10;- Renamed `ComponentResolver` to `ComponentRefiner` for semantic clarity, distinguishing it from variable and type resolvers.&#10;- Introduced `ActionExecutor` to orchestrate code generation and file modification logic for architectural fixes.&#10;- Added `TargetResolver` to dynamically determine the correct file path for generated code based on the configured architecture.&#10;- Implemented `EditApplicator` to centralize the logic for applying file changes, supporting injection, replacement, and file creation strategies.&#10;- Refactored `ArchitectureFix` into a `ArchitectureFixBase` to streamline the setup and execution of quick fixes.&#10;- Modularized the type safety lint logic (`TypeSafetyBaseRule`) to delegate checks to `TypeResolver` for better separation of concerns.&#10;- Simplified `CodeGenerator` by removing redundant methods and improving debug output formatting.&#10;- Updated the `clean_feature_first` example to use the new `architecture_clean` package and reflect other refactoring changes." />
-    <option name="LAST_COMMIT_MESSAGE" value="" />
+    <MESSAGE value="Chore: Clean up and regenerate IDE project files&#10;&#10;- Deleted numerous outdated IntelliJ IDEA configuration files (`.idea/*.xml`, `.idea/.gitignore`).&#10;- Regenerated project-specific `.iml` files for the root workspace and sub-packages (`architecture_clean`, `architecture_lints`).&#10;- Updated the main project name from `clean_architecture_workspace` to `architecture_workspace`.&#10;- Cleaned up and updated various IDE settings, including module paths, run configurations, and device lists." />
+    <option name="LAST_COMMIT_MESSAGE" value="Chore: Clean up and regenerate IDE project files&#10;&#10;- Deleted numerous outdated IntelliJ IDEA configuration files (`.idea/*.xml`, `.idea/.gitignore`).&#10;- Regenerated project-specific `.iml` files for the root workspace and sub-packages (`architecture_clean`, `architecture_lints`).&#10;- Updated the main project name from `clean_architecture_workspace` to `architecture_workspace`.&#10;- Cleaned up and updated various IDE settings, including module paths, run configurations, and device lists." />
   </component>
 </project>
