@@ -208,7 +208,7 @@ class DebugRuleRunner {
     }
   }
 
-  void _onMethodDeclarationIdentifier(MethodDeclaration node) {
+  /*void _onMethodDeclarationIdentifier(MethodDeclaration node) {
     final targetToken = node.name;
 
     final message = _generator.generate(
@@ -366,5 +366,5 @@ class DebugRuleRunner {
       element: targetNode.name?.element,
     );
     _reporter.reportOnNode(targetNode, message);
-  }
+  }*/
 }

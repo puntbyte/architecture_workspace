@@ -25,7 +25,9 @@ class AnnotationConstraint {
   static List<AnnotationConstraint> listFromDynamic(dynamic value) {
     if (value is Map) return [AnnotationConstraint.fromMap(value)];
 
-    if (value is List) return value.whereType<Map>().map(AnnotationConstraint.fromMap).toList();
+    if (value is List) {
+      return value.whereType<Map<dynamic, dynamic>>().map(AnnotationConstraint.fromMap).toList();
+    }
 
     return [];
   }
