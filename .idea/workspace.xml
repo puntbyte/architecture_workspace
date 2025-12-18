@@ -4,131 +4,8 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a3767faf-9392-4c84-9047-afac6d256402" name="Changes" comment="Docs: Prepare for initial beta release&#10;&#10;- Replaced the detailed version history in `architecture_lints/CHANGELOG.md` with a summary for the initial `0.1.0` beta release.&#10;- Updated `pubspec.yaml` in the `architecture_lints` package to include `homepage` and `issue_tracker` URLs.&#10;- Updated IntelliJ IDEA workspace configuration (`.idea/workspace.xml`).">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/architecture_lints.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/architecture_lints.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/helpers/analyzer_test_utils.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/helpers/fakes.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/helpers/mocks.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/helpers/test_data.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/helpers/test_resolver.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/architecture_fix_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/code_generator_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/context/handlers/conditional_handler_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/context/handlers/list_handler_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/context/handlers/map_handler_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/context/handlers/set_handler_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/context/helpers/import_extractor_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/context/wrappers/config_wrapper_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/context/wrappers/generic_wrapper_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/context/wrappers/list_wrapper_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/context/wrappers/method_wrapper_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/context/wrappers/node_wrapper_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/context/wrappers/parameter_wrapper_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/context/wrappers/type_wrapper_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/logic/mustache_renderer_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/logic/related_file_resolver_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/actions/logic/template_loader_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/analysis/arch_component_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/analysis/layer_resolver_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/config/parsing/component_parser_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/config/parsing/config_loader_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/config/parsing/hierarchy_parser_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/config/parsing/package_path_resolver_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/config/parsing/yaml_merger_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/config/schema/component_config_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/config/schema/definition_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/configuration/config_loader_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/core/resolver/component_refiner_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/core/resolver/file_resolver_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/core/resolver/import_resolver_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/core/resolver/module_resolver_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/core/resolver/path_matcher_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/domain/component_context_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/engines/expression/expression_engine_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/engines/expression/wrappers/string_wrapper_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/engines/variable/variable_resolver_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/fixes/create_to_entity_method_fix_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/fixes/create_use_case_fix_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/architecture_fix_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/architecture_lint_rule_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/boundaries/logic/component_logic_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/boundaries/logic/module_logic_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/boundaries/logic/package_logic_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/boundaries/rules/component_dependency_rule_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/boundaries/rules/external_dependency_rule_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/boundaries/rules/layer_dependency_rule_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/boundaries/rules/module_dependency_rule_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/consistency/logic/relationship_logic_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/consistency/rule/orphan_file_rule_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/consistency/rules/orphan_file_rule_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/identity/logic/inheritance_logic_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/members/logic/member_logic_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/metadata/base/annotation_base_rule_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/metadata/logic/annotation_logic_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/naming/antipattern_naming_lint_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/naming/logic/grammar_logic_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/naming/logic/naming_logic_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/naming/pattern_naming_lint_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/naming/rules/naming_antipattern_rule_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/naming/rules/naming_pattern_rule_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/usages/logic/usage_logic_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/usages/rules/instantiation_forbidden_rule_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/contract/enforce_custom_inheritance_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/contract/enforce_entity_contract_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/contract/enforce_port_contract_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/contract/enforce_repository_contract_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/contract/enforce_usecase_contract_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/dependency/disallow_dependency_instantiation_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/dependency/disallow_repository_in_presentation_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/dependency/disallow_service_locator_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/dependency/disallow_use_case_in_widget_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/dependency/enforce_abstract_data_source_dependency_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/dependency/enforce_abstract_repository_dependency_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/dependency/enforce_layer_independence_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/error_handling/convert_exceptions_to_failures_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/error_handling/disallow_throwing_from_presentation_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/error_handling/disallow_throwing_from_repository_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/error_handling/enforce_exception_on_data_source_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/error_handling/enforce_try_catch_in_repository_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/location/enforce_file_and_folder_location_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/naming/enforce_naming_antipattern_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/naming/enforce_naming_pattern_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/naming/enforce_semantic_naming_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/purity/disallow_entity_in_data_source_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/purity/disallow_flutter_in_domain_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/purity/disallow_model_in_domain_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/purity/disallow_model_return_from_repository_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/purity/enforce_contract_api_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/purity/require_to_entity_method_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/structure/enforce_annotations_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/structure/missing_use_case_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/lints_old/type_safety/enforce_type_safety_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/models/annotations_config_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/models/architecture_config_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/models/dependencies_config_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/models/inheritances_config_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/models/layer_config_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/models/locations_config_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/models/module_config_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/models/naming_conventions_config_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/models/services_config_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/models/type_config_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/models/type_safeties_config_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/utils/map_extensions_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/utils/naming_utils_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/utils_old/ast_utils_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/utils_old/debug_utils.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/utils_old/extensions/iterable_extension_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/utils_old/extensions/json_map_extension_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/utils_old/extensions/string_extension_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/utils_old/naming_utils_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/utils_old/nlp/language_analyzer_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/utils_old/nlp/naming_strategy_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/utils_old/path_utils_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/utils_old/semantic_utils_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/src/utils_old/syntax_builder_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/test/utils/architecture_config_mock.dart" beforeDir="false" />
+    <list default="true" id="a3767faf-9392-4c84-9047-afac6d256402" name="Changes" comment="Refactor: Remove all legacy and experimental tests&#10;&#10;- Deleted the entire suite of old and experimental tests from the `packages/architecture_lints/test/` directory to clean up the project and remove obsolete code.&#10;- Removed legacy test helpers, mocks, fakes, and data builders, including `analyzer_test_utils.dart`, `test_resolver.dart`, and `architecture_config_mock.dart`.&#10;- Commented out the import and usage of `debug_action_context` and `debug_component_identity` lints in `architecture_lints.dart` to disable them from the plugin.">
+      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/bin/custom_lint.dart" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -231,7 +108,15 @@
       <option name="project" value="LOCAL" />
       <updated>1766074811454</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Refactor: Remove all legacy and experimental tests&#10;&#10;- Deleted the entire suite of old and experimental tests from the `packages/architecture_lints/test/` directory to clean up the project and remove obsolete code.&#10;- Removed legacy test helpers, mocks, fakes, and data builders, including `analyzer_test_utils.dart`, `test_resolver.dart`, and `architecture_config_mock.dart`.&#10;- Commented out the import and usage of `debug_action_context` and `debug_component_identity` lints in `architecture_lints.dart` to disable them from the plugin.">
+      <option name="closed" value="true" />
+      <created>1766075530338</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1766075530338</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -240,6 +125,7 @@
     <MESSAGE value="Chore: Clean up and regenerate IDE project files&#10;&#10;- Deleted numerous outdated IntelliJ IDEA configuration files (`.idea/*.xml`) and added new project-specific `.iml` files.&#10;- Renamed the project from `Clean Architecture Workspace` to `Architecture Workspace` in `README.md`.&#10;- Regenerated run configurations and other IDE settings." />
     <MESSAGE value="Docs: Rework documentation and add configuration presets&#10;&#10;- Rewrote the `architecture_lints` `README.md` to be a comprehensive configuration manual for the `architecture.yaml` file, detailing modules, components, policies, and actions.&#10;- Overhauled the `architecture_clean` `README.md` to position it as a preset for `architecture_lints`, explaining its provided base classes, lint presets, and code generation templates.&#10;- Added a `recommended.yaml` preset to `architecture_clean`, providing a complete, well-documented configuration for a feature-first clean architecture.&#10;- Introduced new code generation templates to `architecture_clean` for creating Freezed models (`model_freezed.dart.mustache`), repository implementations (`repository_impl.dart.mustache`), and `toEntity` methods (`model_to_entity_method.dart.mustache`).&#10;- Updated the main `README.md` to reflect the new package structure (`architecture_lints` as the engine, `architecture_clean` as the preset).&#10;- Refined the example project's `README.md` to better guide users through the demonstration of the linting rules.&#10;- Added new IDE configuration files for IntelliJ (`.idea/*.xml`)." />
     <MESSAGE value="Docs: Prepare for initial beta release&#10;&#10;- Replaced the detailed version history in `architecture_lints/CHANGELOG.md` with a summary for the initial `0.1.0` beta release.&#10;- Updated `pubspec.yaml` in the `architecture_lints` package to include `homepage` and `issue_tracker` URLs.&#10;- Updated IntelliJ IDEA workspace configuration (`.idea/workspace.xml`)." />
-    <option name="LAST_COMMIT_MESSAGE" value="Docs: Prepare for initial beta release&#10;&#10;- Replaced the detailed version history in `architecture_lints/CHANGELOG.md` with a summary for the initial `0.1.0` beta release.&#10;- Updated `pubspec.yaml` in the `architecture_lints` package to include `homepage` and `issue_tracker` URLs.&#10;- Updated IntelliJ IDEA workspace configuration (`.idea/workspace.xml`)." />
+    <MESSAGE value="Refactor: Remove all legacy and experimental tests&#10;&#10;- Deleted the entire suite of old and experimental tests from the `packages/architecture_lints/test/` directory to clean up the project and remove obsolete code.&#10;- Removed legacy test helpers, mocks, fakes, and data builders, including `analyzer_test_utils.dart`, `test_resolver.dart`, and `architecture_config_mock.dart`.&#10;- Commented out the import and usage of `debug_action_context` and `debug_component_identity` lints in `architecture_lints.dart` to disable them from the plugin." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor: Remove all legacy and experimental tests&#10;&#10;- Deleted the entire suite of old and experimental tests from the `packages/architecture_lints/test/` directory to clean up the project and remove obsolete code.&#10;- Removed legacy test helpers, mocks, fakes, and data builders, including `analyzer_test_utils.dart`, `test_resolver.dart`, and `architecture_config_mock.dart`.&#10;- Commented out the import and usage of `debug_action_context` and `debug_component_identity` lints in `architecture_lints.dart` to disable them from the plugin." />
   </component>
 </project>
