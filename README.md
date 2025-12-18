@@ -3,63 +3,38 @@
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
 
-An opinionated and automated linter for enforcing a strict Clean Architecture in Dart & Flutter projects.
+A modular ecosystem for enforcing architectural standards in Dart & Flutter projects. This monorepo 
+separates the **Linting Engine** from the **Architectural Implementations**, allowing for flexible, 
+configuration-driven development.
 
-This workspace is a monorepo managed by [Melos](https://melos.invertase.dev) and contains the core linter package, a support library, and an example project.
+This workspace is managed by [Melos](https://melos.invertase.dev).
 
----
+## 📦 Packages
 
-## What is Clean Architecture Kit?
+| Package                                                     | Role            | Description                                                                                                                                                   |
+|:------------------------------------------------------------|:----------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **[`architecture_lints`](./packages/architecture_lints)**   | **The Engine**  | A completely architecture-agnostic linter. It enforces rules defined in `architecture.yaml`, handling boundaries, naming, type safety, and code generation.   |
+| **[`architecture_clean`](./packages/architecture_clean)**   | **The Preset**  | A tailored implementation of Clean Architecture. Provides base classes (`UseCase`, `Entity`, `Failure`), default YAML configurations, and Mustache templates. |
+| **[`clean_feature_first`](./examples/clean_feature_first)** | **The Example** | A reference Flutter application demonstrating the "Feature-First" Clean Architecture approach with live linting rules.                                        |
 
-`clean_architecture_kit` is a powerful custom linting package that integrates directly into the Dart analyzer. It helps you and your team maintain architectural boundaries automatically by providing compile-time warnings and errors for common violations.
+## 🚀 Contributing
 
-- **Automated & Unobtrusive:** Get real-time feedback in your IDE without any external tools.
-- **Highly Configurable:** Tailor the rules, directory names, and naming conventions to match your project's specific needs.
-- **Intelligent Quick Fixes:** Go beyond just finding problems. The linter can generate boilerplate code for you, such as creating UseCases and `toEntity()` mapping methods.
-
-## Packages in this Workspace
-
-| Package                                                                  | Description                                                                                                                              | Version                                         |
-|:-------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------------|
-| [`packages/clean_architecture_kit`](./packages/clean_architecture_kit)   | The main linter package. This is what you'll add to your `pubspec.yaml`.                                                                 | [![pub version][pub_badge_kit]][pub_link_kit]   |
-| [`packages/clean_architecture_core`](./packages/clean_architecture_core) | A lightweight, optional support package providing base classes (`Repository`, `UseCase`, etc.) that work with the linter out-of-the-box. | [![pub version][pub_badge_core]][pub_link_core] |
-| [`example`](./example)                                                   | An example Flutter project demonstrating all the lints and quick fixes in action.                                                        | N/A                                             |
-
-## Getting Started for Users
-
-To use the linter in your own project, please see the detailed instructions in the [`clean_architecture_kit` README](./packages/clean_architecture_kit/README.md).
-
-## Contributing
-
-This project is managed with Melos. To get started as a contributor:
-
-1.  **Activate Melos:**
-    ```bash
-    dart pub global activate melos
-    ```
-
-2.  **Bootstrap the Workspace:** This links all the local packages together.
+1.  **Bootstrap:** Link all local packages.
     ```bash
     melos bootstrap
     ```
 
-3.  **Run Tests:**
+2.  **Analyze Example:** Run the linter on the example project to see rules in action.
     ```bash
-    melos run test
+    melos analyze
     ```
 
-4.  **Analyze the Example Project:** To see the lints in action while developing, run the analyzer on the example app.
+3.  **Watch Mode:** Develop the linter and see changes update immediately in the example.
     ```bash
-    melos run analyze:example
+    melos watch
     ```
 
----
-
-[license_badge]: https://img.shields.io/badge/license-MIT-blue.svg
-[license_link]: https://opensource.org/licenses/MIT
-[very_good_analysis_badge]: https://img.shields.io/badge/style-very_good_analysis-B22C89.svg
-[very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
-[pub_badge_kit]: https://img.shields.io/pub/v/clean_architecture_kit.svg
-[pub_link_kit]: https://pub.dev/packages/clean_architecture_kit
-[pub_badge_core]: https://img.shields.io/pub/v/clean_architecture_core.svg
-[pub_link_core]: https://pub.dev/packages/clean_architecture_core
+4.  **Test:** Run unit tests across all packages.
+    ```bash
+    melos test
+    ```

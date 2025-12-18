@@ -11,6 +11,8 @@ topics:
   - architecture
   - clean-architecture-kit
 
+publish_to: none
+
 environment:
   sdk: ^3.10.0
 

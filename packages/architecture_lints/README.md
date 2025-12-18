@@ -1,609 +1,376 @@
-# Clean Architecture Kit
+# Architecture Lints 🏗️
 
-[![pub version][pub_badge]][pub_link]
-[![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
-[![License: MIT][license_badge]][license_link]
+A **configuration-driven**, **architecture-agnostic** linting engine for Dart and Flutter that 
+transforms your architectural vision into enforceable code standards.
 
-An opinionated and automated linter for enforcing a strict Clean Architecture in Dart & Flutter projects. It not only finds architectural violations but provides powerful quick fixes to generate your boilerplate for you.
+Unlike standard linters that enforce hardcoded opinions (e.g., "Always extend Bloc"), `architecture_lints` reads a **Policy Definition** from an `architecture.yaml` file in your project root. This allows you to define your **own** architectural rules, layers, and naming conventions.
+
+It is the core engine powering packages like `architecture_clean`, but it can be used standalone to enforce any architectural style (MVVM, MVC, DDD, Layer-First, Feature-First).
 
 ---
 
-## Features
+## 📦 Installation
 
--   ✅ **Architectural Guardrails:** Automatically detect when you import from a wrong layer, use a data Model in the domain, or depend on a concrete implementation instead of an abstraction.
--   🚀 **Intelligent Quick Fixes:** Go beyond just finding problems. The linter can generate boilerplate code for you, such as creating `UseCase` classes and `toEntity()` mapping methods.
--   📦 **Works Out-of-the-Box:** Integrates seamlessly with the `clean_architecture_core` package, providing a zero-configuration experience for base classes.
--   🔧 **Highly Configurable:** Customize everything from folder names to class naming conventions to fit your team's style guide. Supports both "feature-first" and "layer-first" project structures.
-
-## Getting Started
-
-### 1. Add Dependencies
-
-Add `clean_architecture_kit` and `custom_lint` to your `dev_dependencies`. For the best out-of-the-box experience, also add `clean_architecture_core`.
+Add the package to your `dev_dependencies`:
 
 ```yaml
 # pubspec.yaml
-dependencies:
-  # Your other dependencies...
-  fpdart: ^1.1.0 # Recommended for Either type
-  clean_architecture_core: ^1.0.0 # Provides default base classes
-
 dev_dependencies:
-  # Your other dev_dependencies...
-  custom_lint: ^0.6.4 # Or latest version
-  clean_architecture_kit: ^1.0.0 # Or latest version
+  custom_lint: ^0.6.4
+  architecture_lints: ^1.0.0
 ```
 
-### 2. Configure `analysis_options.yaml`
-
-Create or update your `analysis_options.yaml` file. Start with this minimal configuration:
+Enable the plugin in `analysis_options.yaml`:
 
 ```yaml
 # analysis_options.yaml
 analyzer:
   plugins:
-    # IMPORTANT: Only add custom_lint here.
-    # clean_architecture_kit is discovered automatically.
     - custom_lint
-
-custom_lint:
-  rules:
-    # --- Enable all the rules you want from the list below ---
-    - disallow_model_in_domain: true
-    - enforce_layer_independence: true
-    - enforce_naming_conventions: true
-    - missing_use_case: true
-    # ... and so on for all rules you wish to enable.
-
-    # --- Provide the shared configuration for the plugin ---
-    - clean_architecture:
-        project_structure: 'feature_first'
-        
-        feature_first_paths:
-          features_root: "features"
-
-        layer_definitions:
-          domain:
-            entities: ['entities']
-            repositories: ['contracts']
-            use_cases: ['use_cases']
-          data:
-            models: ['models']
-            repositories: ['repositories']
-            data_sources: ['data_sources']
-
-        naming_conventions:
-          entity: '{{name}}Entity'
-          model: '{{name}}Model'
-          use_case: '{{name}}Usecase'
-          repository_interface: '{{name}}Repository'
-          repository_implementation: '{{name}}RepositoryImpl'
 ```
 
-### 3. Restart the Analysis Server
-
-In your IDE, restart the Dart analysis server to activate the linter.
--   **VS Code:** Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`) and run `Dart: Restart Analysis Server`.
--   **Android Studio/IntelliJ:** Find the "Dart Analysis" tool window and click the restart icon.
+Create an `architecture.yaml` file in your project root (see Configuration below).
 
 ---
 
-## Rules Overview
+## 📋 Available Lint Rules
 
-| Rule                                      | Quick Fix |
-|:------------------------------------------|:---------:|
-| **Purity & Responsibility Rules**         |           |
-| `disallow_model_in_domain`                |           |
-| `disallow_entity_in_data_source`          |           |
-| `disallow_repository_in_presentation`     |           |
-| `disallow_model_return_from_repository`   |           |
-| `disallow_use_case_in_widget`             |           |
-| `disallow_flutter_imports_in_domain`      |           |
-| `disallow_flutter_types_in_domain`        |           |
-| `enforce_model_to_entity_mapping`         |     ✅     |
-| `enforce_model_inherits_entity`           |           |
-| **Dependency & Structure Rules**          |           |
-| `enforce_layer_independence`              |           |
-| `enforce_abstract_data_source_dependency` |           |
-| `enforce_file_and_folder_location`        |           |
-| **Naming, Type Safety & Inheritance**     |           |
-| `enforce_naming_conventions`              |           |
-| `enforce_custom_return_type`              |           |
-| `enforce_use_case_inheritance`            |           |
-| `enforce_repository_inheritance`          |           |
-| **Code Generation**                       |           |
-| `missing_use_case`                        |     ✅     |
+These rules are generic but become specific based on your configuration.
+
+| Error Code                      | Category    | Trigger Logic                                                                                    |
+|:--------------------------------|:------------|:-------------------------------------------------------------------------------------------------|
+| **`arch_naming_pattern`**       | Naming      | Class name does not match the configured `pattern` (e.g., must end in `UseCase`).                |
+| **`arch_naming_antipattern`**   | Naming      | Class name uses a forbidden term defined in `antipattern` (e.g., `Manager` in a `Utils` folder). |
+| **`arch_structure_kind`**       | Structure   | Component is the wrong Dart kind (e.g., found `enum`, config required `class`).                  |
+| **`arch_structure_modifier`**   | Structure   | Component is missing a required modifier (e.g., Interface must be `abstract`).                   |
+| **`arch_dep_component`**        | Boundaries  | Layer A imports Layer B, but it is forbidden by the `dependencies` policy.                       |
+| **`arch_parity_missing`**       | Consistency | A required companion file is missing (e.g., every `Port` must have a `UseCase`).                 |
+| **`arch_safety_return_strict`** | Type Safety | Method returns a raw type (e.g., `Future`) instead of a required wrapper (e.g., `FutureEither`). |
+| **`arch_safety_param_strict`**  | Type Safety | Method parameter uses a primitive (e.g., `int`) instead of a ValueObject (e.g., `UserId`).       |
+| **`arch_exception_forbidden`**  | Exceptions  | Layer performs a forbidden operation (e.g., `throw` in UI, or `catch` in Domain).                |
+| **`arch_usage_global_access`**  | Usage       | Direct access to global service locators (e.g., `GetIt.I`) is detected where banned.             |
+| **`arch_usage_instantiation`**  | Usage       | Direct instantiation of a dependency (`new Repo()`) instead of using injection.                  |
+| **`arch_annot_missing`**        | Annotations | Class is missing required metadata (e.g., `@Injectable`).                                        |
+| **`arch_annot_forbidden`**      | Annotations | Usage of banned annotations (e.g., `@JsonSerializable` in Domain layer).                         |
 
 ---
 
-## Detailed Lint Rule Explanations
+## ⚙️ Configuration Manual (`architecture.yaml`)
 
-### `disallow_model_in_domain`
--   **Purpose:** To prevent data-layer **Models** from leaking into the **Domain Layer**.
--   **Description:** This is the core data purity rule for the domain layer. It inspects all method signatures (return types, parameters) and fields and flags any type that matches the naming convention for a `Model`, ensuring the domain only uses pure `Entities`.
+This file acts as the **Domain Specific Language (DSL)** for your architecture.
 
-<details>
-<summary>✅ Good Example</summary>
+### 📚 Table of Contents
 
-````dart
-// Domain layer file
-abstract interface class AuthRepository {
-  // Correct: Uses a pure `UserEntity`.
-  FutureEither<UserEntity> getUser(String id);
-}
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// Domain layer file
-abstract interface class AuthRepository {
-  // VIOLATION: Uses a `UserModel` from the data layer.
-  FutureEither<UserModel> getUser(String id); // <-- LINT WARNING HERE
-}
-````
-</details>
-
-### `disallow_entity_in_data_source`
--   **Purpose:** To prevent domain-layer **Entities** from leaking into the **Data Source Layer**.
--   **Description:** Enforces that Data Sources (classes that fetch raw data from an API or database) speak in terms of raw data types or `Models`, not pure domain `Entities`. The repository is responsible for the mapping.
-
-<details>
-<summary>✅ Good Example</summary>
-
-````dart
-// Data Source file
-abstract interface class AuthRemoteDataSource {
-  // Correct: Returns a `UserModel`.
-  Future<UserModel> getUser(String id);
-}
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// Data Source file
-abstract interface class AuthRemoteDataSource {
-  // VIOLATION: Returns a pure `UserEntity`.
-  Future<UserEntity> getUser(String id); // <-- LINT WARNING HERE
-}
-````
-</details>
-
-### `disallow_repository_in_presentation`
--   **Purpose:** To decouple the **Presentation Layer** from the data access implementation details.
--   **Description:** Prevents presentation logic classes (like BLoCs, Cubits, or Providers) from depending directly on a `Repository`. The presentation layer should only depend on specific `UseCases` to execute business logic.
-
-<details>
-<summary>✅ Good Example</summary>
-
-````dart
-// Presentation manager file
-class AuthBloc {
-  // Correct: Depends on a specific UseCase.
-  final GetUserUsecase _getUserUsecase;
-  AuthBloc(this._getUserUsecase);
-}
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// Presentation manager file
-class AuthBloc {
-  // VIOLATION: Depends on the entire repository.
-  final AuthRepository _repository;
-  AuthBloc(this._repository); // <-- LINT WARNING HERE
-}
-````
-</details>
-
-### `disallow_model_return_from_repository`
--   **Purpose:** To ensure the **Repository Implementation** correctly maps data `Models` to domain `Entities`.
--   **Description:** This lint checks the public methods in a `RepositoryImpl` class. It enforces that the final return type is a pure `Entity`, guaranteeing that the mapping from `Model` to `Entity` happens inside the repository before the data is returned to a `UseCase`.
-
-<details>
-<summary>✅ Good Example</summary>
-
-````dart
-// Repository implementation file
-class AuthRepositoryImpl implements AuthRepository {
-  @override
-  FutureEither<UserEntity> getUser(String id) async {
-    // ... fetches userModel
-    return Right(userModel.toEntity()); // Correct: Returns an Entity.
-  }
-}
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// Repository implementation file
-class AuthRepositoryImpl implements AuthRepository {
-  @override
-  // VIOLATION: Method returns a `UserModel` instead of a `UserEntity`.
-  FutureEither<UserModel> getUser(String id) async { // <-- LINT WARNING HERE
-    return const Right(UserModel(id: '1'));
-  }
-}
-````
-</details>
-
-### `disallow_use_case_in_widget`
--   **Purpose:** To keep UI components clean of business logic invocation.
--   **Description:** Prevents UI widgets from directly calling a `UseCase`. All business logic should be triggered from a presentation manager (BLoC, Cubit, Provider), which then calls the `UseCase` and exposes the result as state to the UI.
-
-<details>
-<summary>✅ Good Example</summary>
-
-````dart
-// A widget that receives state from a BLoC/Provider.
-class UserProfile extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    // Correct: Listens to a provider to get data.
-    final user = ref.watch(userProvider); 
-    return Text(user.name);
-  }
-}
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// A widget that calls a use case directly.
-class UserProfile extends StatelessWidget {
-  final GetUserUsecase _usecase;
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(onPressed: () {
-      // VIOLATION: Calling a use case from a widget.
-      _usecase.call('123'); // <-- LINT WARNING HERE
-    });
-  }
-}
-````
-</details>
-
-### `disallow_flutter_imports_in_domain`
--   **Purpose:** To ensure the **Domain Layer** is platform-agnostic.
--   **Description:** Disallows any `import 'package:flutter/...'` statement in any domain layer file, guaranteeing that your core business logic is pure Dart and can be tested without a Flutter environment.
-
-<details>
-<summary>✅ Good Example</summary>
-````dart
-// domain/entities/user_entity.dart
-// Correct: No Flutter imports.
-import 'package:meta/meta.dart';
-
-class UserEntity { ... }
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-````dart
-// domain/entities/user_entity.dart
-// VIOLATION: Importing a Flutter package.
-import 'package:flutter/material.dart'; // <-- LINT WARNING HERE
-
-class UserEntity { ... }
-````
-</details>
-
-### `disallow_flutter_types_in_domain`
--   **Purpose:** To prevent UI-specific data types from polluting the **Domain Layer**.
--   **Description:** A companion to the rule above, this lint inspects method signatures and fields and disallows any types from the Flutter SDK, such as `Color`, `IconData`, or `Widget`.
-
-<details>
-<summary>✅ Good Example</summary>
-````dart
-// domain/entities/user_entity.dart
-class UserEntity {
-  // Correct: Uses pure Dart types.
-  final String id;
-  final int profileColorValue; // Storing as an integer is platform-agnostic.
-}
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-````dart
-// domain/entities/user_entity.dart
-import 'package:flutter/material.dart';
-
-class UserEntity {
-final String id;
-// VIOLATION: `Color` is a Flutter type.
-final Color profileColor; // <-- LINT WARNING HERE
-}
-````
-</details>
-
-### `enforce_model_to_entity_mapping`
--   **Purpose:** To ensure every **Model** has a defined way to be converted into an **Entity**.
--   **Description:** This lint checks every class that matches the `Model` naming convention and verifies that it has a `toEntity()` method. This guarantees a consistent mapping pattern across the entire data layer.
-
-<details>
-<summary>✅ Good Example</summary>
-
-````dart
-// data/models/user_model.dart
-class UserModel extends UserEntity {
-  // ... fields ...
-
-  // Correct: The method exists.
-  UserEntity toEntity() => UserEntity(id: id, name: name);
-}
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// data/models/user_model.dart
-// VIOLATION: The `toEntity()` method is missing.
-class UserModel extends UserEntity { // <-- LINT WARNING HERE
-  // ... fields ...
-  // Missing the `toEntity()` method.
-}
-````
-</details>
-
-### `enforce_model_inherits_entity`
--   **Purpose:** To guarantee structural compatibility between a **Model** and its **Entity**.
--   **Description:** Enforces that a class matching the `Model` naming convention must `extend` or `implement` its corresponding `Entity`. This makes the `toEntity()` mapping process safer and more logical.
-
-<details>
-<summary>✅ Good Example</summary>
-
-````dart
-// data/models/user_model.dart
-// Correct: Inherits from the entity.
-class UserModel extends UserEntity { ... }
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// data/models/user_model.dart
-// VIOLATION: `UserModel` does not extend or implement `UserEntity`.
-class UserModel { ... } // <-- LINT WARNING HERE
-````
-</details>
-
-### `enforce_layer_independence`
--   **Purpose:** To enforce the correct dependency flow for the entire application.
--   **Description:** This is the master rule for dependency direction. It checks `import` statements and ensures that Presentation -> Domain and Data -> Domain, but **never** the other way around.
-
-<details>
-<summary>✅ Good Example</summary>
-
-````dart
-// presentation/bloc/auth_bloc.dart
-// Correct: The presentation layer imports from the domain layer.
-import 'package:my_app/features/auth/domain/usecases/login_usecase.dart';
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// domain/usecases/login_usecase.dart
-// VIOLATION: The domain layer cannot import from the data layer.
-import 'package:my_app/features/auth/data/models/user_model.dart'; // <-- LINT WARNING HERE
-````
-</details>
-
-### `enforce_abstract_data_source_dependency`
--   **Purpose:** To enforce the Dependency Inversion Principle.
--   **Description:** Ensures that your `RepositoryImpl` depends on a **data source abstraction** (e.g., `AuthDataSource`) and not a **concrete implementation** (e.g., `DefaultAuthDataSource`).
-
-<details>
-<summary>✅ Good Example</summary>
-
-````dart
-// data/repositories/auth_repository_impl.dart
-class AuthRepositoryImpl implements AuthRepository {
-  // Correct: Depends on the abstraction.
-  final AuthDataSource _dataSource;
-  AuthRepositoryImpl(this._dataSource);
-}
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// data/repositories/auth_repository_impl.dart
-class AuthRepositoryImpl implements AuthRepository {
-  // VIOLATION: Depends on the concrete implementation.
-  final DefaultAuthDataSource _dataSource;
-  AuthRepositoryImpl(this._dataSource); // <-- LINT WARNING HERE
-}
-````
-</details>
-
-### `enforce_file_and_folder_location`
--   **Purpose:** To ensure files are located in the correct directories based on their names.
--   **Description:** This lint checks if a class named, for example, `AuthRepository` is located in a directory configured for domain repositories (e.g., `.../domain/contracts/`).
-
-<details>
-<summary>✅ Good Example</summary>
-
-````
-// File is located at: lib/features/auth/domain/contracts/auth_repository.dart
-// Correct: Location matches the `layer_definitions` config.
-abstract interface class AuthRepository { ... }
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````
-// File is located at: lib/features/auth/domain/repositories/auth_repository.dart
-// VIOLATION: The configured path is 'contracts', not 'repositories'.
-abstract interface class AuthRepository { ... } // <-- LINT WARNING HERE
-````
-</details>
-
-### `enforce_naming_conventions`
--   **Purpose:** To ensure all major classes follow a consistent naming format.
--   **Description:** This lint checks the names of classes in different sub-layers (`Entity`, `Model`, `UseCase`, `Repository`, `DataSource`) and verifies they match the templates defined in your configuration (e.g., `{{name}}Repository`).
-
-<details>
-<summary>✅ Good Example</summary>
-
-````dart
-// In a repository file:
-// Correct: Name matches the `{{name}}Repository` template.
-abstract interface class AuthRepository { ... }
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// In a repository file:
-// VIOLATION: Name does not match the `{{name}}Repository` template.
-abstract interface class AuthRepo { ... } // <-- LINT WARNING HERE
-````
-</details>
-
-### `enforce_custom_return_type`
--   **Purpose:** To enforce that all asynchronous operations in the domain and data layers return a consistent type.
--   **Description:** This lint checks the return types of methods in `UseCases` and `Repository` interfaces and ensures they match the configured type, which is typically a `Result` or `Either` type like your `FutureEither`.
-
-<details>
-<summary>✅ Good Example</summary>
-
-````dart
-// In a repository file:
-abstract interface class AuthRepository {
-  // Correct: Returns the configured `FutureEither` type.
-  FutureEither<UserEntity> getUser(String id);
-}
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// In a repository file:
-abstract interface class AuthRepository {
-  // VIOLATION: Returns a raw Future, not `FutureEither`.
-  Future<UserEntity> getUser(String id); // <-- LINT WARNING HERE
-}
-````
-</details>
-
-### `enforce_use_case_inheritance`
--   **Purpose:** To ensure all use case classes adhere to a standard contract.
--   **Description:** This lint verifies that any class identified as a `UseCase` extends or implements one of the base classes from `clean_architecture_core` (`UnaryUseCase` or `NullaryUseCase`).
-
-<details>
-<summary>✅ Good Example</summary>
-
-````dart
-// In a use case file:
-// Correct: Implements the base `UnaryUseCase`.
-class GetUserUsecase implements UnaryUseCase<UserEntity, String> { ... }
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// In a use case file:
-// VIOLATION: Is a plain class, does not implement a base use case.
-class GetUserUsecase { ... } // <-- LINT WARNING HERE
-````
-</details>
-
-### `enforce_repository_inheritance`
--   **Purpose:** To ensure all repository interfaces adhere to a standard contract.
--   **Description:** This lint verifies that any abstract class identified as a domain `Repository` extends or implements the base `Repository` class from `clean_architecture_core`.
-
-<details>
-<summary>✅ Good Example</summary>
-
-````dart
-// In a repository file:
-// Correct: Implements the base `Repository`.
-abstract interface class AuthRepository implements Repository { ... }
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// In a repository file:
-// VIOLATION: Is a plain interface, does not implement the base `Repository`.
-abstract interface class AuthRepository { ... } // <-- LINT WARNING HERE
-````
-</details>
-
-### `missing_use_case`
--   **Purpose:** To identify business logic in a repository that does not have a corresponding `UseCase`.
--   **Description:** This is an "assistant" lint. It scans the methods of a `Repository` interface and checks if a corresponding `UseCase` file exists. If not, it provides a warning and a **Quick Fix** to generate the boilerplate `UseCase` class automatically.
-
-<details>
-<summary>✅ Good Example</summary>
-
-````dart
-// In a repository file:
-// (No warning appears because `lib/.../usecases/get_user.dart` exists)
-abstract interface class AuthRepository implements Repository {
-  FutureEither<UserEntity> getUser(String id);
-}
-````
-</details>
-
-<details>
-<summary>❌ Bad Example</summary>
-
-````dart
-// In a repository file:
-abstract interface class AuthRepository implements Repository {
-  // VIOLATION: No file exists at `lib/.../usecases/login_usecase.dart`.
-  FutureEither<void> login(String email, String password); // <-- LINT WARNING HERE
-}
-````
-</details>
+1.  [**Concepts & Philosophies**](#1-concepts--philosophies)
+2.  [**Core Declarations**](#2-core-declarations-the-configurations)
+3.  [**Auxiliary Declarations**](#3-auxiliary)
+4.  [**Policies (The Rules)**](#4-policies-enforcing-behavior)
+5.  [**Automation (Code Generation)**](#5-automation-actions--templates)
+6.  [**Reference: Available Options**](#6-reference-available-options)
 
 ---
 
-## Full Configuration
+## [1] 💡 Concepts & Philosophies
 
-For a complete, well-documented configuration file with all available options, please refer to the `analysis_options.yaml` in our [example project](../../example/analysis_options.yaml).
+To effectively lint a large project, we must understand its structure on two axes:
+
+### **Modules (Horizontal Slicing)**
+Modules represent the **Features** or high-level groupings of your application.
+*   *Example:* `Auth`, `Cart`, `Profile`, `Core`.
+*   A module usually contains multiple layers.
+
+### **Components (Vertical Slicing)**
+Components represent the **Layers** or technical roles within a module.
+*   *Example:* `Entity`, `Repository`, `UseCase`, `Widget`.
+*   A component is defined by what it *is* (Structure) and where it *lives* (Path).
+
+The Linter combines these to identify a file:
+> `lib/features/auth/domain/usecases/login.dart`
+>
+> *   **Module:** `auth` (Derived from `features/${name}`)
+> *   **Component:** `domain.usecase` (Derived from path `domain/usecases`)
 
 ---
 
-[license_badge]: https://img.shields.io/badge/license-MIT-blue.svg
-[license_link]: https://opensource.org/licenses/MIT
-[very_good_analysis_badge]: https://img.shields.io/badge/style-very_good_analysis-B22C89.svg
-[very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
-[pub_badge]: https://img.shields.io/pub/v/clean_architecture_kit.svg
-[pub_link]: https://pub.dev/packages/clean_architecture_kit
+## [2] 🎯 Core Declarations (The Configurations) 
+
+The `architecture.yaml` file drives everything.
+
+### [2.1] Modules (`modules`)
+Defines how to parse high-level folders.
+
+```yaml
+modules:
+  # Dynamic Module: Matches any folder inside 'features/'
+  # The '${name}' placeholder captures the module name (e.g., 'auth').
+  feature:
+    path: 'features/{{name}}'
+    default: true # Fallback if no other module matches
+
+  # Static Modules: Exact path matches
+  core: 'core'
+  shared: 'shared'
+```
+
+### [2.2] Components (`components`)
+Defines the taxonomy of your architecture. Supports hierarchy to share configuration (children 
+inherit `path` prefixes).
+
+**Key Properties:**
+*   **`mode`**: Critical for resolution.
+    *   `namespace`: A folder/layer container. Cannot match a file.
+    *   `file`: A specific code unit (e.g., a class file).
+    *   `part`: A symbol defined *inside* a file (e.g., an Event class inside a Bloc file).
+*   **`kind`**: The Dart element type (`class`, `enum`, `mixin`, `extension`, `typedef`).
+*   **`modifier`**: Dart keywords (`abstract`, `sealed`, `interface`).
+*   **`pattern`**: Naming convention regex.
+    *   `${name}`: The core name (PascalCase).
+    *   `${affix}`: Wildcard match.
+
+```yaml
+components:
+  # Parent Component (Namespace)
+  .domain:
+    path: 'domain'
+    mode: namespace
+
+    # Child Component (Concrete File)
+    .port:
+      path: 'ports'       # Full path becomes 'domain/ports'
+      mode: file
+      kind: class
+      modifier: [ abstract, interface ] # Must be 'abstract interface class'
+      pattern: '{{name}}Port'            # e.g. AuthPort
+```
+
+## [3] 🧩 Auxiliary Declarations 
+
+### [3.1] Types (`types`)
+Maps abstract concepts (like "Result Wrapper") to concrete Dart types. This decouples your rules 
+from specific class names.
+
+```yaml
+definitions:
+  # Define a type for Type Safety checks
+  result_wrapper:
+    types: ['FutureEither', 'Either'] # Matches these class names
+    imports: ['package:core/utils/types.dart'] # Checks if this is imported
+    # Optional: If code uses 'package:fpdart/src/...', rewrite it to public API
+    rewrites: ['package:fpdart/src/either.dart'] 
+```
+
+### [3.2] Vocabularies (`vocabularies`)
+The linter uses Natural Language Processing (NLP) to check if class names make grammatical sense 
+(e.g., "UseCases must be Verb-Noun"). You can extend the dictionary with domain-specific terms.
+
+```yaml
+vocabularies:
+  nouns: ['auth', 'todo', 'kyc']
+  verbs: ['upsert', 'rebase']
+```
+
+---
+
+## [4] 📜 Policies (Enforcing Behavior) 
+
+Policies define what is required, allowed, or forbidden.
+
+### [4.1] Dependencies (`dependencies`)
+**Purpose:** Enforce the Dependency Rule (Architecture Boundaries).
+**Logic:** Can `Module A` import `Module B`? Can `Layer X` import `Layer Y`?
+
+```yaml
+dependencies:
+  - on: domain
+    # Whitelist approach: Domain can ONLY import these
+    allowed: [ 'domain', 'core' ]
+    # Blacklist approach: Domain NEVER imports Flutter
+    forbidden:
+      import: [ 'package:flutter/**', 'dart:ui' ]
+```
+
+### [4.2] Type Safety (`type_safeties`)
+**Purpose:** Enforce method signatures.
+**Logic:** "Methods in this layer must return X" or "Parameters must not be Y".
+
+```yaml
+type_safeties:
+  - on: domain.usecase
+    allowed:
+      kind: return
+      definition: 'result_wrapper' # Must return FutureEither<T>
+    forbidden:
+      kind: return
+      definition: 'future' # Cannot return raw Future<T>
+```
+
+### [4.3] Exceptions (`exceptions`)
+**Purpose:** Enforce error handling flow.
+**Logic:** Who is a `producer` (throws), `propagator` (rethrows), or `boundary` (catches)?
+
+```yaml
+exceptions:
+  - on: data.repository
+    role: boundary
+    required:
+      - operation: catch_return # Must have try/catch that returns (Left)
+    forbidden:
+      - operation: throw        # Never crash
+```
+
+### [4.4] Structure (`members` & `annotations`)
+**Purpose:** Enforce internal class structure.
+
+```yaml
+members:
+  - on: domain.entity
+    required:
+      - kind: field
+        identifier: 'id' # Must have an 'id' field
+    forbidden:
+      - kind: setter # Immutable: No setters allowed
+
+annotations:
+  - on: domain.usecase
+    required:
+      - type: 'Injectable'
+```
+
+### [4.5] Relationships (`relationships`)
+**Purpose:** Enforce file parity (1-to-1 mappings).
+**Logic:** "For every Method in a Port, there must be a UseCase file."
+
+```yaml
+relationships:
+  - on: domain.port
+    kind: method
+    required:
+      component: domain.usecase
+      action: create_usecase # Trigger this action if missing
+```
+
+---
+
+## [5] 🤖 Automation 
+
+The linter acts as a code generator when rules are broken.
+
+### [5.1] Actions (`actions`)
+Defines the logic for a Quick Fix. Uses a **Dart-like Expression Language** for variables.
+
+```yaml
+actions:
+  create_usecase:
+    description: 'Generate UseCase'
+    trigger:
+      error_code: 'arch_parity_missing'
+      component: 'domain.port'
+    
+    # 1. Source: Read data from the method triggering the error
+    source:
+      scope: current
+      element: method
+
+    # 2. Target: Write a new file in the usecases folder
+    target:
+      scope: related
+      component: 'domain.usecase'
+    
+    write:
+      strategy: file
+      filename: '${source.name.snakeCase}.dart' # Expression interpolation
+
+    # 3. Variables: Prepare data for Mustache
+    variables:
+      # Expressions can access AST nodes and Config
+      className: '${source.name.pascalCase}'
+      baseClass: "config.definitionFor('usecase.base').type"
+      
+      # Logic: Check list size
+      hasParams: 'source.parameters.length > 0'
+      
+    template_id: 'usecase_template'
+```
+
+### [5.2] Templates (`templates`)
+Standard Mustache templates. Logic-less.
+
+```yaml
+templates:
+  usecase_template:
+    file: 'templates/usecase.mustache'
+```
+
+**Inside `usecase.mustache`:**
+```dart
+class {{className}} extends {{baseClass}} {
+  {{#hasParams}}
+    // Render params...
+  {{/hasParams}}
+}
+```
+
+---
+
+## [6] 🔗 References (Available Options)
+
+### Component Options
+| Option         | Values                                                      | Description                                 |
+|:---------------|:------------------------------------------------------------|:--------------------------------------------|
+| **`mode`**     | `file`                                                      | The component is the file itself (Default). |
+|                | `part`                                                      | The component is a symbol *inside* a file.  |
+|                | `namespace`                                                 | The component is just a folder.             |
+| **`kind`**     | `class`, `enum`, `mixin`, `extension`, `typedef`            | The Dart declaration type.                  |
+| **`modifier`** | `abstract`, `sealed`, `interface`, `base`, `final`, `mixin` | Dart keywords.                              |
+
+### Write Strategies
+| Strategy      | Description                                       |
+|:--------------|:--------------------------------------------------|
+| **`file`**    | Creates a new file or overwrites an existing one. |
+| **`inject`**  | Inserts code into an existing class body.         |
+| **`replace`** | Replaces the source node entirely.                |
+
+### Expression Engine Variables
+Available in `actions` -> `variables`:
+
+*   **`source`**: The AST Node (Class, Method, Field).
+    *   `.name`: String (with properties `.pascalCase`, `.snakeCase`, etc.)
+    *   `.parent`: The parent node.
+    *   `.file.path`: Absolute path.
+    *   `.returnType`: TypeWrapper (for methods).
+    *   `.parameters`: ListWrapper (for methods).
+*   **`config`**: The Architecture Config.
+    *   `.definitionFor('key')`: Looks up a type definition.
+    *   `.namesFor('componentId')`: Looks up naming patterns.
+*   **`definitions`**: Direct map access to definitions.
+
+---
+
+
+## 🧠 Smart Resolution Logic
+
+The linter uses a sophisticated **Component Refiner** to identify files. It doesn't just look at 
+file paths; it looks at:
+1.  **Path Depth**: Deeper matches are preferred.
+2.  **Naming Patterns**: Does the class name match `${name}Repository`?
+3.  **Inheritance**: Does the class extend `BaseRepository`?
+4.  **Structure**: Is it `abstract` vs `concrete`?
+
+This ensures that even if you have an Interface (`AuthSource`) and Implementation 
+(`AuthSourceImpl`) in the *same folder*, the linter correctly applies different rules to each.
+
+### How the Resolution Engine Works
+
+When a file is analyzed, the **Component Refiner** calculates a score to identify it. This allows 
+`AuthSource` (Interface) and `AuthSourceImpl` (Implementation) to live in the same folder but be 
+treated differently.
+
+**Scoring Criteria:**
+1.  **Path Match:** Deeper directory matches get higher scores.
+2.  **Mode:** `mode: file` beats `mode: part`.
+3.  **Naming:** Matches configured `${name}Pattern`.
+4.  **Inheritance:** Implements required base classes defined in `inheritances`.
+5.  **Structure:** Matches required `kind` (class/enum) and `modifier` (abstract/concrete).
+
+*Example:* A concrete class `AuthImpl` will fail to match a component that requires 
+`modifier: abstract`, forcing the resolver to pick the Implementation component instead.

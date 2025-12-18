@@ -1,11 +1,8 @@
-# clean_feature_first/architecture.yaml
+# clean_feature_first/recommended.yaml
 
 # Include the company-wide standard configuration
 #include: ../../architecture_standards/clean_feature_first_recommended.yaml
 #include: package:acme_architecture/presets/clean_architecture.yaml
-#include:
-#  - package:acme_architecture/presets/clean_architecture.yaml
-#  - ../../formz_component.yaml
 
 # ==================================================================================================
 # ARCHITECTURE CONFIGURATION
@@ -1499,11 +1496,13 @@ actions:
           type: item.type
 
 
+
 # ==================================================================================================
 # [9] TEMPLATES (The View)
 # Reusable Mustache templates.
 # ==================================================================================================
 templates:
+
   usecase_functional:
     file: 'templates/usecase_functional.dart.mustache'
     description: 'Generates a UseCase class implementing UnaryUsecase/NullaryUsecase'

@@ -1,34 +1,45 @@
-# Clean Architecture Kit - Example Project
+# Clean Feature-First Example
 
-This Flutter project serves as a comprehensive demonstration of the `clean_architecture_kit` linter package.
+This is a reference application demonstrating how to use `architecture_clean` and `architecture_lints` to enforce a strict **Feature-First Clean Architecture**.
 
-## Purpose
+## 📂 Project Structure
 
-The primary purpose of this project is to showcase every single lint rule provided by the package. It is configured to be a "living document" where you can see correct implementations and, more importantly, common architectural violations and the warnings they produce.
+This project organizes code by **Feature** first, then by **Layer**.
 
-## Exploring the Lints
+```text
+lib/
+├── core/                  # Shared kernel (Failure, UseCase base, etc.)
+└── features/
+    └── auth/              # Feature Module
+        ├── domain/        # Inner Circle (Entities, Ports, UseCases)
+        ├── data/          # Outer Circle (Models, Sources, Repositories)
+        └── presentation/  # UI (Pages, Managers/Blocs)
+```
 
-The best way to see the linter in action is to explore the files ending in `.violations.dart`. These files are intentionally filled with code that breaks the architectural rules.
+## 🧪 Seeing the Lints in Action
 
-For example, navigate to:
+This project contains intentional "violations" to demonstrate the linter's capabilities.
 
--   `lib/features/auth/domain/contracts/auth_repository.violations.dart`
--   `lib/features/auth/presentation/widgets/login_button.violations.dart`
+1.  **Open `lib/features/auth/domain/usecases/login.dart`**:
+    *   *Notice:* If you remove `implements UnaryUsecase`, the linter will warn you.
+    *   *Fix:* Use the Quick Fix "Generate Functional UseCase" to regenerate the file.
 
-When you open these files in a configured IDE (like VS Code or Android Studio), you will see warnings and info diagnostics highlighting the exact lines of code that violate the rules defined in `analysis_options.yaml`.
+2.  **Open `lib/features/auth/data/repositories/auth_repository_impl.dart`**:
+    *   *Check:* Try importing a Widget. The **Boundary Rule** will flag it immediately.
 
-## How to Run
+3.  **Open `lib/features/auth/domain/ports/auth_port.dart`**:
+    *   *Check:* Change a return type from `FutureEither<User>` to `Future<User>`. The **Type Safety Rule** will flag the raw Future as unsafe.
 
-1.  **Ensure the workspace is bootstrapped.** From the root of the monorepo, run:
-    ```bash
-    melos bootstrap
-    ```
-2.  **Run the analyzer via Melos:** To run a command-line analysis of this example project, execute the following from the root of the monorepo:
-    ```bash
-    melos run analyze:example
-    ```
-3.  **Open in your IDE:** For the best experience, open the entire `clean_architecture_workspace` in your IDE. The Dart analyzer will automatically run in the background, and you'll see the lints appear as you browse the violation files.
+## 🏃‍♂️ Running the Linter
 
-## Project Structure
+To see all architectural violations in the terminal:
 
-This example uses the **feature-first** project structure, as configured in its `analysis_options.yaml`. All authentication-related code is colocated under `lib/features/auth/`, with `domain`, `data`, and `presentation` sub-folders.
+```bash
+# From the workspace root
+melos analyze
+```
+
+[license_badge]: https://img.shields.io/badge/license-MIT-blue.svg
+[license_link]: https://opensource.org/licenses/MIT
+[very_good_analysis_badge]: https://img.shields.io/badge/style-very_good_analysis-B22C89.svg
+[very_good_analysis_link]: https://pub.dev/packages/very_good_analysis

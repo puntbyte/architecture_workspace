@@ -1,5 +1,5 @@
 name: architecture_workspace
-
+description: Monorepo for Architecture Lints and Presets.
 publish_to: none
 
 environment:
@@ -19,16 +19,25 @@ melos:
     analyze:
       name: Custom Lint Analysis
       description: Runs custom_lint on the example project.
+      run: dart run custom_lint
       packageFilters:
         scope:
           - clean_feature_first
-      run: dart run custom_lint
 
     watch:
       name: Custom Lint Watch
       description: Runs custom_lint in watch mode on the example project to test plugin changes.
+      run: dart run custom_lint --watch
       packageFilters:
         scope:
           - clean_feature_first
       # The command to run inside the example folder
-      run: dart run custom_lint --watch
+
+    test:
+      name: test
+      description: Run all unit tests in the workspace.
+      run: dart test
+      packageFilters:
+        scope:
+          - architecture_lints
+        dirExists: test
