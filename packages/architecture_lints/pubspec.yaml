@@ -2,8 +2,9 @@ name: architecture_lints
 description: A configuration-driven, architecture-agnostic linter for Dart & Flutter.
 version: 0.1.0
 
-repository: https://github.com/your_org/architecture_workspace
-
+repository: https://github.com/puntbyte/architecture_workspace/tree/master/packages/architecture_lints
+homepage: https://github.com/puntbyte/architecture_workspace/tree/master/packages/architecture_lints
+issue_tracker: https://github.com/puntbyte/architecture_workspace/issues
 
 topics:
   - lint
