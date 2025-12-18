@@ -107,7 +107,7 @@ class VariableResolver {
     return _engine.unwrap(result);
   }
 
-  Map<String, dynamic> _buildCollectionMeta(Iterable items) {
+  Map<String, dynamic> _buildCollectionMeta(Iterable<dynamic> items) {
     final list = items.toList();
     return {
       'items': list,

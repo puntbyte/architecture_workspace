@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a3767faf-9392-4c84-9047-afac6d256402" name="Changes" comment="Refactor: Enhance `ListWrapper` type safety and clean up project files&#10;&#10;- Strengthened the type safety of `ListWrapper` by specifying `dynamic` for its generic type parameter in the `MemberAccessor`.&#10;- Deleted the obsolete `custom_lint.dart` entrypoint from `packages/architecture_lints/bin/` as it is no longer needed.">
-      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
+    <list default="true" id="a3767faf-9392-4c84-9047-afac6d256402" name="Changes" comment="Cleanup and refactor project files&#10;&#10;- Standardized import order across multiple files for consistency.&#10;- Removed trailing whitespace, redundant blank lines, and unnecessary comments throughout the codebase and example files.&#10;- Added `format` and `fix` commands to the root `pubspec.yaml` to streamline code formatting and linting for the workspace.&#10;- Refactored `ArchitectureFix.runProtected` to be an `async` method.&#10;- Cleaned up various files by removing commented-out code and empty constructors.&#10;- Made minor logic and formatting improvements in `MapExtensions`, `TokenSyntax`, and other utility classes.">
+      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/src/engines/file/related_file_resolver.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/src/engines/file/related_file_resolver.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/src/engines/variable/variable_resolver.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/src/engines/variable/variable_resolver.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -132,7 +133,15 @@
       <option name="project" value="LOCAL" />
       <updated>1766077323101</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Cleanup and refactor project files&#10;&#10;- Standardized import order across multiple files for consistency.&#10;- Removed trailing whitespace, redundant blank lines, and unnecessary comments throughout the codebase and example files.&#10;- Added `format` and `fix` commands to the root `pubspec.yaml` to streamline code formatting and linting for the workspace.&#10;- Refactored `ArchitectureFix.runProtected` to be an `async` method.&#10;- Cleaned up various files by removing commented-out code and empty constructors.&#10;- Made minor logic and formatting improvements in `MapExtensions`, `TokenSyntax`, and other utility classes.">
+      <option name="closed" value="true" />
+      <created>1766077716311</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1766077716311</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -144,6 +153,7 @@
     <MESSAGE value="Refactor: Remove all legacy and experimental tests&#10;&#10;- Deleted the entire suite of old and experimental tests from the `packages/architecture_lints/test/` directory to clean up the project and remove obsolete code.&#10;- Removed legacy test helpers, mocks, fakes, and data builders, including `analyzer_test_utils.dart`, `test_resolver.dart`, and `architecture_config_mock.dart`.&#10;- Commented out the import and usage of `debug_action_context` and `debug_component_identity` lints in `architecture_lints.dart` to disable them from the plugin." />
     <MESSAGE value="Refactor: Remove all legacy tests and disable debug lints&#10;&#10;- Deleted the entire `test/` directory in `packages/architecture_lints`, removing all legacy and experimental test suites, helpers, mocks, and data builders.&#10;- Deleted `packages/architecture_lints/bin/custom_lint.dart` as it is no longer required." />
     <MESSAGE value="Refactor: Enhance `ListWrapper` type safety and clean up project files&#10;&#10;- Strengthened the type safety of `ListWrapper` by specifying `dynamic` for its generic type parameter in the `MemberAccessor`.&#10;- Deleted the obsolete `custom_lint.dart` entrypoint from `packages/architecture_lints/bin/` as it is no longer needed." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor: Enhance `ListWrapper` type safety and clean up project files&#10;&#10;- Strengthened the type safety of `ListWrapper` by specifying `dynamic` for its generic type parameter in the `MemberAccessor`.&#10;- Deleted the obsolete `custom_lint.dart` entrypoint from `packages/architecture_lints/bin/` as it is no longer needed." />
+    <MESSAGE value="Cleanup and refactor project files&#10;&#10;- Standardized import order across multiple files for consistency.&#10;- Removed trailing whitespace, redundant blank lines, and unnecessary comments throughout the codebase and example files.&#10;- Added `format` and `fix` commands to the root `pubspec.yaml` to streamline code formatting and linting for the workspace.&#10;- Refactored `ArchitectureFix.runProtected` to be an `async` method.&#10;- Cleaned up various files by removing commented-out code and empty constructors.&#10;- Made minor logic and formatting improvements in `MapExtensions`, `TokenSyntax`, and other utility classes." />
+    <option name="LAST_COMMIT_MESSAGE" value="Cleanup and refactor project files&#10;&#10;- Standardized import order across multiple files for consistency.&#10;- Removed trailing whitespace, redundant blank lines, and unnecessary comments throughout the codebase and example files.&#10;- Added `format` and `fix` commands to the root `pubspec.yaml` to streamline code formatting and linting for the workspace.&#10;- Refactored `ArchitectureFix.runProtected` to be an `async` method.&#10;- Cleaned up various files by removing commented-out code and empty constructors.&#10;- Made minor logic and formatting improvements in `MapExtensions`, `TokenSyntax`, and other utility classes." />
   </component>
 </project>

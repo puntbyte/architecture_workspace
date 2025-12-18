@@ -82,6 +82,7 @@ class RelatedFileResolver with NamingLogic, RelationshipLogic {
     return null;
   }
 
+  /*
   /// Reconstructs the full directory path by walking up the ID hierarchy.
   /// id: 'data.model' -> path: 'data/models'
   String _calculateFullPath(ComponentDefinition component) {
@@ -106,7 +107,7 @@ class RelatedFileResolver with NamingLogic, RelationshipLogic {
     }
 
     return fullPath;
-  }
+  }*/
 }
 
 extension _StringExt on String {
