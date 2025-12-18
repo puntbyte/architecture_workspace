@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a3767faf-9392-4c84-9047-afac6d256402" name="Changes" comment="Refactor: Remove all legacy and experimental tests&#10;&#10;- Deleted the entire suite of old and experimental tests from the `packages/architecture_lints/test/` directory to clean up the project and remove obsolete code.&#10;- Removed legacy test helpers, mocks, fakes, and data builders, including `analyzer_test_utils.dart`, `test_resolver.dart`, and `architecture_config_mock.dart`.&#10;- Commented out the import and usage of `debug_action_context` and `debug_component_identity` lints in `architecture_lints.dart` to disable them from the plugin.">
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/bin/custom_lint.dart" beforeDir="false" />
+    <list default="true" id="a3767faf-9392-4c84-9047-afac6d256402" name="Changes" comment="Refactor: Remove all legacy tests and disable debug lints&#10;&#10;- Deleted the entire `test/` directory in `packages/architecture_lints`, removing all legacy and experimental test suites, helpers, mocks, and data builders.&#10;- Deleted `packages/architecture_lints/bin/custom_lint.dart` as it is no longer required.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/src/engines/expression/wrappers/list_wrapper.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/src/engines/expression/wrappers/list_wrapper.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -116,7 +117,15 @@
       <option name="project" value="LOCAL" />
       <updated>1766075530338</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Refactor: Remove all legacy tests and disable debug lints&#10;&#10;- Deleted the entire `test/` directory in `packages/architecture_lints`, removing all legacy and experimental test suites, helpers, mocks, and data builders.&#10;- Deleted `packages/architecture_lints/bin/custom_lint.dart` as it is no longer required.">
+      <option name="closed" value="true" />
+      <created>1766075856087</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1766075856087</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -126,6 +135,7 @@
     <MESSAGE value="Docs: Rework documentation and add configuration presets&#10;&#10;- Rewrote the `architecture_lints` `README.md` to be a comprehensive configuration manual for the `architecture.yaml` file, detailing modules, components, policies, and actions.&#10;- Overhauled the `architecture_clean` `README.md` to position it as a preset for `architecture_lints`, explaining its provided base classes, lint presets, and code generation templates.&#10;- Added a `recommended.yaml` preset to `architecture_clean`, providing a complete, well-documented configuration for a feature-first clean architecture.&#10;- Introduced new code generation templates to `architecture_clean` for creating Freezed models (`model_freezed.dart.mustache`), repository implementations (`repository_impl.dart.mustache`), and `toEntity` methods (`model_to_entity_method.dart.mustache`).&#10;- Updated the main `README.md` to reflect the new package structure (`architecture_lints` as the engine, `architecture_clean` as the preset).&#10;- Refined the example project's `README.md` to better guide users through the demonstration of the linting rules.&#10;- Added new IDE configuration files for IntelliJ (`.idea/*.xml`)." />
     <MESSAGE value="Docs: Prepare for initial beta release&#10;&#10;- Replaced the detailed version history in `architecture_lints/CHANGELOG.md` with a summary for the initial `0.1.0` beta release.&#10;- Updated `pubspec.yaml` in the `architecture_lints` package to include `homepage` and `issue_tracker` URLs.&#10;- Updated IntelliJ IDEA workspace configuration (`.idea/workspace.xml`)." />
     <MESSAGE value="Refactor: Remove all legacy and experimental tests&#10;&#10;- Deleted the entire suite of old and experimental tests from the `packages/architecture_lints/test/` directory to clean up the project and remove obsolete code.&#10;- Removed legacy test helpers, mocks, fakes, and data builders, including `analyzer_test_utils.dart`, `test_resolver.dart`, and `architecture_config_mock.dart`.&#10;- Commented out the import and usage of `debug_action_context` and `debug_component_identity` lints in `architecture_lints.dart` to disable them from the plugin." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor: Remove all legacy and experimental tests&#10;&#10;- Deleted the entire suite of old and experimental tests from the `packages/architecture_lints/test/` directory to clean up the project and remove obsolete code.&#10;- Removed legacy test helpers, mocks, fakes, and data builders, including `analyzer_test_utils.dart`, `test_resolver.dart`, and `architecture_config_mock.dart`.&#10;- Commented out the import and usage of `debug_action_context` and `debug_component_identity` lints in `architecture_lints.dart` to disable them from the plugin." />
+    <MESSAGE value="Refactor: Remove all legacy tests and disable debug lints&#10;&#10;- Deleted the entire `test/` directory in `packages/architecture_lints`, removing all legacy and experimental test suites, helpers, mocks, and data builders.&#10;- Deleted `packages/architecture_lints/bin/custom_lint.dart` as it is no longer required." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor: Remove all legacy tests and disable debug lints&#10;&#10;- Deleted the entire `test/` directory in `packages/architecture_lints`, removing all legacy and experimental test suites, helpers, mocks, and data builders.&#10;- Deleted `packages/architecture_lints/bin/custom_lint.dart` as it is no longer required." />
   </component>
 </project>
