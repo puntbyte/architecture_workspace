@@ -36,22 +36,22 @@ class EditApplicator {
         case WriteStrategy.replace:
           builder.addReplacement(
             SourceRange(sourceNode.offset, sourceNode.length),
-                (b) => b.write(code),
+            (b) => b.write(code),
           );
       }
     }, customPath: editPath);
   }
 
   void _applyFileEdit(
-      DartFileEditBuilder builder,
-      String code,
-      String? targetPath,
-      String currentPath,
-      ResolvedUnitResult unitResult,
-      ) {
+    DartFileEditBuilder builder,
+    String code,
+    String? targetPath,
+    String currentPath,
+    ResolvedUnitResult unitResult,
+  ) {
     if (targetPath != null && targetPath != currentPath) {
       // Creating/Overwriting NEW file
-      builder.addSimpleReplacement(SourceRange(0, 0), code);
+      builder.addSimpleReplacement(const SourceRange(0, 0), code);
     } else {
       // Appending to CURRENT file
       builder.addSimpleInsertion(unitResult.unit.end, '\n$code');
@@ -59,11 +59,11 @@ class EditApplicator {
   }
 
   void _applyInjectionEdit(
-      DartFileEditBuilder builder,
-      String code,
-      AstNode sourceNode,
-      WritePlacement placement,
-      ) {
+    DartFileEditBuilder builder,
+    String code,
+    AstNode sourceNode,
+    WritePlacement placement,
+  ) {
     final classNode = sourceNode.thisOrAncestorOfType<ClassDeclaration>();
 
     int offset;

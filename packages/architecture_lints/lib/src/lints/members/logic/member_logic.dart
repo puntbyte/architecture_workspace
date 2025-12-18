@@ -1,9 +1,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:architecture_lints/src/schema/constraints/member_constraint.dart';
 import 'package:architecture_lints/src/schema/enums/member_kind.dart';
 import 'package:architecture_lints/src/schema/enums/member_modifier.dart';
 import 'package:architecture_lints/src/schema/enums/member_visibility.dart';
-import 'package:architecture_lints/src/schema/constraints/member_constraint.dart';
 
 mixin MemberLogic {
   bool matchesConstraint(ClassMember member, MemberConstraint constraint) {

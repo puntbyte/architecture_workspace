@@ -12,12 +12,13 @@ import 'package:fpdart/fpdart.dart';
 
 // LINT: [1] enforce_layer_independence
 // REASON: Data layer should not import Presentation layer.
-import 'package:clean_feature_first/features/auth/presentation/pages/home_page.dart'; // <-- LINT WARNING HERE
+// <-- LINT WARNING HERE
 
 // LINT: [3] arch_naming_pattern
 // REASON: Name `AuthService` does not match pattern `{{kind}}{{name}}Repository`.
 // ignore: arch_naming_pattern, arch_type_missing_base, arch_annot_missing
-class AuthService implements AuthPort { //! <-- LINT WARNING HERE (Missing Annotation & Bad Name)
+class AuthService implements AuthPort {
+  //! <-- LINT WARNING HERE (Missing Annotation & Bad Name)
 
   // LINT: [4] arch_member_forbidden
   // REASON: Must depend on `AuthSource` (Interface), not `Default...` (Concrete).
@@ -59,7 +60,8 @@ class AuthService implements AuthPort { //! <-- LINT WARNING HERE (Missing Annot
 // LINT: [8] enforce_repository_contract
 // REASON: Repositories must implement a Domain Port (Interface).
 // ignore: enforce_annotations
-class RogueRepository { // <-- LINT WARNING HERE
+class RogueRepository {
+  // <-- LINT WARNING HERE
   void doSomething() {}
 }
 

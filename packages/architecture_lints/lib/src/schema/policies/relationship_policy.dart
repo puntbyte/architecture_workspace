@@ -1,7 +1,7 @@
-import 'package:architecture_lints/src/schema/enums/relationship_kind.dart';
-import 'package:architecture_lints/src/schema/enums/relationship_visibility.dart';
 import 'package:architecture_lints/src/schema/constants/config_keys.dart';
+import 'package:architecture_lints/src/schema/enums/relationship_kind.dart';
 import 'package:architecture_lints/src/schema/enums/relationship_operation.dart';
+import 'package:architecture_lints/src/schema/enums/relationship_visibility.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
 import 'package:meta/meta.dart';
 

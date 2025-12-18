@@ -38,7 +38,6 @@ class _ArchitectureLintsPlugin extends PluginBase {
   List<LintRule> getLintRules(CustomLintConfigs configs) => [
     //const DebugComponentIdentity(),
     //const DebugActionContext(),
-
     const OrphanFileRule(),
 
     const NamingPatternRule(),

@@ -3,8 +3,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:clean_feature_first/features/auth/domain/usecases/request_login.dart';
 
-import 'package:bloc/bloc.dart';
-
 // ignore: arch_type_missing_base
 class AuthBloc extends Cubit<void> {
   final RequestLogin _loginUser;
@@ -16,7 +14,6 @@ class AuthBloc extends Cubit<void> {
     await _loginUser((username: 'a', password: 'b'));
   }
 }
-
 
 sealed class AuthEvent {}
 

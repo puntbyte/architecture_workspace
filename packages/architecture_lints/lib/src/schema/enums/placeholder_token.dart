@@ -16,7 +16,7 @@ enum PlaceholderToken {
     return PlaceholderToken.values.firstWhereOrNull((token) => token.template == template);
   }
 
-  String get template => switch(this) {
+  String get template => switch (this) {
     PlaceholderToken.name => TokenSyntax.wrap('name'),
     PlaceholderToken.affix => TokenSyntax.wrap('affix'),
   };

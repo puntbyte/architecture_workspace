@@ -8,9 +8,9 @@ import 'package:meta/meta.dart';
 abstract class ArchitectureFixBase extends DartFix {
   @override
   Future<void> startUp(
-      CustomLintResolver resolver,
-      CustomLintContext context,
-      ) async {
+    CustomLintResolver resolver,
+    CustomLintContext context,
+  ) async {
     try {
       if (!context.sharedState.containsKey(ArchitectureConfig)) {
         final config = await ConfigLoader.loadFromContext(resolver.path);
@@ -28,12 +28,12 @@ abstract class ArchitectureFixBase extends DartFix {
 
   @override
   void run(
-      CustomLintResolver resolver,
-      ChangeReporter reporter,
-      CustomLintContext context,
-      Diagnostic analysisError,
-      List<Diagnostic> others,
-      ) {
+    CustomLintResolver resolver,
+    ChangeReporter reporter,
+    CustomLintContext context,
+    Diagnostic analysisError,
+    List<Diagnostic> others,
+  ) {
     try {
       final config = context.sharedState[ArchitectureConfig] as ArchitectureConfig?;
       final unitResult = context.sharedState[ResolvedUnitResult] as ResolvedUnitResult?;
@@ -48,7 +48,7 @@ abstract class ArchitectureFixBase extends DartFix {
         config: config,
         unitResult: unitResult,
       );
-    } catch (e, stack) {
+    } catch (e) {
       // print('[ArchitectureFix] Execution Failed: $e\n$stack');
     }
   }

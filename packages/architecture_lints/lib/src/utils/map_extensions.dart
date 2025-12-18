@@ -75,12 +75,10 @@ extension MapExtensions on Map<dynamic, dynamic> {
 
     if (raw is List) {
       // ensure all elements are strings
-      if (raw
-          .whereType<String>()
-          .length != raw.length) {
+      if (raw.whereType<String>().length != raw.length) {
         throw FormatException(
           "Invalid configuration: '$key' must be a List<String>. One or more elements are not "
-              'Strings.',
+          'Strings.',
         );
       }
       return raw.cast<String>();
@@ -88,7 +86,7 @@ extension MapExtensions on Map<dynamic, dynamic> {
 
     throw FormatException(
       "Invalid configuration: '$key' must be a List<String> or a String, but found "
-          '${raw.runtimeType}.',
+      '${raw.runtimeType}.',
     );
   }
 
@@ -104,12 +102,12 @@ extension MapExtensions on Map<dynamic, dynamic> {
       return value
           .whereType<Map<String, dynamic>>()
           .map((item) {
-        try {
-          return Map<String, dynamic>.from(item);
-        } catch (_) {
-          return <String, dynamic>{};
-        }
-      })
+            try {
+              return Map<String, dynamic>.from(item);
+            } catch (_) {
+              return <String, dynamic>{};
+            }
+          })
           .where((map) => map.isNotEmpty)
           .toList();
     }
@@ -145,7 +143,7 @@ extension MapExtensions on Map<dynamic, dynamic> {
       if (item is! Map) {
         throw FormatException(
           "Invalid configuration: element #$i in '$key' must be a Map, but found "
-              '${item.runtimeType}.',
+          '${item.runtimeType}.',
         );
       }
       try {
@@ -153,7 +151,7 @@ extension MapExtensions on Map<dynamic, dynamic> {
       } on FormatException catch (_) {
         throw FormatException(
           "Invalid configuration: element #$i in '$key' has non-String keys and cannot be cast to "
-              'Map<String,dynamic>.',
+          'Map<String,dynamic>.',
         );
       }
     }
@@ -170,7 +168,7 @@ extension MapExtensions on Map<dynamic, dynamic> {
       try {
         // create a new typed Map from the dynamic one
         return Map<String, dynamic>.from(value);
-      } on FormatException catch (e) {
+      } on FormatException {
         // If keys aren't strings, return empty
         return {};
       }
@@ -197,7 +195,7 @@ extension MapExtensions on Map<dynamic, dynamic> {
     } on FormatException catch (_) {
       throw FormatException(
         "Invalid configuration: '$key' contains non-String keys and cannot be cast to "
-            'Map<String,dynamic>.',
+        'Map<String,dynamic>.',
       );
     }
   }
@@ -237,7 +235,8 @@ extension MapExtensions on Map<dynamic, dynamic> {
   /// missing.
   /// Throws [FormatException] if the key exists but is not a Map-of-Map or contains invalid
   /// entries.
-  Map<String, Map<String, dynamic>> mustGetMapMap(String key, {
+  Map<String, Map<String, dynamic>> mustGetMapMap(
+    String key, {
     Map<String, Map<String, dynamic>>? fallback,
   }) {
     final raw = this[key];
@@ -261,7 +260,7 @@ extension MapExtensions on Map<dynamic, dynamic> {
       if (v is! Map) {
         throw FormatException(
           "Invalid configuration: value for key '$k' in '$key' must be a Map, but found "
-              '${v.runtimeType}.',
+          '${v.runtimeType}.',
         );
       }
       try {
@@ -269,7 +268,7 @@ extension MapExtensions on Map<dynamic, dynamic> {
       } on FormatException catch (_) {
         throw FormatException(
           "Invalid configuration: nested map for key '$k' in '$key' has non-String keys and cannot "
-              'be cast to Map<String,dynamic>.',
+          'be cast to Map<String,dynamic>.',
         );
       }
     });

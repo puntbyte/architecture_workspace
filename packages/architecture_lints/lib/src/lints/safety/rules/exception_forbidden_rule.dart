@@ -26,7 +26,6 @@ class ExceptionForbiddenRule extends ExceptionBaseRule {
   }) {
     for (final rule in rules) {
       for (final constraint in rule.forbidden) {
-
         // CHECK 1: Forbidden Throw
         if (constraint.operation == ExceptionOperation.throw$) {
           final throws = findNodes<ThrowExpression>(node.body);

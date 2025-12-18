@@ -10,10 +10,8 @@ import 'package:clean_feature_first/features/auth/data/sources/auth_source.dart'
 //
 // Extend or implement one of the required types.
 class DefaultAuthSource implements AuthSource {
-
   @override
   Future<UserModel> getUser(StringId id) async {
-
     if (id.isEmpty) {
       throw ServerException();
     }

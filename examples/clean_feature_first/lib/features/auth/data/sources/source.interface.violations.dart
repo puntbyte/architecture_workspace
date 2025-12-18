@@ -11,7 +11,8 @@ import 'package:clean_feature_first/features/auth/domain/entities/user.dart'; //
 // lint: [2] arch_naming_pattern
 // reason: Name must match `{{name}}Source` (e.g., AuthSource).
 // ignore: arch_naming_pattern
-abstract interface class AuthRemoteService implements Source { //! <-- LINT WARNING
+abstract interface class AuthRemoteService implements Source {
+  //! <-- LINT WARNING
 
   // lint: [3] arch_safety_return_forbidden
   // reason: DataSources must return raw Futures/Data. Wrappers (Either) imply error handling logic
@@ -31,6 +32,7 @@ abstract interface class AuthRemoteService implements Source { //! <-- LINT WARN
 // lint: [6] arch_type_missing_base
 // reason: Source interfaces must implement the base `Source` interface from core.
 // ignore: arch_naming_grammar
-abstract interface class UncontractedSource { //! <-- LINT WARNING
+abstract interface class UncontractedSource {
+  //! <-- LINT WARNING
   Future<void> doWork();
 }

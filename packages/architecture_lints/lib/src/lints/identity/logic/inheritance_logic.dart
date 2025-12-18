@@ -5,10 +5,10 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:architecture_lints/src/schema/policies/inheritance_policy.dart';
-import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 mixin InheritanceLogic {

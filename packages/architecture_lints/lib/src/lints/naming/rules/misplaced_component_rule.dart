@@ -1,14 +1,14 @@
 import 'package:analyzer/dart/ast/ast.dart'; // Required for ClassDeclaration
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/schema/constants/config_keys.dart';
-import 'package:architecture_lints/src/schema/config/architecture_config.dart';
-import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
-import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/context/component_context.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/architecture_rule.dart';
 import 'package:architecture_lints/src/lints/identity/logic/inheritance_logic.dart'; // Mixin
 import 'package:architecture_lints/src/lints/naming/logic/naming_logic.dart'; // Mixin
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/constants/config_keys.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class MisplacedComponentRule extends ArchitectureRule with NamingLogic, InheritanceLogic {

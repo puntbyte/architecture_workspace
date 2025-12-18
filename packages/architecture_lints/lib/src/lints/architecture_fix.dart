@@ -13,7 +13,7 @@ import 'package:path/path.dart' as p;
 
 class ArchitectureFix extends ArchitectureFixBase {
   @override
-  void runProtected({
+  Future<void> runProtected({
     required CustomLintResolver resolver,
     required ChangeReporter reporter,
     required CustomLintContext context,

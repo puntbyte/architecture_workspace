@@ -1,6 +1,6 @@
+import 'package:architecture_lints/src/engines/language/language_analyzer.dart';
 import 'package:architecture_lints/src/schema/enums/grammar_token.dart';
 import 'package:architecture_lints/src/utils/extensions/string_extension.dart';
-import 'package:architecture_lints/src/engines/language/language_analyzer.dart';
 
 mixin GrammarLogic {
   /// Validates [className] against a [grammar] string using the [analyzer].

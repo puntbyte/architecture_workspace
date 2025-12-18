@@ -41,8 +41,6 @@ class MessageUtilsOld {
   /// Generates a friendly example based on a pattern.
   /// '{{name}}UseCase' -> 'LoginUseCase'
   static String generateExample(String pattern) {
-    return pattern
-        .replaceAll('{{name}}', 'Login')
-        .replaceAll('{{affix}}', 'My');
+    return pattern.replaceAll('{{name}}', 'Login').replaceAll('{{affix}}', 'My');
   }
 }

@@ -1,12 +1,11 @@
 import 'package:analyzer/dart/ast/ast.dart';
-
 // Hide LintCode from analyzer to avoid conflict with custom_lint_builder
 import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/schema/policies/annotation_policy.dart';
-import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:architecture_lints/src/lints/metadata/base/annotation_base_rule.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/policies/annotation_policy.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class AnnotationForbiddenRule extends AnnotationBaseRule {

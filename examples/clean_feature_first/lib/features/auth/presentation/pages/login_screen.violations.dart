@@ -9,7 +9,8 @@ import 'package:clean_feature_first/features/auth/data/repositories/auth_reposit
 // LINT: [Inheritance] arch_type_forbidden
 // REASON: Pages must not extend StatefulWidget. Use Stateless/HookWidget + Bloc.
 // ignore: arch_naming_pattern, arch_naming_antipattern, arch_type_missing_base
-class LoginScreen extends StatefulWidget { //! <-- WARNING (Naming & Inheritance)
+class LoginScreen extends StatefulWidget {
+  //! <-- WARNING (Naming & Inheritance)
   const LoginScreen({super.key});
 
   @override

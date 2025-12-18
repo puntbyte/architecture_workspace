@@ -10,8 +10,8 @@ class UserAvatar extends StatelessWidget {
 
   void _navigateToHome(BuildContext context) {
     Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage())
+      context,
+      MaterialPageRoute(builder: (_) => const HomePage()),
     );
   }
 

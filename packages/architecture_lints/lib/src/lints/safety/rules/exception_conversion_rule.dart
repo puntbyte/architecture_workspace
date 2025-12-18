@@ -4,9 +4,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
+import 'package:architecture_lints/src/lints/safety/base/exception_base_rule.dart';
 import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/schema/policies/exception_policy.dart';
-import 'package:architecture_lints/src/lints/safety/base/exception_base_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class ExceptionConversionRule extends ExceptionBaseRule {

@@ -56,7 +56,7 @@ class TargetResolver {
     ComponentDefinition? targetConfig;
     try {
       targetConfig = config.components.firstWhere(
-            (c) => c.id == targetComponentId || c.id.endsWith('.$targetComponentId'),
+        (c) => c.id == targetComponentId || c.id.endsWith('.$targetComponentId'),
       );
     } catch (_) {
       return p.dirname(currentPath);

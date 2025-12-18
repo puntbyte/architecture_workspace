@@ -27,8 +27,9 @@ class PathMatcher {
     // 2. Handle standard Glob wildcard (*)
     if (normalizedConfig.contains('*')) {
       // Use centralized wildcard
-      final pattern = RegexConstants.escape(normalizedConfig)
-          .replaceAll(r'\*', RegexConstants.wildcard);
+      final pattern = RegexConstants.escape(
+        normalizedConfig,
+      ).replaceAll(r'\*', RegexConstants.wildcard);
       // Note: wildcard in paths usually means "anything", not non-greedy
 
       final regex = RegExp(pattern);

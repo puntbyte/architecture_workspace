@@ -32,7 +32,7 @@ class TypeSafetyReturnAllowedRule extends TypeSafetyBaseRule {
       if (allowed.isEmpty) continue;
 
       final matchesAny = allowed.any(
-            (c) => matchesConstraint(type, c, typeResolver),
+        (c) => matchesConstraint(type, c, typeResolver),
       );
 
       if (!matchesAny) {

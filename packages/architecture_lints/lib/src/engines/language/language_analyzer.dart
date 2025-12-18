@@ -1,5 +1,5 @@
-import 'package:architecture_lints/src/schema/definitions/vocabulary_definition.dart';
 import 'package:architecture_lints/src/engines/language/nlp_constants.dart';
+import 'package:architecture_lints/src/schema/definitions/vocabulary_definition.dart';
 import 'package:dictionaryx/dictentry.dart';
 import 'package:dictionaryx/dictionary_msa_json.dart';
 

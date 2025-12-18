@@ -16,9 +16,7 @@ class TokenSyntax {
   /// Example: '{{name}}' -> 'name'
   /// Example: 'name' -> 'name' (Unchanged)
   static String unwrap(String value) {
-    if (value.length >= (_openLen + _closeLen) &&
-        value.startsWith(open) &&
-        value.endsWith(close)) {
+    if (value.length >= (_openLen + _closeLen) && value.startsWith(open) && value.endsWith(close)) {
       return value.substring(_openLen, value.length - _closeLen);
     }
     return value;

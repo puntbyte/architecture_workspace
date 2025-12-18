@@ -41,3 +41,19 @@ melos:
         scope:
           - architecture_lints
         dirExists: test
+
+    format:
+      name: format
+      description: Run all unit tests in the workspace.
+      run: dart format .
+      packageFilters:
+        scope:
+          - architecture_lints
+
+    fix:
+      name: fix
+      description: Run all unit tests in the workspace.
+      run: dart fix --apply
+      packageFilters:
+        scope:
+          - architecture_lints

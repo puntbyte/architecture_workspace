@@ -13,10 +13,10 @@ class CodeGenerator {
   final String packageName;
 
   CodeGenerator(
-      this.config,
-      this.templateLoader,
-      this.packageName,
-      ) : _renderer = const MustacheRenderer();
+    this.config,
+    this.templateLoader,
+    this.packageName,
+  ) : _renderer = const MustacheRenderer();
 
   /// Generates code based on the [action] configuration.
   /// Pure transformation: AST -> String.
@@ -56,9 +56,7 @@ class CodeGenerator {
     final codeBody = _renderer.render(templateString, context);
 
     // 5. Debug Header
-    final fullCode = action.debug
-        ? '${_generateDebugHeader(context)}\n$codeBody'
-        : codeBody;
+    final fullCode = action.debug ? '${_generateDebugHeader(context)}\n$codeBody' : codeBody;
 
     // 6. Format
     if (action.format) {

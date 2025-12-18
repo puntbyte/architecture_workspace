@@ -9,7 +9,8 @@ enum ActionElement {
   constructor('constructor'),
   extension('extension'),
   mixin('mixin'),
-  file('file');
+  file('file')
+  ;
 
   final String yamlKey;
   const ActionElement(this.yamlKey);

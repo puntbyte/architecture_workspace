@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a3767faf-9392-4c84-9047-afac6d256402" name="Changes" comment="Refactor: Remove all legacy tests and disable debug lints&#10;&#10;- Deleted the entire `test/` directory in `packages/architecture_lints`, removing all legacy and experimental test suites, helpers, mocks, and data builders.&#10;- Deleted `packages/architecture_lints/bin/custom_lint.dart` as it is no longer required.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/src/engines/expression/wrappers/list_wrapper.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/src/engines/expression/wrappers/list_wrapper.dart" afterDir="false" />
+    <list default="true" id="a3767faf-9392-4c84-9047-afac6d256402" name="Changes" comment="Refactor: Enhance `ListWrapper` type safety and clean up project files&#10;&#10;- Strengthened the type safety of `ListWrapper` by specifying `dynamic` for its generic type parameter in the `MemberAccessor`.&#10;- Deleted the obsolete `custom_lint.dart` entrypoint from `packages/architecture_lints/bin/` as it is no longer needed.">
+      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,26 +41,26 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "master",
-    "io.flutter.project.isFirstOpen": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "E:/Projects/Google/Flutter/packages/architecture_workspace/packages/architecture_clean/presets",
-    "settings.editor.selected.configurable": "Settings.Markdown",
-    "show.migrate.to.gradle.popup": "false"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;io.flutter.project.isFirstOpen&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/Projects/Google/Flutter/packages/architecture_workspace/packages/architecture_clean/presets&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;Settings.Markdown&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="E:\Projects\Google\Flutter\packages\architecture_workspace\packages\architecture_clean\presets" />
@@ -125,7 +124,15 @@
       <option name="project" value="LOCAL" />
       <updated>1766075856087</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Refactor: Enhance `ListWrapper` type safety and clean up project files&#10;&#10;- Strengthened the type safety of `ListWrapper` by specifying `dynamic` for its generic type parameter in the `MemberAccessor`.&#10;- Deleted the obsolete `custom_lint.dart` entrypoint from `packages/architecture_lints/bin/` as it is no longer needed.">
+      <option name="closed" value="true" />
+      <created>1766077323101</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1766077323101</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -136,6 +143,7 @@
     <MESSAGE value="Docs: Prepare for initial beta release&#10;&#10;- Replaced the detailed version history in `architecture_lints/CHANGELOG.md` with a summary for the initial `0.1.0` beta release.&#10;- Updated `pubspec.yaml` in the `architecture_lints` package to include `homepage` and `issue_tracker` URLs.&#10;- Updated IntelliJ IDEA workspace configuration (`.idea/workspace.xml`)." />
     <MESSAGE value="Refactor: Remove all legacy and experimental tests&#10;&#10;- Deleted the entire suite of old and experimental tests from the `packages/architecture_lints/test/` directory to clean up the project and remove obsolete code.&#10;- Removed legacy test helpers, mocks, fakes, and data builders, including `analyzer_test_utils.dart`, `test_resolver.dart`, and `architecture_config_mock.dart`.&#10;- Commented out the import and usage of `debug_action_context` and `debug_component_identity` lints in `architecture_lints.dart` to disable them from the plugin." />
     <MESSAGE value="Refactor: Remove all legacy tests and disable debug lints&#10;&#10;- Deleted the entire `test/` directory in `packages/architecture_lints`, removing all legacy and experimental test suites, helpers, mocks, and data builders.&#10;- Deleted `packages/architecture_lints/bin/custom_lint.dart` as it is no longer required." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor: Remove all legacy tests and disable debug lints&#10;&#10;- Deleted the entire `test/` directory in `packages/architecture_lints`, removing all legacy and experimental test suites, helpers, mocks, and data builders.&#10;- Deleted `packages/architecture_lints/bin/custom_lint.dart` as it is no longer required." />
+    <MESSAGE value="Refactor: Enhance `ListWrapper` type safety and clean up project files&#10;&#10;- Strengthened the type safety of `ListWrapper` by specifying `dynamic` for its generic type parameter in the `MemberAccessor`.&#10;- Deleted the obsolete `custom_lint.dart` entrypoint from `packages/architecture_lints/bin/` as it is no longer needed." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor: Enhance `ListWrapper` type safety and clean up project files&#10;&#10;- Strengthened the type safety of `ListWrapper` by specifying `dynamic` for its generic type parameter in the `MemberAccessor`.&#10;- Deleted the obsolete `custom_lint.dart` entrypoint from `packages/architecture_lints/bin/` as it is no longer needed." />
   </component>
 </project>

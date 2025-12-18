@@ -1,8 +1,8 @@
 // lin/src/config/schema/annotation_policy.dart
 
 import 'package:architecture_lints/src/schema/constants/config_keys.dart';
-import 'package:architecture_lints/src/schema/enums/annotation_mode.dart';
 import 'package:architecture_lints/src/schema/constraints/annotation_constraint.dart';
+import 'package:architecture_lints/src/schema/enums/annotation_mode.dart';
 import 'package:architecture_lints/src/utils/map_extensions.dart';
 import 'package:meta/meta.dart';
 

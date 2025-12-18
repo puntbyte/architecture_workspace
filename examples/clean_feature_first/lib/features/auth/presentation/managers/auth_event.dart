@@ -10,7 +10,8 @@ class AuthEvent {} //! <-- WARNING
 // REASON: Events represent something that *happened*.
 // Pattern expected: '{{noun}}{{verb.past}}' (e.g., LoginRequested).
 // 'DoLogin' is an imperative command (Anti-pattern for events).
-class DoLogin extends AuthEvent { //! <-- WARNING
+class DoLogin extends AuthEvent {
+  //! <-- WARNING
   final String username;
   DoLogin(this.username);
 }

@@ -3,8 +3,6 @@
 import 'package:clean_feature_first/features/auth/domain/usecases/usecase.violations.dart';
 import 'package:flutter/material.dart';
 
-import 'package:flutter/material.dart';
-
 // LINT: disallow_use_case_in_widget
 // Reason: Widgets shouldn't call UseCases. Logic belongs in Managers.
 import 'package:clean_feature_first/features/auth/domain/usecases/request_login.dart';
@@ -33,10 +31,7 @@ class UserProfileViolations extends StatelessWidget {
   /// The widget depends directly on a concrete UseCase implementation.
   final GetUser getUserUsecase;
 
-  const UserProfileViolations({
-    super.key,
-    required this.getUserUsecase,
-  });
+  const UserProfileViolations({super.key, required this.getUserUsecase});
 
   @override
   Widget build(BuildContext context) {

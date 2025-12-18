@@ -23,8 +23,8 @@ class DependencyConstraint {
     if (value == null) return DependencyConstraint.empty();
 
     // Case 1: Shorthand List -> Components
-    if (value is List) return DependencyConstraint(components: value.map((e) => e.toString()).toList());
-
+    if (value is List)
+      return DependencyConstraint(components: value.map((e) => e.toString()).toList());
 
     // Case 2: Shorthand String -> Component
     if (value is String) return DependencyConstraint(components: [value]);

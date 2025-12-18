@@ -2,12 +2,12 @@
 
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/schema/enums/usage_kind.dart';
-import 'package:architecture_lints/src/schema/config/architecture_config.dart';
-import 'package:architecture_lints/src/schema/policies/usage_policy.dart';
-import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/context/component_context.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/usages/base/usage_base_rule.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/enums/usage_kind.dart';
+import 'package:architecture_lints/src/schema/policies/usage_policy.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class InstantiationForbiddenRule extends UsageBaseRule {

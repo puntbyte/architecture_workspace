@@ -16,7 +16,7 @@ class TemplateLoader {
 
     // 2. File Reference
     if (def.filePath != null) {
-      final absolutePath = p.normalize(p.join(configRoot, def.filePath!));
+      final absolutePath = p.normalize(p.join(configRoot, def.filePath));
       final file = File(absolutePath);
 
       // We throw here so the generator can catch and log/ignore

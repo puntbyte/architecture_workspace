@@ -7,8 +7,10 @@ import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 enum TypeCheckMode {
   /// Checks both the Alias (typedef) and the Canonical (underlying) type.
   any,
+
   /// Checks ONLY the Canonical element (e.g. 'int' in 'typedef Id = int').
   canonical,
+
   /// Checks ONLY the Alias element (e.g. 'Id' in 'typedef Id = int').
   alias,
 }
@@ -24,10 +26,10 @@ class TypeResolver {
 
   /// Checks if [type] matches the [definition] using the specified [mode].
   bool matches(
-      DartType? type,
-      TypeDefinition definition, {
-        TypeCheckMode mode = TypeCheckMode.any,
-      }) {
+    DartType? type,
+    TypeDefinition definition, {
+    TypeCheckMode mode = TypeCheckMode.any,
+  }) {
     if (type == null) return false;
 
     // 1. Check Wildcard
@@ -108,7 +110,7 @@ class TypeResolver {
 
         // For generics, we typically want to match ANY valid definition (alias or canonical)
         // unless we want strict recursion. Defaulting to .any is safer for nested types.
-        if (!matches(actualArg, argDef, mode: TypeCheckMode.any)) {
+        if (!matches(actualArg, argDef)) {
           return false;
         }
       }

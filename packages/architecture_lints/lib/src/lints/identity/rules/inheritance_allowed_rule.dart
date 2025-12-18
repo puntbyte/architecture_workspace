@@ -5,11 +5,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
+import 'package:architecture_lints/src/context/component_context.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
+import 'package:architecture_lints/src/lints/identity/base/inheritance_base_rule.dart';
 import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/schema/policies/inheritance_policy.dart';
-import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/context/component_context.dart';
-import 'package:architecture_lints/src/lints/identity/base/inheritance_base_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class InheritanceAllowedRule extends InheritanceBaseRule {
@@ -43,9 +43,7 @@ class InheritanceAllowedRule extends InheritanceBaseRule {
         );
 
         if (!isAllowed) {
-          final descriptions = rule.allowed
-              .map((d) => d.describe(config.definitions))
-              .join(' OR ');
+          final descriptions = rule.allowed.map((d) => d.describe(config.definitions)).join(' OR ');
 
           report(
             reporter: reporter,

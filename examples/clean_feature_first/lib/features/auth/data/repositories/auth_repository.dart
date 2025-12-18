@@ -21,7 +21,6 @@ class DefaultAuthRepository implements AuthPort {
 
   @override
   FutureEither<User> login(String username, String password) async {
-
     try {
       final model = await _source.getUser(username);
       return Right(model.toEntity());

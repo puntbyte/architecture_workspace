@@ -23,4 +23,3 @@ class _SomePageState extends State<SomePage> {
     return const Placeholder();
   }
 }
-

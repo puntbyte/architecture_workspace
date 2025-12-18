@@ -1,11 +1,11 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/schema/config/architecture_config.dart';
-import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
+import 'package:architecture_lints/src/engines/language/language_analyzer.dart';
 import 'package:architecture_lints/src/lints/naming/base/naming_base_rule.dart';
 import 'package:architecture_lints/src/lints/naming/logic/grammar_logic.dart';
-import 'package:architecture_lints/src/engines/language/language_analyzer.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class GrammarRule extends NamingBaseRule with GrammarLogic {

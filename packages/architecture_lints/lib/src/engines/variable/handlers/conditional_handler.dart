@@ -26,7 +26,7 @@ class ConditionalHandler {
         final result = engine.evaluate(condition, context);
 
         if (result == true) return branch.result;
-      } catch (e, stack) {
+      } catch (e) {
         // print(stack);
         // Continue to next branch on error
         continue;

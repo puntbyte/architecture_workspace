@@ -55,13 +55,6 @@ class ComponentDefinition {
       // HierarchyParser has already merged/joined the paths for us
       paths: map.getStringList(ConfigKeys.component.path),
 
-      // We can't easily get the 'raw' relative path here because 'map' is already merged.
-      // If we really need it, we'd need to change HierarchyParser to preserve raw values.
-      // For now, let's assume 'paths' is the important one for logic.
-      // If 'relativePaths' is critical, we'd need a separate key or parser change.
-      // Setting same as paths or empty for now to satisfy constructor.
-      relativePaths: [],
-
       patterns: map.getStringList(ConfigKeys.component.pattern),
       antipatterns: map.getStringList(ConfigKeys.component.antipattern),
       kinds: parseEnumList(ConfigKeys.component.kind, ComponentKind.fromKey),

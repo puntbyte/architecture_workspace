@@ -1,12 +1,12 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
-import 'package:architecture_lints/src/schema/config/architecture_config.dart';
-import 'package:architecture_lints/src/schema/policies/dependency_policy.dart';
-import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/context/component_context.dart';
+import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/lints/boundaries/base/boundary_base_rule.dart';
 import 'package:architecture_lints/src/lints/boundaries/logic/package_logic.dart';
+import 'package:architecture_lints/src/schema/config/architecture_config.dart';
+import 'package:architecture_lints/src/schema/policies/dependency_policy.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class ExternalDependencyRule extends BoundaryBaseRule with PackageLogic {
@@ -70,12 +70,12 @@ class ExternalDependencyRule extends BoundaryBaseRule with PackageLogic {
   }
 
   void _validate(
-      AstNode node,
-      String uri,
-      List<DependencyPolicy> rules,
-      ComponentContext component,
-      DiagnosticReporter reporter,
-      ) {
+    AstNode node,
+    String uri,
+    List<DependencyPolicy> rules,
+    ComponentContext component,
+    DiagnosticReporter reporter,
+  ) {
     for (final rule in rules) {
       // A. Check Forbidden
       if (matchesAnyPattern(uri, rule.forbidden.imports)) {

@@ -47,7 +47,6 @@ abstract class ConfigKeys {
   static const placeholder = _PlaceholderKeys();
 }
 
-
 /// There are common keys used redundantly in multiple places.
 abstract class _CommonKeys {
   static const name = 'name';
@@ -59,7 +58,6 @@ abstract class _CommonKeys {
 
   const _CommonKeys._();
 }
-
 
 class _TypeDefinitionKeys {
   const _TypeDefinitionKeys();
@@ -88,13 +86,12 @@ class _ServiceKeys {
   String get import => 'import';
 }
 
-
 class _VocabularyKeys {
   const _VocabularyKeys();
   String get nouns => 'nouns';
   String get verbs => 'verbs';
   String get adjectives => 'adjectives';
-// We can add adverbs later if needed
+  // We can add adverbs later if needed
 }
 
 class _ActionKeys {
