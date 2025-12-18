@@ -1,13 +1,11 @@
-// lib/src/lints/safety/rules/type_safety_return_allowed_rule.dart
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
+import 'package:architecture_lints/src/engines/resolution/type_resolver.dart';
+import 'package:architecture_lints/src/lints/safety/base/type_safety_base_rule.dart';
 import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/schema/policies/type_safety_policy.dart';
-import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/lints/safety/base/type_safety_base_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class TypeSafetyReturnAllowedRule extends TypeSafetyBaseRule {
@@ -26,7 +24,7 @@ class TypeSafetyReturnAllowedRule extends TypeSafetyBaseRule {
     required DartType type,
     required List<TypeSafetyPolicy> rules,
     required ArchitectureConfig config,
-    required FileResolver fileResolver,
+    required TypeResolver typeResolver,
     required DiagnosticReporter reporter,
   }) {
     for (final rule in rules) {
@@ -34,7 +32,7 @@ class TypeSafetyReturnAllowedRule extends TypeSafetyBaseRule {
       if (allowed.isEmpty) continue;
 
       final matchesAny = allowed.any(
-        (c) => matchesConstraint(type, c, fileResolver, config.definitions),
+            (c) => matchesConstraint(type, c, typeResolver),
       );
 
       if (!matchesAny) {
@@ -43,8 +41,8 @@ class TypeSafetyReturnAllowedRule extends TypeSafetyBaseRule {
           type: type,
           configRule: rule,
           kind: 'return',
-          fileResolver: fileResolver,
-          registry: config.definitions,
+          typeResolver: typeResolver,
+          // FIX: Removed 'registry' argument
         );
 
         if (isForbidden) continue;

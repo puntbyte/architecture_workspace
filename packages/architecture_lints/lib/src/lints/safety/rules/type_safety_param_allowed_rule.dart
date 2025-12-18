@@ -1,13 +1,11 @@
-// lib/src/lints/safety/rules/type_safety_param_allowed.dart
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
+import 'package:architecture_lints/src/engines/resolution/type_resolver.dart';
+import 'package:architecture_lints/src/lints/safety/base/type_safety_base_rule.dart';
 import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/schema/policies/type_safety_policy.dart';
-import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/lints/safety/base/type_safety_base_rule.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class TypeSafetyParamAllowedRule extends TypeSafetyBaseRule {
@@ -27,7 +25,7 @@ class TypeSafetyParamAllowedRule extends TypeSafetyBaseRule {
     required String paramName,
     required List<TypeSafetyPolicy> rules,
     required ArchitectureConfig config,
-    required FileResolver fileResolver,
+    required TypeResolver typeResolver,
     required DiagnosticReporter reporter,
   }) {
     for (final rule in rules) {
@@ -36,32 +34,52 @@ class TypeSafetyParamAllowedRule extends TypeSafetyBaseRule {
       if (allowed.isEmpty) continue;
 
       final matchesAny = allowed.any(
-        (c) => matchesConstraint(type, c, fileResolver, config.definitions),
+        (c) => matchesConstraint(type, c, typeResolver),
       );
 
       if (!matchesAny) {
-        // --- SMART CHECK ---
         final isForbidden = isExplicitlyForbidden(
           type: type,
           configRule: rule,
           kind: 'parameter',
           paramName: paramName,
-          fileResolver: fileResolver,
-          registry: config.definitions,
+          typeResolver: typeResolver,
         );
 
         if (isForbidden) continue;
-        // ------------------
 
         final description = allowed
             .map((c) => describeConstraint(c, config.definitions))
             .join(', ');
 
-        reporter.atNode(
-          node,
-          _code,
-          arguments: [type.getDisplayString(), paramName, description],
-        );
+        AstNode? highlightNode;
+        if (node is SimpleFormalParameter) {
+          highlightNode = node.type;
+        } else if (node is FieldFormalParameter) {
+          highlightNode = node.type;
+        } else if (node is SuperFormalParameter) {
+          highlightNode = node.type;
+        }
+
+        if (highlightNode != null) {
+          reporter.atNode(
+            highlightNode,
+            _code,
+            arguments: [type.getDisplayString(), paramName, description],
+          );
+        } else if (node.name != null) {
+          reporter.atToken(
+            node.name!,
+            _code,
+            arguments: [type.getDisplayString(), paramName, description],
+          );
+        } else {
+          reporter.atNode(
+            node,
+            _code,
+            arguments: [type.getDisplayString(), paramName, description],
+          );
+        }
       }
     }
   }

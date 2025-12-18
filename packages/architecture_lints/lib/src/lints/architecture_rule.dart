@@ -6,6 +6,7 @@ import 'package:architecture_lints/src/engines/component/component.dart';
 import 'package:architecture_lints/src/engines/configuration/config_loader.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/engines/file/path_matcher.dart';
+import 'package:architecture_lints/src/engines/resolution/type_resolver.dart';
 import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
@@ -32,12 +33,18 @@ abstract class ArchitectureRule extends DartLintRule {
 
       if (config != null) {
         final fileResolver = FileResolver(config);
+        final typeResolver = TypeResolver(
+          registry: config.definitions,
+          fileResolver: fileResolver,
+        );
+
         context.sharedState[ArchitectureConfig] = config;
         context.sharedState[FileResolver] = fileResolver;
+        context.sharedState[TypeResolver] = typeResolver;
 
         try {
           final unit = await resolver.getResolvedUnitResult();
-          final refiner = ComponentResolver(config, fileResolver);
+          final refiner = ComponentRefiner(config, fileResolver);
           final refinedComponent = refiner.refine(
             filePath: resolver.path,
             unit: unit,

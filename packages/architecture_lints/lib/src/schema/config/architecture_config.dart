@@ -116,14 +116,4 @@ class ArchitectureConfig {
 
     return rewrites;
   }
-
-  ComponentDefinition? findComponent(String referenceId) {
-    for (final component in components) {
-      // Check ID match
-      if (component.id == referenceId) return component;
-      if (component.id.endsWith('.$referenceId')) return component;
-      if (referenceId.startsWith('${component.id}.')) return component;
-    }
-    return null;
-  }
 }

@@ -1,6 +1,6 @@
 name: architecture_lints
 description: A configuration-driven, architecture-agnostic linter for Dart & Flutter.
-version: 1.0.0
+version: 0.1.0
 
 topics:
   - lint

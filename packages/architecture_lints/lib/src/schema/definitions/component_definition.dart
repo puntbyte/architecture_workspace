@@ -15,6 +15,7 @@ class ComponentDefinition {
   final String id;
   final String? name;
   final List<String> paths;
+  final List<String> relativePaths;
   final List<String> patterns;
   final List<String> antipatterns;
   final List<String> grammar;
@@ -27,6 +28,7 @@ class ComponentDefinition {
     required this.id,
     this.name,
     this.paths = const [],
+    this.relativePaths = const [],
     this.patterns = const [],
     this.antipatterns = const [],
     this.grammar = const [],
@@ -37,30 +39,33 @@ class ComponentDefinition {
   });
 
   factory ComponentDefinition.fromMap(String key, Map<dynamic, dynamic> map) {
-    // Helper to parse Enums from String or List<String>
     List<T> parseEnumList<T>(String mapKey, T? Function(String?) parser) {
       final raw = map[mapKey];
       if (raw is String) {
         final val = parser(raw);
         return val != null ? [val] : [];
       }
-
       if (raw is List) return raw.map((e) => parser(e.toString())).whereType<T>().toList();
-
       return [];
     }
 
     return ComponentDefinition(
       id: key,
       name: map.tryGetString(ConfigKeys.component.name),
+      // HierarchyParser has already merged/joined the paths for us
       paths: map.getStringList(ConfigKeys.component.path),
+
+      // We can't easily get the 'raw' relative path here because 'map' is already merged.
+      // If we really need it, we'd need to change HierarchyParser to preserve raw values.
+      // For now, let's assume 'paths' is the important one for logic.
+      // If 'relativePaths' is critical, we'd need a separate key or parser change.
+      // Setting same as paths or empty for now to satisfy constructor.
+      relativePaths: [],
+
       patterns: map.getStringList(ConfigKeys.component.pattern),
       antipatterns: map.getStringList(ConfigKeys.component.antipattern),
-
-      // Parse new properties
       kinds: parseEnumList(ConfigKeys.component.kind, ComponentKind.fromKey),
       modifiers: parseEnumList(ConfigKeys.component.modifier, ComponentModifier.fromKey),
-
       mode: ComponentMode.fromKey(map.tryGetString(ConfigKeys.component.mode)),
       isDefault: map.getBool(ConfigKeys.component.default$),
     );
@@ -75,8 +80,8 @@ class ComponentDefinition {
     final result = HierarchyParser.parse<ComponentDefinition>(
       yaml: map,
       scopeKeys: moduleKeys,
-      // Parent Inheritance: Child inherits 'path' from parent if missing
-      inheritProperties: [ConfigKeys.component.path],
+      // FIX: Use pathProperties for 'path' instead of inheritProperties
+      pathProperties: [ConfigKeys.component.path],
       factory: (id, node) {
         if (node is Map) return ComponentDefinition.fromMap(id, node);
         throw const FormatException('Component definition must be a Map');
@@ -103,7 +108,7 @@ class ComponentDefinition {
   }
 
   @override
-  String toString() => 'ComponentConfig(id: $id, kind: $kinds)';
+  String toString() => 'ComponentDefinition(id: $id, paths: $paths)';
 
   @override
   bool operator ==(Object other) {

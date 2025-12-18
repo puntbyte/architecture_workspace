@@ -12,8 +12,8 @@ resolution: workspace
 dependencies:
   bloc: any
   cached: any
-  clean_architecture_core:
-    path: ../../packages/clean_architecture_core
+  architecture_clean:
+    path: ../../packages/architecture_clean
   dart_mappable: any
   flutter_bloc: any
   flutter:

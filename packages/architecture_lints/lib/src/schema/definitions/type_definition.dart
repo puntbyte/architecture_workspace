@@ -30,11 +30,13 @@ class TypeDefinition {
   factory TypeDefinition.fromDynamic(dynamic value) {
     if (value == null) return const TypeDefinition();
 
+    // 1. Shorthand String -> Single Type
     if (value is String) {
       if (value == '*') return const TypeDefinition(isWildcard: true);
       return TypeDefinition(types: [value]);
     }
 
+    // 2. Map
     if (value is Map) {
       final map = Map<String, dynamic>.from(value);
 
@@ -44,15 +46,15 @@ class TypeDefinition {
       final refKey = map.tryGetString(ConfigKeys.definition.definition);
       if (refKey != null) return TypeDefinition(ref: refKey);
 
+      final typeName = map.tryGetString(ConfigKeys.definition.type);
+      if (typeName == '*') return const TypeDefinition(isWildcard: true);
+
       // 'type' can be String or List<String>
       final typesList = map.getStringList(ConfigKeys.definition.type);
       if (typesList.contains('*')) return const TypeDefinition(isWildcard: true);
 
       final importsList = map.getStringList(ConfigKeys.definition.import);
-
-      // FIX: Use the correct singular key for identifiers from the map
       final ids = map.getStringList(ConfigKeys.definition.identifier);
-
       final rewritesList = map.getStringList(ConfigKeys.definition.rewrite);
 
       final rawArgs = map[ConfigKeys.definition.argument];
@@ -81,6 +83,7 @@ class TypeDefinition {
     return HierarchyParser.parse<TypeDefinition>(
       yaml: map,
       factory: (id, node) => TypeDefinition.fromDynamic(node),
+      inheritProperties: [ConfigKeys.definition.import],
       cascadeProperties: [ConfigKeys.definition.import],
       shorthandKey: ConfigKeys.definition.type,
       shouldParseNode: (node) {
@@ -96,6 +99,8 @@ class TypeDefinition {
       },
     );
   }
+
+  // Backward compatibility getters
 
   String? get type => types.isNotEmpty ? types.first : null;
 

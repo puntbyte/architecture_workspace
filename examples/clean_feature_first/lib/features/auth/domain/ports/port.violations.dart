@@ -25,8 +25,12 @@ abstract interface class AuthContract implements Port {
 
   // LINT: [9] arch_safety_param_forbidden
   // REASON: Parameter named 'id' must be of type `IntId`, not `int`.
+  // Message: Invalid Parameter Type: "int" is forbidden for "id". Use 'IntId or StringId' instead.
+  // Note: I think the highlighting should be on `int` not on `id`. currently `id` is flagged
   FutureEither<User> unsafeParameter(int id); //! <-- LINT WARNING
 
+  // The correct version but there is warning on `id`
+  // Message: Invalid Parameter Type: "int" is forbidden for "id". Use 'IntId or StringId' instead.
   FutureEither<User> getUser(IntId id);
 }
 

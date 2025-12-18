@@ -9,7 +9,7 @@ import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/schema/definitions/component_definition.dart';
 import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:architecture_lints/src/schema/policies/inheritance_policy.dart';
-import 'package:architecture_lints/src/engines/component/component_resolver.dart';
+import 'package:architecture_lints/src/engines/component/component_refiner.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/context/component_context.dart';
 import 'package:mocktail/mocktail.dart';
@@ -82,7 +82,7 @@ void main() {
       when(() => mockResolver.resolveModule(any())).thenReturn(null);
 
       final unit = await resolveCode('class UserBloc {}');
-      final refiner = ComponentResolver(ArchitectureConfig.empty(), mockResolver);
+      final refiner = ComponentRefiner(ArchitectureConfig.empty(), mockResolver);
 
       final result = refiner.refine(filePath: 'user_bloc.dart', unit: unit);
 
@@ -101,7 +101,7 @@ void main() {
       when(() => mockResolver.resolveModule(any())).thenReturn(null);
 
       final unit = await resolveCode('class User {}');
-      final refiner = ComponentResolver(ArchitectureConfig.empty(), mockResolver);
+      final refiner = ComponentRefiner(ArchitectureConfig.empty(), mockResolver);
 
       final result = refiner.refine(filePath: 'user.dart', unit: unit);
 
@@ -123,7 +123,7 @@ void main() {
       when(() => mockResolver.resolveAllCandidates(any())).thenReturn([cInterface, cImpl]);
       when(() => mockResolver.resolveModule(any())).thenReturn(null);
 
-      final refiner = ComponentResolver(ArchitectureConfig.empty(), mockResolver);
+      final refiner = ComponentRefiner(ArchitectureConfig.empty(), mockResolver);
 
       // Case A: Concrete Class -> Should resolve to Implementation
       final concreteUnit = await resolveCode('class AuthSourceImpl {}');
@@ -148,7 +148,7 @@ void main() {
       when(() => mockResolver.resolveModule(any())).thenReturn(null);
 
       final unit = await resolveCode('class UserModel {}');
-      final refiner = ComponentResolver(ArchitectureConfig.empty(), mockResolver);
+      final refiner = ComponentRefiner(ArchitectureConfig.empty(), mockResolver);
 
       final result = refiner.refine(filePath: 'file.dart', unit: unit);
 
@@ -201,7 +201,7 @@ void main() {
         class AuthSourceImpl implements AuthSource {}
       ''');
 
-      final refiner = ComponentResolver(config, mockResolver);
+      final refiner = ComponentRefiner(config, mockResolver);
       final result = refiner.refine(filePath: 'auth_source_impl.dart', unit: unit);
 
       // SCORING PREDICTION:
@@ -227,7 +227,7 @@ void main() {
       when(() => mockResolver.resolveModule(any())).thenReturn(null);
 
       final unit = await resolveCode('class Anything {}');
-      final refiner = ComponentResolver(ArchitectureConfig.empty(), mockResolver);
+      final refiner = ComponentRefiner(ArchitectureConfig.empty(), mockResolver);
 
       final result = refiner.refine(filePath: 'file.dart', unit: unit);
 

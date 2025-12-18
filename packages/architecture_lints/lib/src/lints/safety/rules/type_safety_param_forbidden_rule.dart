@@ -1,14 +1,11 @@
-// lib/src/lints/safety/rules/type_safety_param_forbidden.dart
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
+import 'package:architecture_lints/src/engines/resolution/type_resolver.dart';
+import 'package:architecture_lints/src/lints/safety/base/type_safety_base_rule.dart';
 import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/schema/policies/type_safety_policy.dart';
-import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/lints/safety/base/type_safety_base_rule.dart';
-import 'package:architecture_lints/src/lints/safety/logic/type_safety_logic.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class TypeSafetyParamForbiddenRule extends TypeSafetyBaseRule {
@@ -28,61 +25,25 @@ class TypeSafetyParamForbiddenRule extends TypeSafetyBaseRule {
     required String paramName,
     required List<TypeSafetyPolicy> rules,
     required ArchitectureConfig config,
-    required FileResolver fileResolver,
+    required TypeResolver typeResolver,
     required DiagnosticReporter reporter,
   }) {
     for (final rule in rules) {
-      // 1. Filter constraints applicable to this parameter name
       final forbidden = rule.forbidden.where((c) => shouldCheckParam(c, paramName)).toList();
       final allowed = rule.allowed.where((c) => shouldCheckParam(c, paramName)).toList();
 
       if (forbidden.isEmpty) continue;
 
-      // 2. Check Forbidden Specificity
-      // Does this type match a forbidden rule? How specifically?
-      final forbiddenSpec = getMatchSpecificity(
-        type,
-        forbidden,
-        fileResolver,
-        config.definitions,
-      );
+      // 1. Is it Forbidden?
+      final isForbidden = matchesAnyConstraint(type, forbidden, typeResolver);
 
-      if (forbiddenSpec == MatchSpecificity.none) continue;
+      if (isForbidden) {
+        // 2. Is it Explicitly Allowed? (Override)
+        final isAllowed = matchesAnyConstraint(type, allowed, typeResolver);
 
-      // 3. Check Allowed Specificity
-      // Does this type match an allowed rule? How specifically?
-      final allowedSpec = getMatchSpecificity(
-        type,
-        allowed,
-        fileResolver,
-        config.definitions,
-      );
+        if (isAllowed) continue; // Suppress warning
 
-      // 4. Smart Override Logic
-      var shouldReport = true;
-
-      if (allowedSpec != MatchSpecificity.none) {
-        // If the Allowed rule is MORE specific than the Forbidden rule, we suppress the warning.
-        //
-        // Scenario 1 (Suppress):
-        //   Type: IntId (alias of int)
-        //   Forbidden: int (Canonical) -> Specificity 1
-        //   Allowed: IntId (Alias)     -> Specificity 2
-        //   Result: 2 > 1. Suppress.
-        //
-        // Scenario 2 (Report):
-        //   Type: FutureEither (alias)
-        //   Forbidden: FutureEither (Alias) -> Specificity 2
-        //   Allowed: Future (Canonical)     -> Specificity 1
-        //   Result: 1 > 2 is False. Report.
-
-        if (allowedSpec.index > forbiddenSpec.index) {
-          shouldReport = false;
-        }
-      }
-
-      if (shouldReport) {
-        // Generate Suggestion
+        // 3. Report
         var suggestion = '';
         if (allowed.isNotEmpty) {
           final allowedNames = allowed
@@ -91,15 +52,30 @@ class TypeSafetyParamForbiddenRule extends TypeSafetyBaseRule {
           suggestion = ' Use $allowedNames instead.';
         }
 
-        reporter.atNode(
-          node,
-          _code,
-          arguments: [
-            type.getDisplayString(),
-            paramName,
-            suggestion,
-          ],
-        );
+        AstNode? highlightNode;
+        if (node is SimpleFormalParameter) {
+          highlightNode = node.type;
+        } else if (node is FieldFormalParameter) {
+          highlightNode = node.type;
+        } else if (node is SuperFormalParameter) {
+          highlightNode = node.type;
+        }
+
+        if (highlightNode != null) {
+          reporter.atNode(
+            highlightNode,
+            _code,
+            arguments: [type.getDisplayString(), paramName, suggestion],
+          );
+        } else if (node.name != null) {
+          reporter.atToken(
+            node.name!,
+            _code,
+            arguments: [type.getDisplayString(), paramName, suggestion],
+          );
+        } else {
+          reporter.atNode(node, _code, arguments: [type.getDisplayString(), paramName, suggestion]);
+        }
       }
     }
   }

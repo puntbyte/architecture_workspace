@@ -1,4 +1,4 @@
-name: clean_architecture_workspace
+name: architecture_workspace
 
 publish_to: none
 
@@ -7,9 +7,7 @@ environment:
 
 workspace:
   - packages/architecture_lints
-  - packages/clean_architecture_core
-  - packages/clean_architecture_kit
-  - packages/clean_architecture_lints_experimental
+  - packages/architecture_clean
   - examples/clean_feature_first
 
 dev_dependencies:

@@ -1,14 +1,11 @@
-// lib/src/lints/safety/rules/type_safety_return_forbidden.dart
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart';
+import 'package:architecture_lints/src/engines/resolution/type_resolver.dart';
+import 'package:architecture_lints/src/lints/safety/base/type_safety_base_rule.dart';
 import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:architecture_lints/src/schema/policies/type_safety_policy.dart';
-import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-import 'package:architecture_lints/src/lints/safety/base/type_safety_base_rule.dart';
-import 'package:architecture_lints/src/lints/safety/logic/type_safety_logic.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 class TypeSafetyReturnForbiddenRule extends TypeSafetyBaseRule {
@@ -27,10 +24,9 @@ class TypeSafetyReturnForbiddenRule extends TypeSafetyBaseRule {
     required DartType type,
     required List<TypeSafetyPolicy> rules,
     required ArchitectureConfig config,
-    required FileResolver fileResolver,
+    required TypeResolver typeResolver,
     required DiagnosticReporter reporter,
   }) {
-    // Safety check
     if (node.returnType == null) return;
 
     for (final rule in rules) {
@@ -39,34 +35,16 @@ class TypeSafetyReturnForbiddenRule extends TypeSafetyBaseRule {
 
       if (forbidden.isEmpty) continue;
 
-      // 1. Get Forbidden Specificity
-      final forbiddenSpec = getMatchSpecificity(
-        type,
-        forbidden,
-        fileResolver,
-        config.definitions,
-      );
+      // 1. Is it Forbidden?
+      final isForbidden = matchesAnyConstraint(type, forbidden, typeResolver);
 
-      if (forbiddenSpec == MatchSpecificity.none) continue;
+      if (isForbidden) {
+        // 2. Is it Explicitly Allowed? (Override)
+        final isAllowed = matchesAnyConstraint(type, allowed, typeResolver);
 
-      // 2. Get Allowed Specificity
-      final allowedSpec = getMatchSpecificity(
-        type,
-        allowed,
-        fileResolver,
-        config.definitions,
-      );
+        if (isAllowed) continue; // Suppress warning
 
-      // 3. Smart Override Logic (Specific Beats General)
-      var shouldReport = true;
-
-      if (allowedSpec != MatchSpecificity.none) {
-        if (allowedSpec.index > forbiddenSpec.index) {
-          shouldReport = false;
-        }
-      }
-
-      if (shouldReport) {
+        // 3. Report
         var suggestion = '';
         if (allowed.isNotEmpty) {
           final allowedNames = allowed
@@ -75,29 +53,19 @@ class TypeSafetyReturnForbiddenRule extends TypeSafetyBaseRule {
           suggestion = ' Use $allowedNames instead.';
         }
 
-        // FIX: Branch the logic. Tokens use atToken, Nodes use atNode.
         final returnNode = node.returnType!;
 
         if (returnNode is NamedType) {
-          // Highlight only the name token (e.g. "FutureEither")
-          // Use .name2 as .name is deprecated/removed in newer analyzer versions
           reporter.atToken(
             returnNode.name,
             _code,
-            arguments: [
-              type.getDisplayString(),
-              suggestion,
-            ],
+            arguments: [type.getDisplayString(), suggestion],
           );
         } else {
-          // Fallback for other types (e.g. GenericFunctionType)
           reporter.atNode(
             returnNode,
             _code,
-            arguments: [
-              type.getDisplayString(),
-              suggestion,
-            ],
+            arguments: [type.getDisplayString(), suggestion],
           );
         }
       }

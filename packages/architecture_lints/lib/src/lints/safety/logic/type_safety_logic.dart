@@ -1,80 +1,24 @@
-// lib/src/lints/safety/logic/type_safety_logic.dart
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:architecture_lints/src/engines/resolution/type_resolver.dart';
+import 'package:architecture_lints/src/schema/constraints/type_safety_constraint.dart';
 import 'package:architecture_lints/src/schema/definitions/type_definition.dart';
 import 'package:architecture_lints/src/schema/policies/type_safety_policy.dart';
-import 'package:architecture_lints/src/schema/constraints/type_safety_constraint.dart';
-import 'package:architecture_lints/src/engines/file/file_resolver.dart';
-
-enum MatchSpecificity { none, canonical, alias }
 
 mixin TypeSafetyLogic {
-  /// Determines how specific the match is.
-  MatchSpecificity getMatchSpecificity(
-    DartType type,
-    List<TypeSafetyConstraint> constraintList,
-    FileResolver fileResolver,
-    Map<String, TypeDefinition> registry,
-  ) {
-    var best = MatchSpecificity.none;
-
-    for (final constraint in constraintList) {
-      // 1. Check Alias (Strongest Match)
-      if (type.alias != null) {
-        if (_matchesElement(
-          type.alias!.element,
-          constraint,
-          registry,
-          typeArguments: type.alias!.typeArguments,
-        )) {
-          return MatchSpecificity.alias;
-        }
-      }
-
-      // 2. Check Canonical (Weak Match)
-      if (_matchesElement(
-        type.element,
-        constraint,
-        registry,
-        typeArguments: _getTypeArguments(type),
-      )) {
-        // If we haven't found an alias match yet, mark as canonical
-        if (best == MatchSpecificity.none) best = MatchSpecificity.canonical;
-      }
-
-      // 3. Component Match (Treat as Canonical for now)
-      if (constraint.component != null) {
-        final library = type.element?.library;
-        if (library != null) {
-          final sourcePath = library.firstFragment.source.fullName;
-          final comp = fileResolver.resolve(sourcePath);
-          if (comp != null && comp.matchesReference(constraint.component!)) {
-            if (best == MatchSpecificity.none) best = MatchSpecificity.canonical;
-          }
-        }
-      }
-    }
-    return best;
-  }
-
+  /// Checks if [type] matches any constraint in the [constraintList].
   bool matchesAnyConstraint(
     DartType type,
     List<TypeSafetyConstraint> constraintList,
-    FileResolver fileResolver,
-    Map<String, TypeDefinition> registry,
-  ) {
-    return constraintList.any(
-      (c) => matchesConstraint(type, c, fileResolver, registry),
-    );
-  }
+    TypeResolver typeResolver,
+  ) => constraintList.any((c) => matchesConstraint(type, c, typeResolver));
 
+  /// Checks if [type] is explicitly forbidden by the policy.
+  /// Used by 'Allowed' rules to avoid reporting double-jeopardy errors.
   bool isExplicitlyForbidden({
     required DartType type,
     required TypeSafetyPolicy configRule,
     required String kind,
-    required FileResolver fileResolver,
-    required Map<String, TypeDefinition> registry,
+    required TypeResolver typeResolver,
     String? paramName,
   }) {
     final forbiddenConstraints = configRule.forbidden.where((c) {
@@ -87,161 +31,40 @@ mixin TypeSafetyLogic {
       return true;
     }).toList();
 
-    return matchesAnyConstraint(type, forbiddenConstraints, fileResolver, registry);
+    return matchesAnyConstraint(type, forbiddenConstraints, typeResolver);
   }
 
   bool matchesConstraint(
     DartType type,
     TypeSafetyConstraint constraint,
-    FileResolver fileResolver,
-    Map<String, TypeDefinition> registry,
+    TypeResolver typeResolver,
   ) {
-    // 1. Check Canonical Element
-    if (_matchesElement(
-      type.element,
-      constraint,
-      registry,
-      typeArguments: _getTypeArguments(type),
-    )) {
-      return true;
-    }
-
-    // 2. Check Type Alias
-    if (type.alias != null) {
-      if (_matchesElement(
-        type.alias!.element,
-        constraint,
-        registry,
-        typeArguments: type.alias!.typeArguments,
-      )) {
-        return true;
-      }
-    }
-
-    // 3. Component Match
-    if (constraint.component != null) {
-      final library = type.element?.library;
-      if (library != null) {
-        final sourcePath = library.firstFragment.source.fullName;
-        final comp = fileResolver.resolve(sourcePath);
-        if (comp != null) {
-          if (comp.matchesReference(constraint.component!)) {
-            return true;
-          }
-        }
-      }
-    }
-
-    return false;
-  }
-
-  List<DartType> _getTypeArguments(DartType type) {
-    if (type is InterfaceType) return type.typeArguments;
-    return [];
-  }
-
-  bool _matchesElement(
-    Element? element,
-    TypeSafetyConstraint constraint,
-    Map<String, TypeDefinition> registry, {
-    List<DartType> typeArguments = const [],
-  }) {
-    // Handle void/dynamic special cases if needed (element is null)
-    // For now assume standard types
-    if (element == null) return false;
-    final name = element.name;
-    if (name == null) return false;
-
-    String? libUri;
-    final library = element.library;
-    if (library != null) {
-      libUri = library.firstFragment.source.uri.toString();
-    }
-
-    // 1. Raw Type Match
-    if (constraint.types.contains(name)) return true;
-
-    // 2. Definition Match
+    // 1. Definition Match
     if (constraint.definitions.isNotEmpty) {
       for (final defId in constraint.definitions) {
-        final def = registry[defId];
+        final def = typeResolver.registry[defId];
         if (def == null) continue;
 
-        if (_matchesDefinitionRecursive(def, name, libUri, typeArguments, registry)) {
-          return true;
-        }
+        // Check using ANY mode (Alias OR Canonical)
+        if (typeResolver.matches(type, def)) return true;
       }
+    }
+
+    // 2. Component Match
+    if (constraint.component != null) {
+      if (typeResolver.matchesComponent(type, constraint.component!)) return true;
+    }
+
+    // 3. Raw Type Match
+    if (constraint.types.isNotEmpty) {
+      final name = type.element?.name ?? type.getDisplayString();
+      if (constraint.types.contains(name)) return true;
     }
 
     return false;
-  }
-
-  bool _matchesDefinitionRecursive(
-    TypeDefinition def,
-    String? elementName,
-    String? elementUri,
-    List<DartType> typeArgs,
-    Map<String, TypeDefinition> registry,
-  ) {
-    // A. Wildcard
-    if (def.isWildcard) return true;
-
-    // B. Reference
-    if (def.ref != null) {
-      final referencedDef = registry[def.ref];
-      if (referencedDef == null) return false;
-      return _matchesDefinitionRecursive(
-        referencedDef,
-        elementName,
-        elementUri,
-        typeArgs,
-        registry,
-      );
-    }
-
-    // C. Direct Match
-    // Use list 'types' instead of 'type'
-    if (def.types.isNotEmpty) {
-      if (!def.types.contains(elementName)) return false;
-    }
-
-    // Use list 'imports' instead of 'import'
-    if (def.imports.isNotEmpty) {
-      if (elementUri == null) return false;
-      // Must match at least one allowed import
-      final importMatched = def.imports.any((imp) => elementUri.startsWith(imp));
-      if (!importMatched) return false;
-    }
-
-    // D. Generics
-    if (def.arguments.isNotEmpty) {
-      if (typeArgs.length < def.arguments.length) return false;
-
-      for (var i = 0; i < def.arguments.length; i++) {
-        final argDef = def.arguments[i];
-        final actualArgType = typeArgs[i];
-
-        final actualArgName = actualArgType.element?.name;
-        final actualArgUri = actualArgType.element?.library?.firstFragment.source.uri.toString();
-        final nestedArgs = _getTypeArguments(actualArgType);
-
-        if (!_matchesDefinitionRecursive(
-          argDef,
-          actualArgName,
-          actualArgUri,
-          nestedArgs,
-          registry,
-        )) {
-          return false;
-        }
-      }
-    }
-
-    return true;
   }
 
   String describeConstraint(TypeSafetyConstraint c, Map<String, TypeDefinition> registry) {
-    // 1. Definitions
     if (c.definitions.isNotEmpty) {
       return c.definitions
           .map((key) {
@@ -250,11 +73,7 @@ mixin TypeSafetyLogic {
           })
           .join(' or ');
     }
-
-    // 2. Raw Types
     if (c.types.isNotEmpty) return c.types.join(' or ');
-
-    // 3. Component
     if (c.component != null) return 'Component: ${c.component}';
 
     return 'Defined Rule';

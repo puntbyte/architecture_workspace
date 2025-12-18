@@ -7,6 +7,8 @@ enum ActionElement {
   field('field'),
   clazz('class'),
   constructor('constructor'),
+  extension('extension'),
+  mixin('mixin'),
   file('file');
 
   final String yamlKey;
