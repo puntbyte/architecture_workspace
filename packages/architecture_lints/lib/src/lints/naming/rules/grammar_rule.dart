@@ -25,16 +25,23 @@ class GrammarRule extends NamingBaseRule with GrammarLogic {
     required DiagnosticReporter reporter,
     required ArchitectureConfig rootConfig,
   }) {
+    // DEBUG: Check what we received
+    print('[GrammarRule] Checking "${node.name.lexeme}" against ${config.id}');
+    print('[GrammarRule] Config Grammar: ${config.grammar}');
+
+    // 1. Skip if no grammar rules defined
     if (config.grammar.isEmpty) return;
 
     final className = node.name.lexeme;
 
-    // Create analyzer with the current project's vocabulary
+    // 2. Initialize Analyzer with User Vocabulary
     final analyzer = LanguageAnalyzer(vocabulary: rootConfig.vocabulary);
 
-    String? failureReason;
-    String? failureCorrection;
+    // 3. Check against ALL allowed grammar patterns (OR logic)
+    // If the name satisfies ANY of the grammar rules, it is valid.
     var hasMatch = false;
+    String? lastReason;
+    String? lastCorrection;
 
     for (final grammar in config.grammar) {
       final result = validateGrammar(grammar, className, analyzer);
@@ -42,19 +49,19 @@ class GrammarRule extends NamingBaseRule with GrammarLogic {
         hasMatch = true;
         break;
       } else {
-        failureReason ??= result.reason;
-        failureCorrection ??= result.correction;
+        lastReason ??= result.reason;
+        lastCorrection ??= result.correction;
       }
     }
 
-    if (!hasMatch && failureReason != null) {
+    if (!hasMatch && lastReason != null) {
       reporter.atToken(
         node.name,
         _code,
         arguments: [
           config.displayName,
-          failureReason,
-          failureCorrection ?? 'Check grammar configuration.',
+          lastReason,
+          lastCorrection ?? 'Check grammar configuration.',
         ],
       );
     }

@@ -16,16 +16,13 @@ import 'package:injectable/injectable.dart'; //! <-- LINT WARNING
 
 // LINT: [4] arch_annot_forbidden (Forbidden Annotation)
 // REASON: Entities should be POJOs; Dependency Injection annotations are forbidden.
-@Injectable()
-@lazySingleton //! <-- LINT WARNING
+@Injectable() @lazySingleton //! <-- LINT WARNING
 // ignore: arch_member_missing
 class AnnotatedUser implements Entity {}
 
 // LINT: [5] arch_naming_antipattern
 // REASON: Name matches antipattern `{{name}}Entity`; use `User` instead.
-// ignore: arch_naming_antipattern
-class UserEntity extends Entity {
-  //! <-- LINT WARNING
+class UserEntity extends Entity { //! <-- LINT WARNING
   final String id;
 
   // LINT: [6] arch_dep_external
@@ -47,25 +44,22 @@ class UserEntity extends Entity {
 
 // LINT: [8] arch_type_missing_base
 // REASON: Entities must extend the base `Entity` class defined in Core.
-class UncontractedUser {
-  //! <-- LINT WARNING
+class UncontractedUser { //! <-- LINT WARNING
   final String id;
 
   const UncontractedUser(this.id);
 }
 
-// LINT: [9] arch_naming_grammar
+// Lint:
 // REASON: Grammar violation: Entities must be Noun phrases, not actions (Verbs).
 // ignore: arch_member_missing
-class FetchingUser extends Entity {
-  //! <-- LINT WARNING
+class FetchingUser extends Entity { //! <-- LINT WARNING
   const FetchingUser();
 }
 
 // LINT: [10] arch_member_missing
-// REASON:
-// ignore: arch_naming_grammar,
-class MissingMember extends Entity {
-  //! <-- LINT WARNING
+// REASON: 
+// ignore: arch_naming_grammar
+class MissingMember extends Entity { //! <-- LINT WARNING
   const MissingMember();
 }

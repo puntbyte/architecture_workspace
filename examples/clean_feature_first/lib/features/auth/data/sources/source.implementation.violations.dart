@@ -18,12 +18,10 @@ typedef Database = Object;
 // REASON: Name must match `Default{{name}}Source` (configured pattern).
 // 'AuthSourceImpl' is the standard flutter way, but this config enforces 'Default...'.
 // ignore: arch_naming_grammar, arch_naming_pattern, arch_type_missing_base
-class AuthSourceImpl implements AuthSource {
-  //! <-- LINT WARNING
+class AuthSourceImpl implements AuthSource { //! <-- LINT WARNING
   // LINT: [3] arch_safety_return_forbidden
   // REASON: Implementation returns Either/Right. Sources must throw exceptions.
-  FutureEither<UserModel> wrongReturnType() async {
-    //! <-- LINT WARNING
+  FutureEither<UserModel> wrongReturnType() async { //! <-- LINT WARNING
     return Right(UserModel(id: '1', name: 'Test'));
   }
 

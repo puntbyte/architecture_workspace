@@ -1246,7 +1246,7 @@ relationships:
       # A builtin quick fix to create a Usecase file based on Port method.
       action: 'create_usecase'
 
-vocabulary:
+vocabularies:
   nouns:
     - auth    # 'Auth' is usually an abbreviation, dictionary might not know it
     - todo

@@ -6,7 +6,7 @@ import 'package:architecture_lints/src/lints/boundaries/rules/module_dependency_
 import 'package:architecture_lints/src/lints/consistency/rules/orphan_file_rule.dart';
 import 'package:architecture_lints/src/lints/consistency/rules/parity_missing_rule.dart';
 //import 'package:architecture_lints/src/lints/debug/rules/debug_action_context.dart';
-//import 'package:architecture_lints/src/lints/debug/rules/debug_component_identity.dart';
+import 'package:architecture_lints/src/lints/debug/rules/debug_component_identity.dart';
 import 'package:architecture_lints/src/lints/identity/rules/inheritance_allowed_rule.dart';
 import 'package:architecture_lints/src/lints/identity/rules/inheritance_forbidden_rule.dart';
 import 'package:architecture_lints/src/lints/identity/rules/inheritance_required_rule.dart';

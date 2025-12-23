@@ -18,6 +18,7 @@ abstract class ArchitectureRule extends DartLintRule {
     CustomLintResolver resolver,
     CustomLintContext context,
   ) async {
+    // 1. Check if Config is already loaded (Shared State)
     if (context.sharedState.containsKey(ArchitectureConfig)) {
       await super.startUp(resolver, context);
       return;
@@ -29,6 +30,7 @@ abstract class ArchitectureRule extends DartLintRule {
     }
 
     try {
+      // 2. Load Config
       final config = await ConfigLoader.loadFromContext(resolver.path);
 
       if (config != null) {
@@ -42,6 +44,7 @@ abstract class ArchitectureRule extends DartLintRule {
         context.sharedState[FileResolver] = fileResolver;
         context.sharedState[TypeResolver] = typeResolver;
 
+        // 3. Attempt Refinement (AST)
         try {
           final unit = await resolver.getResolvedUnitResult();
           final refiner = ComponentRefiner(config, fileResolver);
@@ -73,6 +76,7 @@ abstract class ArchitectureRule extends DartLintRule {
     DiagnosticReporter reporter,
     CustomLintContext context,
   ) {
+    // 4. Retrieve State
     final config = context.sharedState[ArchitectureConfig] as ArchitectureConfig?;
     final fileResolver = context.sharedState[FileResolver] as FileResolver?;
 

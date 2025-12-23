@@ -37,8 +37,7 @@ abstract interface class AuthContract implements Port {
 // LINT: [8] arch_type_missing_base
 // REASON: Ports must implement/extend the base `Port` interface defined in Core.
 // ignore: arch_type_missing_base
-abstract interface class UncontractedAuthPort {
-  //! <-- LINT WARNING
+abstract interface class UncontractedAuthPort { //! <-- LINT WARNING
   // LINT: [8] arch_safety_return_strict
   // REASON: Return type must be `FutureEither<T>`, not `void`.
   void doSomething(); //! <-- LINT WARNING
@@ -78,7 +77,6 @@ abstract interface class PurityViolationsPort implements Port {
 // LINT: [12] arch_naming_grammar
 // REASON: Grammar violation. Ports should be Noun Phrases (e.g., AuthPort).
 // 'FetchingUserPort' implies an action (Verb), which is reserved for UseCases.
-abstract interface class FetchingUserPort implements Port {
-  //! <-- LINT WARNING
+abstract interface class FetchingUserPort implements Port { //! <-- LINT WARNING
   FutureEither<User> fetch();
 }

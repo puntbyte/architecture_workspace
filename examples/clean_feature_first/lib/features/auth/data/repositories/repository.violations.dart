@@ -17,8 +17,7 @@ import 'package:fpdart/fpdart.dart';
 // LINT: [3] arch_naming_pattern
 // REASON: Name `AuthService` does not match pattern `{{kind}}{{name}}Repository`.
 // ignore: arch_naming_pattern, arch_type_missing_base, arch_annot_missing
-class AuthService implements AuthPort {
-  //! <-- LINT WARNING HERE (Missing Annotation & Bad Name)
+class AuthService implements AuthPort { //! <-- LINT WARNING HERE (Missing Annotation & Bad Name)
 
   // LINT: [4] arch_member_forbidden
   // REASON: Must depend on `AuthSource` (Interface), not `Default...` (Concrete).

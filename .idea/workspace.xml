@@ -5,8 +5,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a3767faf-9392-4c84-9047-afac6d256402" name="Changes" comment="Cleanup and refactor project files&#10;&#10;- Added an explicit `dynamic` type parameter to `Iterable` in `VariableResolver`'s `_buildCollectionMeta` for improved type safety.&#10;- Commented out the unused `_calculateFullPath` method in `RelatedFileResolver` to clean up the codebase.&#10;- Removed several files from project tracking in the `.idea/workspace.xml` file.">
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/src/lints/debug/logic/debug_rule_runner.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/src/lints/debug/logic/debug_rule_runner.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/src/schema/constraints/annotation_constraint.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/src/schema/constraints/annotation_constraint.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/src/engines/language/language_analyzer_o.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/packages/architecture_lints/test/helpers/fakes.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/packages/architecture_lints/test/helpers/mocks.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/packages/architecture_lints/test/helpers/test_resolver.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/clean_feature_first/architecture.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/examples/clean_feature_first/architecture.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/clean_feature_first/lib/features/auth/data/models/model.violations.dart" beforeDir="false" afterPath="$PROJECT_DIR$/examples/clean_feature_first/lib/features/auth/data/models/model.violations.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/clean_feature_first/lib/features/auth/data/repositories/repository.violations.dart" beforeDir="false" afterPath="$PROJECT_DIR$/examples/clean_feature_first/lib/features/auth/data/repositories/repository.violations.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/clean_feature_first/lib/features/auth/data/sources/source.implementation.violations.dart" beforeDir="false" afterPath="$PROJECT_DIR$/examples/clean_feature_first/lib/features/auth/data/sources/source.implementation.violations.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/clean_feature_first/lib/features/auth/domain/entities/entity.violations.dart" beforeDir="false" afterPath="$PROJECT_DIR$/examples/clean_feature_first/lib/features/auth/domain/entities/entity.violations.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/clean_feature_first/lib/features/auth/domain/ports/port.violations.dart" beforeDir="false" afterPath="$PROJECT_DIR$/examples/clean_feature_first/lib/features/auth/domain/ports/port.violations.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/clean_feature_first/lib/features/auth/domain/usecases/usecase.violations.dart" beforeDir="false" afterPath="$PROJECT_DIR$/examples/clean_feature_first/lib/features/auth/domain/usecases/usecase.violations.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/architecture_lints.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/architecture_lints.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/src/engines/language/language_analyzer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/src/engines/language/language_analyzer.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/src/lints/architecture_rule.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/src/lints/architecture_rule.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/src/lints/naming/logic/grammar_logic.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/src/lints/naming/logic/grammar_logic.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/src/lints/naming/rules/grammar_rule.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/src/lints/naming/rules/grammar_rule.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/src/schema/definitions/component_definition.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/src/schema/definitions/component_definition.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/lib/src/schema/definitions/vocabulary_definition.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/lib/src/schema/definitions/vocabulary_definition.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/architecture_lints/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/architecture_lints/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,6 +36,13 @@
   </component>
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Dart File" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -42,33 +70,79 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
-    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;io.flutter.project.isFirstOpen&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;E:/Projects/Google/Flutter/packages/architecture_workspace/packages/architecture_clean/presets&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;Settings.Markdown&quot;,
-    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Dart Test.Tests in grammar_logic_test.dart.executor": "Run",
+    "Dart Test.Tests in grammar_rule_test.dart.executor": "Run",
+    "Dart Test.Tests in language_analyzer_test.dart.executor": "Run",
+    "Dart Test.Tests in naming_antipattern_rule_test.dart.executor": "Run",
+    "Dart Test.Tests in naming_logic_test.dart.executor": "Run",
+    "Dart Test.Tests in naming_pattern_rule_test.dart.executor": "Run",
+    "Dart Test.should allow Adjective modifiers in grammar_logic_test.dart.executor": "Run",
+    "Dart Test.should fallback to full name if extraction pattern fails in grammar_logic_test.dart.executor": "Run",
+    "Dart Test.should pass for Adjective in Noun Phrase (ActiveUserModel) in grammar_logic_test.dart.executor": "Run",
+    "Dart Test.should report violation when Vocabulary defines \"Parsing\" as verb in grammar_rule_test.dart.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "master",
+    "io.flutter.project.isFirstOpen": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "E:/Projects/Google/Flutter/packages/architecture_workspace/packages/architecture_lints/lib/src/engines/language",
+    "settings.editor.selected.configurable": "Settings.Markdown",
+    "show.migrate.to.gradle.popup": "false"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\Projects\Google\Flutter\packages\architecture_workspace\packages\architecture_lints\lib\src\engines\language" />
       <recent name="E:\Projects\Google\Flutter\packages\architecture_workspace\packages\architecture_clean\presets" />
       <recent name="E:\Projects\Google\Flutter\packages\architecture_workspace\packages\architecture_clean" />
     </key>
   </component>
-  <component name="RunManager" selected="Flutter.Flutter Run -&gt; 'clean_feature_first'" />
+  <component name="RunManager" selected="Dart Test.Tests in grammar_rule_test.dart">
+    <configuration name="Tests in grammar_rule_test.dart" type="DartTestRunConfigurationType" factoryName="Dart Test" temporary="true" nameIsGenerated="true">
+      <option name="filePath" value="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/naming/rules/grammar_rule_test.dart" />
+      <option name="testName" value="grammar_rule_test.dart" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Tests in language_analyzer_test.dart" type="DartTestRunConfigurationType" factoryName="Dart Test" temporary="true" nameIsGenerated="true">
+      <option name="filePath" value="$PROJECT_DIR$/packages/architecture_lints/test/src/engines/language/language_analyzer_test.dart" />
+      <option name="testName" value="language_analyzer_test.dart" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Tests in naming_antipattern_rule_test.dart" type="DartTestRunConfigurationType" factoryName="Dart Test" temporary="true" nameIsGenerated="true">
+      <option name="filePath" value="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/naming/rules/naming_antipattern_rule_test.dart" />
+      <option name="testName" value="naming_antipattern_rule_test.dart" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Tests in naming_pattern_rule_test.dart" type="DartTestRunConfigurationType" factoryName="Dart Test" temporary="true" nameIsGenerated="true">
+      <option name="filePath" value="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/naming/rules/naming_pattern_rule_test.dart" />
+      <option name="testName" value="naming_pattern_rule_test.dart" />
+      <method v="2" />
+    </configuration>
+    <configuration name="should report violation when Vocabulary defines &quot;Parsing&quot; as verb in grammar_rule_test.dart" type="DartTestRunConfigurationType" factoryName="Dart Test" temporary="true" nameIsGenerated="true">
+      <option name="filePath" value="$PROJECT_DIR$/packages/architecture_lints/test/src/lints/naming/rules/grammar_rule_test.dart" />
+      <option name="scope" value="GROUP_OR_TEST_BY_NAME" />
+      <option name="testName" value="should report violation when Vocabulary defines &quot;Parsing&quot; as verb" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Dart Test.Tests in grammar_rule_test.dart" />
+        <item itemvalue="Dart Test.should report violation when Vocabulary defines &quot;Parsing&quot; as verb in grammar_rule_test.dart" />
+        <item itemvalue="Dart Test.Tests in language_analyzer_test.dart" />
+        <item itemvalue="Dart Test.Tests in naming_pattern_rule_test.dart" />
+        <item itemvalue="Dart Test.Tests in naming_antipattern_rule_test.dart" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="a3767faf-9392-4c84-9047-afac6d256402" name="Changes" comment="" />

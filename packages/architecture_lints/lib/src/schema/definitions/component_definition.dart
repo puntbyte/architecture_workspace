@@ -57,6 +57,8 @@ class ComponentDefinition {
 
       patterns: map.getStringList(ConfigKeys.component.pattern),
       antipatterns: map.getStringList(ConfigKeys.component.antipattern),
+      grammar: map.getStringList(ConfigKeys.component.grammar),
+
       kinds: parseEnumList(ConfigKeys.component.kind, ComponentKind.fromKey),
       modifiers: parseEnumList(ConfigKeys.component.modifier, ComponentModifier.fromKey),
       mode: ComponentMode.fromKey(map.tryGetString(ConfigKeys.component.mode)),
@@ -84,7 +86,8 @@ class ComponentDefinition {
         return node.containsKey(ConfigKeys.component.path) ||
             node.containsKey(ConfigKeys.component.pattern) ||
             node.containsKey(ConfigKeys.component.grammar) ||
-            node.containsKey(ConfigKeys.component.antipattern);
+            node.containsKey(ConfigKeys.component.antipattern) ||
+            node.containsKey(ConfigKeys.component.mode);
       },
     );
 

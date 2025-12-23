@@ -14,11 +14,24 @@ class VocabularyDefinition {
     this.adjectives = const {},
   });
 
-  factory VocabularyDefinition.fromMap(Map<dynamic, dynamic> map) => VocabularyDefinition(
-    nouns: _parseSet(map, ConfigKeys.vocabulary.nouns),
-    verbs: _parseSet(map, ConfigKeys.vocabulary.verbs),
-    adjectives: _parseSet(map, ConfigKeys.vocabulary.adjectives),
-  );
+  factory VocabularyDefinition.fromMap(Map<dynamic, dynamic> map) {
+    if (map.isEmpty) return const VocabularyDefinition();
+
+    // DEBUG PRINT
+    print('[Vocabulary] Parsing from map: $map');
+
+    final nouns = _parseSet(map, ConfigKeys.vocabulary.nouns);
+    final verbs = _parseSet(map, ConfigKeys.vocabulary.verbs);
+    final adjs = _parseSet(map, ConfigKeys.vocabulary.adjectives);
+
+    if (verbs.isNotEmpty) print('[Vocabulary] Loaded verbs: $verbs');
+
+    return VocabularyDefinition(
+      nouns: nouns,
+      verbs: verbs,
+      adjectives: adjs,
+    );
+  }
 
   static Set<String> _parseSet(Map<dynamic, dynamic> map, String key) {
     final list = map.getStringList(key);

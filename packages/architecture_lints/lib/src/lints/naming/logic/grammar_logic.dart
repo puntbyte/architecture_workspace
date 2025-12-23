@@ -2,19 +2,51 @@ import 'package:architecture_lints/src/engines/language/language_analyzer.dart';
 import 'package:architecture_lints/src/schema/enums/grammar_token.dart';
 import 'package:architecture_lints/src/utils/extensions/string_extension.dart';
 
+class GrammarResult {
+  final bool isValid;
+  final String? reason;
+  final String? correction;
+
+  const GrammarResult.valid() : isValid = true, reason = null, correction = null;
+
+  const GrammarResult.invalid({required this.reason, required this.correction}) : isValid = false;
+
+  @override
+  String toString() => isValid ? 'Valid' : 'Invalid: $reason';
+}
+
 mixin GrammarLogic {
   /// Validates [className] against a [grammar] string using the [analyzer].
   GrammarResult validateGrammar(String grammar, String className, LanguageAnalyzer analyzer) {
-    final coreName = _extractCoreName(grammar, className);
-    if (coreName.isEmpty) return const GrammarResult.valid();
+    print('\n[GrammarLogic] ---------------------------------------------------');
+    print('[GrammarLogic] Checking Class: "$className" against Template: "$grammar"');
 
+    // 1. Extract Core Name
+    final coreName = _extractCoreName(grammar, className);
+    print('[GrammarLogic] Extracted Core Name: "$coreName"');
+
+    if (coreName.isEmpty) {
+      print('[GrammarLogic] Core name empty. Returning Valid.');
+      return const GrammarResult.valid();
+    }
+
+    // 2. Split Words
     final words = coreName.splitPascalCase();
+    print('[GrammarLogic] Split Words: $words');
+
     if (words.isEmpty) return const GrammarResult.valid();
 
     // --- PRIORITY 1: ACTIONS (Verb-Noun) ---
-    // Triggered if grammar explicitly asks for a base Verb (e.g. GetUser)
-    if (GrammarToken.verb.isPresentIn(grammar) || GrammarToken.verbPresent.isPresentIn(grammar)) {
+    final hasVerb =
+        GrammarToken.verb.isPresentIn(grammar) || GrammarToken.verbPresent.isPresentIn(grammar);
+    final hasNoun =
+        GrammarToken.noun.isPresentIn(grammar) || GrammarToken.nounPhrase.isPresentIn(grammar);
+
+    if (hasVerb && hasNoun) {
+      print('[GrammarLogic] Matched Logic: ACTION (Verb-Noun)');
+
       if (words.length < 2) {
+        print('[GrammarLogic] Fail: Too short');
         return const GrammarResult.invalid(
           reason: 'The name is too short.',
           correction: 'Use the format Action + Subject (e.g., GetUser).',
@@ -22,7 +54,10 @@ mixin GrammarLogic {
       }
 
       final firstWord = words.first;
-      if (!analyzer.isVerb(firstWord)) {
+      final isV = analyzer.isVerb(firstWord);
+      print('[GrammarLogic] Checking First Word "$firstWord" isVerb? $isV');
+
+      if (!isV) {
         return GrammarResult.invalid(
           reason: 'The first word "$firstWord" is not a recognized Verb.',
           correction: 'Start with an action verb like Get, Save, or Load.',
@@ -30,7 +65,10 @@ mixin GrammarLogic {
       }
 
       final lastWord = words.last;
-      if (!analyzer.isNoun(lastWord)) {
+      final isN = analyzer.isNoun(lastWord);
+      print('[GrammarLogic] Checking Last Word "$lastWord" isNoun? $isN');
+
+      if (!isN) {
         return GrammarResult.invalid(
           reason: 'The last word "$lastWord" is not a recognized Noun (Subject).',
           correction: 'End with the subject being acted upon (e.g., User, Data).',
@@ -40,16 +78,31 @@ mixin GrammarLogic {
     }
 
     // --- PRIORITY 2: STATES (Adjective/Past/Gerund) ---
-    // Triggered if grammar asks for state descriptors
-    if (GrammarToken.adjective.isPresentIn(grammar) ||
-        GrammarToken.verbGerund.isPresentIn(grammar) ||
-        GrammarToken.verbPast.isPresentIn(grammar)) {
+    final hasAdj = GrammarToken.adjective.isPresentIn(grammar);
+    final hasGerund = GrammarToken.verbGerund.isPresentIn(grammar);
+    final hasPast = GrammarToken.verbPast.isPresentIn(grammar);
+
+    if (hasAdj || hasGerund || hasPast) {
+      print('[GrammarLogic] Matched Logic: STATE');
+
       final last = words.last;
       var match = false;
 
-      if (GrammarToken.adjective.isPresentIn(grammar) && analyzer.isAdjective(last)) match = true;
-      if (GrammarToken.verbGerund.isPresentIn(grammar) && analyzer.isVerbGerund(last)) match = true;
-      if (GrammarToken.verbPast.isPresentIn(grammar) && analyzer.isVerbPast(last)) match = true;
+      if (hasAdj) {
+        final isA = analyzer.isAdjective(last);
+        print('[GrammarLogic] Check "$last" isAdjective? $isA');
+        if (isA) match = true;
+      }
+      if (!match && hasGerund) {
+        final isG = analyzer.isVerbGerund(last);
+        print('[GrammarLogic] Check "$last" isVerbGerund? $isG');
+        if (isG) match = true;
+      }
+      if (!match && hasPast) {
+        final isP = analyzer.isVerbPast(last);
+        print('[GrammarLogic] Check "$last" isVerbPast? $isP');
+        if (isP) match = true;
+      }
 
       if (!match) {
         return GrammarResult.invalid(
@@ -61,22 +114,29 @@ mixin GrammarLogic {
     }
 
     // --- PRIORITY 3: OBJECTS (Noun Phrases) ---
-    // Fallback for Entities, Models, etc.
-    if (GrammarToken.noun.isPresentIn(grammar) ||
+    final hasNounToken =
+        GrammarToken.noun.isPresentIn(grammar) ||
         GrammarToken.nounPhrase.isPresentIn(grammar) ||
         GrammarToken.nounSingular.isPresentIn(grammar) ||
-        GrammarToken.nounPlural.isPresentIn(grammar)) {
+        GrammarToken.nounPlural.isPresentIn(grammar);
+
+    if (hasNounToken) {
+      print('[GrammarLogic] Matched Logic: NOUN PHRASE');
+
       final head = words.last;
+      final isNoun = analyzer.isNoun(head);
+      final isVerb = analyzer.isVerb(head);
+      print('[GrammarLogic] Checking Head "$head". isNoun: $isNoun, isVerb: $isVerb');
 
       // A. Strict POS Check on Head Noun
-      if (!analyzer.isNoun(head)) {
-        // Allow fallback if word is unknown, but flag if it's definitely a verb
-        if (analyzer.isVerb(head)) {
+      if (!isNoun) {
+        if (isVerb) {
           return GrammarResult.invalid(
             reason: 'The subject "$head" seems to be a Verb (Action).',
             correction: 'Ensure the name describes a specific Object.',
           );
         }
+        // If unknown, we usually let it pass to avoid false positives on domain jargon
       }
 
       // B. Plurality Check
@@ -93,10 +153,15 @@ mixin GrammarLogic {
         );
       }
 
-      // C. Modifier Check (No Verbs/Gerunds allowed in Noun Phrases)
+      // C. Modifier Check
+      print('[GrammarLogic] Checking Modifiers: ${words.sublist(0, words.length - 1)}');
       for (var i = 0; i < words.length - 1; i++) {
         final word = words[i];
-        if (analyzer.isVerbGerund(word)) {
+        final isGerund = analyzer.isVerbGerund(word);
+        print('  > "$word" isGerund? $isGerund');
+
+        if (isGerund) {
+          print('[GrammarLogic] VIOLATION FOUND: Gerund modifier');
           return GrammarResult.invalid(
             reason: '"$word" is a Gerund (action), but this component should be a static Noun.',
             correction: 'Remove "$word" or change it to a descriptive adjective.',
@@ -106,6 +171,7 @@ mixin GrammarLogic {
       return const GrammarResult.valid();
     }
 
+    print('[GrammarLogic] No specific logic matched for grammar tokens.');
     return const GrammarResult.valid();
   }
 
@@ -113,13 +179,18 @@ mixin GrammarLogic {
     var regexStr = RegExp.escape(grammar);
 
     for (final token in GrammarToken.values) {
+      // Note: GrammarToken.template usually returns {{...}}
+      // Ensure we escape that for the regex replacer
       final escapedTemplate = RegExp.escape(token.template);
-      // Use non-greedy match for parts before the last token, greedy for the rest?
-      // Simple (.*) usually works if structure is simple Prefix${token}Suffix
+
+      // We replace the token with a capturing group (.*)
+      // This is greedy, but for simple Prefix{{noun}}Suffix patterns it works.
       regexStr = regexStr.replaceAll(escapedTemplate, '(.*)');
     }
 
     final regex = RegExp('^$regexStr\$');
+    // print('[GrammarLogic] Extraction Regex: $regex');
+
     final match = regex.firstMatch(className);
 
     if (match != null) {
@@ -129,19 +200,9 @@ mixin GrammarLogic {
       }
       return buffer.toString();
     }
+
+    // If regex fails (e.g. grammar is "{{noun}}Model" but class is "UserHelper"),
+    // we assume the whole name is the subject to be analyzed.
     return className;
   }
-}
-
-class GrammarResult {
-  final bool isValid;
-  final String? reason;
-  final String? correction;
-
-  const GrammarResult.valid() : isValid = true, reason = null, correction = null;
-
-  const GrammarResult.invalid({
-    required this.reason,
-    required this.correction,
-  }) : isValid = false;
 }
