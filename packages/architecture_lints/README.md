@@ -1,7 +1,7 @@
+```markdown
 # Architecture Lints 🏗️
 
-A **configuration-driven**, **architecture-agnostic** linting engine for Dart and Flutter that 
-transforms your architectural vision into enforceable code standards.
+A **configuration-driven**, **architecture-agnostic** linting engine for Dart and Flutter that transforms your architectural vision into enforceable code standards.
 
 Unlike standard linters that enforce hardcoded opinions (e.g., "Always extend Bloc"), `architecture_lints` reads a **Policy Definition** from an `architecture.yaml` file in your project root. This allows you to define your **own** architectural rules, layers, and naming conventions.
 
@@ -16,8 +16,8 @@ Add the package to your `dev_dependencies`:
 ```yaml
 # pubspec.yaml
 dev_dependencies:
-  custom_lint: ^0.6.4
-  architecture_lints: ^1.0.0
+  custom_lint: ^0.8.0
+  architecture_lints: ^0.1.0
 ```
 
 Enable the plugin in `analysis_options.yaml`:
@@ -49,7 +49,7 @@ These rules are generic but become specific based on your configuration.
 | **`arch_safety_param_strict`**  | Type Safety | Method parameter uses a primitive (e.g., `int`) instead of a ValueObject (e.g., `UserId`).       |
 | **`arch_exception_forbidden`**  | Exceptions  | Layer performs a forbidden operation (e.g., `throw` in UI, or `catch` in Domain).                |
 | **`arch_usage_global_access`**  | Usage       | Direct access to global service locators (e.g., `GetIt.I`) is detected where banned.             |
-| **`arch_usage_instantiation`**  | Usage       | Direct instantiation of a dependency (`new Repo()`) instead of using injection.                  |
+| **`arch_usage_instantiation`**  | Usage       | Direct instantiation of a dependency (`new Repository()`) instead of using injection.            |
 | **`arch_annot_missing`**        | Annotations | Class is missing required metadata (e.g., `@Injectable`).                                        |
 | **`arch_annot_forbidden`**      | Annotations | Usage of banned annotations (e.g., `@JsonSerializable` in Domain layer).                         |
 
@@ -76,237 +76,589 @@ To effectively lint a large project, we must understand its structure on two axe
 
 ### **Modules (Horizontal Slicing)**
 Modules represent the **Features** or high-level groupings of your application.
-*   *Example:* `Auth`, `Cart`, `Profile`, `Core`.
-*   A module usually contains multiple layers.
+- *Example:* `Core`, `Shared`, `Profile`, `Auth`.
+- A module usually contains multiple layers.
 
 ### **Components (Vertical Slicing)**
 Components represent the **Layers** or technical roles within a module.
-*   *Example:* `Entity`, `Repository`, `UseCase`, `Widget`.
-*   A component is defined by what it *is* (Structure) and where it *lives* (Path).
+- *Example:* `Entity`, `Repository`, `UseCase`, `Widget`.
+- A component is defined by what it *is* (Structure) and where it *lives* (Path).
 
 The Linter combines these to identify a file:
 > `lib/features/auth/domain/usecases/login.dart`
 >
-> *   **Module:** `auth` (Derived from `features/${name}`)
-> *   **Component:** `domain.usecase` (Derived from path `domain/usecases`)
+> - **Module:** `auth` (Derived from `features/{{name}}`)
+> - **Component:** `domain.usecase` (Derived from path `domain/usecases`)
 
 ---
 
-## [2] 🎯 Core Declarations (The Configurations) 
+## [2] 🎯 Core Declarations (The Configurations)
 
 The `architecture.yaml` file drives everything.
 
 ### [2.1] Modules (`modules`)
-Defines how to parse high-level folders.
+
+Defines the high-level boundaries (features or layers) of your application. The linter uses these definitions to understand which part of the codebase a file belongs to.
+
+#### Definition
+**`<module_key>`**: The unique identifier for the module. This ID is used when referencing modules 
+in dependency rules
+- **Type:** `String` *(YAML Map Key)*
+- **Style**:
+  - **Shorthand:** `<key>: '<path>'` for simple path mapping
+  - **Expanded:** `<key>: { path: '<path>', default: <bool> }` for additional options
+
+#### Properties
+
+**[a] `path`**: The root directory for this module relative to the project root
+- **Type:** `String`
+- **Placeholders:**
+    - `{{name}}`: Dynamic module indicator. The folder name becomes the module instance name
+    - `*`: Standard glob wildcard for ignoring intermediate folders
+
+**[b] `default`**: Whether this module is the fallback for unmatched components
+- **Type:** `Boolean`
+- **Default:** `false`
+
+#### Example
 
 ```yaml
 modules:
-  # Dynamic Module: Matches any folder inside 'features/'
-  # The '${name}' placeholder captures the module name (e.g., 'auth').
+  # [Dynamic] Feature modules under features/
+  # ID: 'feature', Instance: 'auth', 'payments', etc.
   feature:
     path: 'features/{{name}}'
-    default: true # Fallback if no other module matches
+    default: true # Unmatched components belong here
 
-  # Static Modules: Exact path matches
+  # [Static] Core module
+  # ID: 'core', Path: 'lib/core'
   core: 'core'
+
+  # [Static] Shared module
+  # ID: 'shared', Path: 'lib/shared'
   shared: 'shared'
 ```
 
 ### [2.2] Components (`components`)
-Defines the taxonomy of your architecture. Supports hierarchy to share configuration (children 
-inherit `path` prefixes).
 
-**Key Properties:**
-*   **`mode`**: Critical for resolution.
-    *   `namespace`: A folder/layer container. Cannot match a file.
-    *   `file`: A specific code unit (e.g., a class file).
-    *   `part`: A symbol defined *inside* a file (e.g., an Event class inside a Bloc file).
-*   **`kind`**: The Dart element type (`class`, `enum`, `mixin`, `extension`, `typedef`).
-*   **`modifier`**: Dart keywords (`abstract`, `sealed`, `interface`).
-*   **`pattern`**: Naming convention regex.
-    *   `${name}`: The core name (PascalCase).
-    *   `${affix}`: Wildcard match.
+Maps your file system structure to architectural concepts. This is the core taxonomy of your 
+project.
+
+#### Definition
+**`<component_key>`**:
+- **Type:** `String` *(YAML Map Key)*
+- **Style**:
+  - **Hierarchy**: Keys starting with `.` are children. Their ID concatenates with parent 
+    (e.g., `domain` + `.port` = `domain.port`).
+  - **Inheritance**: Child components automatically inherit the `path` of their parent, allowing 
+    you to map nested folder structures easily.
+
+#### Properties
+
+**[a] `mode`**: **Critical for Resolution.** Defines what this component represents physically in 
+the codebase
+- **Type:** `String` *(Enumeration)*
+- **Options:**
+  - `file`: *(Default)* Represents a specific code unit (e.g., a class in a file). Matches based on 
+    file name and content
+  - `namespace`: Represents a folder or layer container. Matches directories, never specific files. 
+    Use this for parent keys (e.g., `domain`)
+  - `part`: Represents a symbol defined *inside* a file (e.g., an `Event` class defined within a 
+    Bloc file). Use this for detailed structural checks within a file
+
+**[b] `path`**: The directory name(s) relative to the parent component
+- **Type:** `String | List<String>`
+- **Behavior:** If parent has `path: domain` and child has `path: entities`, the full path is `domain/entities`
+
+**[c] `kind`**: Enforces the specific Dart declaration type
+- **Type:** `String | List<String>`
+- **Options:** `class`, `enum`, `mixin`, `extension`, `typedef`
+
+**[d] `modifier`**: Enforces specific Dart keywords on the declaration
+- **Type:** `String | List<String>`
+- **Options:** `abstract`, `sealed`, `interface`, `base`, `final`, `mixin` (for mixin classes)
+
+**[e] `pattern`**: A regex-based naming convention for the class or element name
+- **Type:** `String | List<String>`
+- **Placeholders:**
+    - `{{name}}`: Captures the core domain name in PascalCase (e.g., `GetUser`)
+    - `{{affix}}`: A non-greedy wildcard matching any prefix or suffix
+
+**[f] `antipattern`**: Forbidden naming patterns to guide users away from bad habits
+- **Type:** `String | List<String>`
+- **Placeholders:** Same as `pattern`
+
+**[g] `grammar`**: Semantic naming pattern using parts of speech
+- **Type:** `String | List<String>`
+- **Tokens:**
+    - `{{noun}}`, `{{noun.phrase}}`, `{{noun.singular}}`, `{{noun.plural}}`
+    - `{{verb}}`, `{{verb.present}}`, `{{verb.past}}`, `{{verb.gerund}}`
+    - `{{adjective}}`, `{{adverb}}`, etc.
+
+#### Example
 
 ```yaml
 components:
-  # Parent Component (Namespace)
+  # [Namespace] Domain Layer
+  # ID: 'domain'
+  # Path: 'domain'
+  # Mode: 'namespace' ensures this never matches a specific file, only the folder
   .domain:
     path: 'domain'
     mode: namespace
 
-    # Child Component (Concrete File)
+    # [Component] Domain Port
+    # ID: 'domain.port' (Concatenated)
+    # Path: 'domain/ports' (Inherited + Appended)
     .port:
-      path: 'ports'       # Full path becomes 'domain/ports'
+      path: 'ports'
       mode: file
+      
+      # Structural Rules: Must be 'abstract interface class'
       kind: class
-      modifier: [ abstract, interface ] # Must be 'abstract interface class'
-      pattern: '{{name}}Port'            # e.g. AuthPort
-```
-
-## [3] 🧩 Auxiliary Declarations 
-
-### [3.1] Types (`types`)
-Maps abstract concepts (like "Result Wrapper") to concrete Dart types. This decouples your rules 
-from specific class names.
-
-```yaml
-definitions:
-  # Define a type for Type Safety checks
-  result_wrapper:
-    types: ['FutureEither', 'Either'] # Matches these class names
-    imports: ['package:core/utils/types.dart'] # Checks if this is imported
-    # Optional: If code uses 'package:fpdart/src/...', rewrite it to public API
-    rewrites: ['package:fpdart/src/either.dart'] 
-```
-
-### [3.2] Vocabularies (`vocabularies`)
-The linter uses Natural Language Processing (NLP) to check if class names make grammatical sense 
-(e.g., "UseCases must be Verb-Noun"). You can extend the dictionary with domain-specific terms.
-
-```yaml
-vocabularies:
-  nouns: ['auth', 'todo', 'kyc']
-  verbs: ['upsert', 'rebase']
+      modifier: [ abstract, interface ]
+      
+      # Naming Rule: Must end in 'Port' (e.g. AuthPort)
+      pattern: '{{name}}Port'
+      antipattern: '{{name}}Interface' # Guide away from legacy naming
 ```
 
 ---
 
-## [4] 📜 Policies (Enforcing Behavior) 
+## [3] 🧩 Auxiliary Declarations
+
+### [3.1] Types (`definitions`)
+
+Maps abstract concepts (like "Result Wrapper") to concrete Dart types. This decouples your rules from specific class names.
+
+#### Properties
+
+**[a] `<group_key>`**: A logical grouping (e.g., `usecase`, `result`)
+- **Type:** `Map<String, String | Map>`
+
+**[a.1] `<type_key>`**: The unique identifier within the group
+- **Type:** `String | Map`
+- **Shorthand:** `key: 'ClassName'` inherits previous import
+- **Detailed:** `key: { type: 'ClassName', import: '...' }`
+
+**[a.1.1] `type`**: The raw Dart class name
+- **Type:** `String`
+
+**[a.1.2] `import`**: The package URI (inherits from previous entry if omitted)
+- **Type:** `String`
+
+**[a.1.3] `argument`**: Expected generic type parameters
+- **Type:** `List<Map>` (recursive structure)
+
+#### Example
+
+```yaml
+definitions:
+  # Domain Types
+  usecase:
+    .base:
+      type: 'Usecase'
+      import: 'package:my_app/core/usecase.dart'
+    .unary: 'UnaryUsecase' # Inherits import from .base
+    
+  # Result Wrappers
+  result:
+    .wrapper:
+      .future:
+        type: 'FutureEither'
+        import: 'package:my_app/core/types.dart'
+        argument: '*'
+```
+
+### [3.2] Vocabularies (`vocabularies`)
+
+The linter uses Natural Language Processing (NLP) to check if class names make grammatical sense 
+(e.g., "UseCases must be Verb-Noun"). You can extend the dictionary with domain-specific terms.
+
+#### Properties
+
+**[a] `nouns`**: Domain-specific noun terms
+- **Type:** `List<String>`
+
+**[b] `verbs`**: Domain-specific verb terms
+- **Type:** `List<String>`
+
+#### Example
+
+```yaml
+vocabularies:
+  nouns: [ 'auth', 'todo', 'kyc' ]
+  verbs: [ 'upsert', 'rebase', 'unfriend' ]
+```
+
+---
+
+## [4] 📜 Policies (Enforcing Behavior)
 
 Policies define what is required, allowed, or forbidden.
 
 ### [4.1] Dependencies (`dependencies`)
-**Purpose:** Enforce the Dependency Rule (Architecture Boundaries).
+
+**Purpose:** Enforce the Dependency Rule (Architecture Boundaries)
+
 **Logic:** Can `Module A` import `Module B`? Can `Layer X` import `Layer Y`?
+
+#### Properties
+
+**[a] `on`**: The component or layer target
+- **Type:** `String | List<String>`
+
+**[b] `allowed` | `forbidden`**: Whitelist (if defined, component may ONLY import these) or 
+blacklist (component must NOT import these) approach. 
+- **Type:** `Map`
+
+**[b.1] `component`**: List of architectural components or layers to check against
+- **Type:** `String | List<String>`
+
+**[b.2] `import`**: List of URI patterns. Supports glob `**` for wildcards
+- **Type:** `String | List<String>`
+
+#### Example
 
 ```yaml
 dependencies:
+  # Domain is platform agnostic
   - on: domain
-    # Whitelist approach: Domain can ONLY import these
-    allowed: [ 'domain', 'core' ]
-    # Blacklist approach: Domain NEVER imports Flutter
     forbidden:
       import: [ 'package:flutter/**', 'dart:ui' ]
+      component: [ 'data', 'presentation' ]
+  
+  # UseCases can only see Domain
+  - on: usecase
+    allowed:
+      component: [ 'entity', 'port' ]
 ```
 
 ### [4.2] Type Safety (`type_safeties`)
-**Purpose:** Enforce method signatures.
-**Logic:** "Methods in this layer must return X" or "Parameters must not be Y".
+
+**Purpose:** Enforce method signatures
+
+**Logic:** "Methods in this layer must return X" or "Parameters must not be Y"
+
+#### Properties
+
+**[a] `on`**: The component target
+- **Type:** `String | List<String>`
+
+**[b] `allowed` | `forbidden`**: Whitelist of permitted types OR Blacklist of prohibited types
+- **Type:** `Map`
+
+**[b.1] `kind`**: The context of the check
+- **Type:** `String`
+- **Options:** `'return' | 'parameter'`
+
+**[b.2] `identifier`**: *(for parameters)* The parameter name to match
+- **Type:** `String`
+
+**[b.3] `definition`**: Reference to a key in the `definitions` config
+- **Type:** `String | List<String>`
+
+**[b.4] `type`**: Raw class name string (e.g., `'int'`, `'Future'`)
+- **Type:** `String | List<String>`
+
+**[b.5] `component`**: Reference to an architectural component
+- **Type:** `String`
+
+#### Example
 
 ```yaml
 type_safeties:
-  - on: domain.usecase
+  # Domain must return safe wrappers
+  - on: [ port, usecase ]
     allowed:
-      kind: return
-      definition: 'result_wrapper' # Must return FutureEither<T>
+      kind: 'return'
+      definition: 'result.wrapper.future'
     forbidden:
-      kind: return
-      definition: 'future' # Cannot return raw Future<T>
+      kind: 'return'
+      type: 'Future'
 ```
 
 ### [4.3] Exceptions (`exceptions`)
-**Purpose:** Enforce error handling flow.
+
+**Purpose:** Enforce error handling flow
+
 **Logic:** Who is a `producer` (throws), `propagator` (rethrows), or `boundary` (catches)?
+
+#### Properties
+
+**[a] `on`**: The component target
+- **Type:** `String | List<String>`
+
+**[b] `role`**: The semantic role regarding errors
+- **Type:** `String`
+- **Options:** `producer`, `boundary`, `consumer`, `propagator`
+
+**[c] `required` | `forbidden`**: Required operations and Prohibited operations
+- **Type:** `List<Map>`
+
+**[c.1] `operation`**: The control flow action
+- **Type:** `String | List<String>`
+- **Options:** `throw`, `rethrow`, `catch_return`, `catch_throw`, `try_return`
+
+**[c.2] `definition`**: Reference to a key in the `definitions` config
+- **Type:** `String`
+
+**[c.3] `type`**: Raw class name (used if no definition key exists)
+- **Type:** `String`
+
+**[e] `conversions`**: Exception-to-Failure mapping for boundaries
+- **Type:** `List<Map>`
+
+**[e.1] `from`**: The exception type caught
+- **Type:** `String`
+
+**[e.2] `to`**: The failure type returned
+- **Type:** `String`
+
+#### Example
 
 ```yaml
 exceptions:
-  - on: data.repository
+  # Repositories catch and return Failures
+  - on: repository
     role: boundary
     required:
-      - operation: catch_return # Must have try/catch that returns (Left)
+      - operation: 'catch_return'
+        definition: 'result.failure'
     forbidden:
-      - operation: throw        # Never crash
+      - operation: 'throw'
+    conversions:
+      - from: 'exception.server'
+        to: 'failure.server'
 ```
 
 ### [4.4] Structure (`members` & `annotations`)
-**Purpose:** Enforce internal class structure.
+
+**Purpose:** Enforce internal class structure
+
+#### Members Properties
+
+**[a] `on`**: The component target
+- **Type:** `String | List<String>`
+
+**[b] `required` | `allowed` | `forbidden`**: Members that must exist, Permitted members 
+(whitelist), and Prohibited members (blacklist)
+- **Type:** `List<Map>`
+
+**[b.1] `kind`**: The member type target
+- **Type:** `String | List<String>`
+- **Options:** `method`, `field`, `getter`, `setter`, `constructor`, `override`
+
+**[b.2] `identifier`**: Specific names or Regex patterns to match
+- **Type:** `String | List<String>`
+
+**[b.3] `visibility`**: The access level
+- **Type:** `String`
+- **Options:** `public`, `private`
+
+**[b.4] `modifier`**: Required keywords
+- **Type:** `String`
+- **Options:** `final`, `const`, `static`, `late`
+
+**[b.5] `action`**: Quick Fix action if member is missing
+- **Type:** `String`
+
+#### Example
 
 ```yaml
 members:
-  - on: domain.entity
+  # Entities must be immutable
+  - on: entity
     required:
-      - kind: field
-        identifier: 'id' # Must have an 'id' field
+      - kind: 'field'
+        identifier: 'id'
+      - kind: 'field'
+        modifier: 'final'
     forbidden:
-      - kind: setter # Immutable: No setters allowed
-
-annotations:
-  - on: domain.usecase
-    required:
-      - type: 'Injectable'
+      - kind: 'setter'
+        visibility: 'public'
 ```
 
 ### [4.5] Relationships (`relationships`)
-**Purpose:** Enforce file parity (1-to-1 mappings).
-**Logic:** "For every Method in a Port, there must be a UseCase file."
+
+**Purpose:** Enforce file parity (1-to-1 mappings)
+
+**Logic:** "For every Method in a Port, there must be a UseCase file"
+
+#### Properties
+
+**[a] `on`**: The source component
+- **Type:** `String`
+
+**[b] `kind`**: What to iterate over
+- **Type:** `String`
+- **Options:** `class`, `method`
+
+**[c] `visibility`**: Filter by visibility
+- **Type:** `String`
+- **Options:** `public`, `private`
+
+**[d] `required`**: Target component that must exist
+- **Type:** `Map`
+
+**[d.1] `component`**: The architectural component to look for
+- **Type:** `String`
+
+**[d.2] `action`**: Quick Fix action if missing
+- **Type:** `String`
+
+#### Example
 
 ```yaml
 relationships:
-  - on: domain.port
-    kind: method
+  # Every Port method needs a UseCase
+  - on: 'domain.port'
+    kind: 'method'
+    visibility: 'public'
     required:
-      component: domain.usecase
-      action: create_usecase # Trigger this action if missing
+      component: 'domain.usecase'
+      action: 'create_usecase'
 ```
 
 ---
 
-## [5] 🤖 Automation 
+## [5] 🤖 Automation (Actions & Templates)
 
 The linter acts as a code generator when rules are broken.
 
 ### [5.1] Actions (`actions`)
+
 Defines the logic for a Quick Fix. Uses a **Dart-like Expression Language** for variables.
+
+#### Properties
+
+**[a] `description`**: Human-readable name for the IDE
+- **Type:** `String`
+
+**[b] `template_id`**: Reference to template in `templates` section
+- **Type:** `String`
+
+**[c] `format`**: Whether to format generated code
+- **Type:** `Boolean`
+
+**[d] `format_line_length`**: Line length for formatting
+- **Type:** `Integer`
+
+**[e] `debug`**: Enable debug logging
+- **Type:** `Boolean`
+
+**[f] `trigger`**: When this action appears
+- **Type:** `Map`
+
+**[f.1] `error_code`**: The lint rule that triggers this
+- **Type:** `String`
+
+**[f.2] `component`**: The architectural component scope
+- **Type:** `String`
+
+**[g] `source`**: Where data comes from
+- **Type:** `Map`
+
+**[g.1] `scope`**: Source context
+- **Type:** `String`
+- **Options:** `current`, `related`
+
+**[g.2] `element`**: AST node type to extract
+- **Type:** `String`
+- **Options:** `class`, `method`, `field`
+
+**[h] `target`**: Where the new code goes
+- **Type:** `Map`
+
+**[h.1] `scope`**: Target context
+- **Type:** `String`
+- **Options:** `current`, `related`
+
+**[h.2] `component`**: Destination component ID
+- **Type:** `String`
+
+**[i] `write`**: How to save the generated code
+- **Type:** `Map`
+
+**[i.1] `strategy`**: Write mode
+- **Type:** `String`
+- **Options:** `file`, `inject`, `replace`
+
+**[i.2] `filename`**: Output filename template
+- **Type:** `String`
+
+**[i.3] `placement`**: *(for inject)* Where to insert
+- **Type:** `String`
+- **Options:** `start`, `end`
+
+**[j] `variables`**: Data map for the template
+- **Type:** `Map<String, dynamic>`
+- **Values:** Can be strings, lists with switch/case logic, or complex expressions
+
+#### Example
 
 ```yaml
 actions:
   create_usecase:
-    description: 'Generate UseCase'
+    description: 'Generate Functional UseCase'
+    template_id: 'usecase_functional'
+    format: true
+    format_line_length: 100
+    debug: true
+    
     trigger:
       error_code: 'arch_parity_missing'
       component: 'domain.port'
     
-    # 1. Source: Read data from the method triggering the error
     source:
       scope: current
       element: method
-
-    # 2. Target: Write a new file in the usecases folder
+    
     target:
       scope: related
       component: 'domain.usecase'
     
     write:
       strategy: file
-      filename: '${source.name.snakeCase}.dart' # Expression interpolation
-
-    # 3. Variables: Prepare data for Mustache
+      filename: '{{source.name.snakeCase}}.dart'
+    
     variables:
-      # Expressions can access AST nodes and Config
-      className: '${source.name.pascalCase}'
-      baseClass: "config.definitionFor('usecase.base').type"
-      
-      # Logic: Check list size
-      hasParams: 'source.parameters.length > 0'
-      
-    template_id: 'usecase_template'
+      className: '{{source.name.pascalCase}}'
+      repoVar: '_{{source.parent.name.camelCase}}'
 ```
 
 ### [5.2] Templates (`templates`)
+
 Standard Mustache templates. Logic-less.
+
+#### Properties
+
+**[a] `file`**: Path to the Mustache template file
+- **Type:** `String`
+
+**[b] `description`**: Human-readable description
+- **Type:** `String`
+
+#### Example
 
 ```yaml
 templates:
   usecase_template:
     file: 'templates/usecase.mustache'
+    description: 'Standard UseCase template'
 ```
 
-**Inside `usecase.mustache`:**
+**Example template file (`templates/usecase.mustache`):**
 ```dart
 class {{className}} extends {{baseClass}} {
-  {{#hasParams}}
-    // Render params...
-  {{/hasParams}}
+final {{repoType}} {{repoVar}};
+
+const {{className}}(this.{{repoVar}});
+
+@override
+{{returnType}} call({{parameters}}) {
+// TODO: Implement
+}
 }
 ```
 
@@ -315,62 +667,63 @@ class {{className}} extends {{baseClass}} {
 ## [6] 🔗 References (Available Options)
 
 ### Component Options
-| Option         | Values                                                      | Description                                 |
-|:---------------|:------------------------------------------------------------|:--------------------------------------------|
-| **`mode`**     | `file`                                                      | The component is the file itself (Default). |
-|                | `part`                                                      | The component is a symbol *inside* a file.  |
-|                | `namespace`                                                 | The component is just a folder.             |
-| **`kind`**     | `class`, `enum`, `mixin`, `extension`, `typedef`            | The Dart declaration type.                  |
-| **`modifier`** | `abstract`, `sealed`, `interface`, `base`, `final`, `mixin` | Dart keywords.                              |
+
+| Option | Values | Description |
+|:-------|:-------|:------------|
+| **`mode`** | `file` | The component is the file itself (Default) |
+| | `part` | The component is a symbol *inside* a file |
+| | `namespace` | The component is just a folder |
+| **`kind`** | `class`, `enum`, `mixin`, `extension`, `typedef` | Dart declaration types |
+| **`modifier`** | `abstract`, `sealed`, `interface`, `base`, `final`, `mixin` | Dart keywords |
 
 ### Write Strategies
-| Strategy      | Description                                       |
-|:--------------|:--------------------------------------------------|
-| **`file`**    | Creates a new file or overwrites an existing one. |
-| **`inject`**  | Inserts code into an existing class body.         |
-| **`replace`** | Replaces the source node entirely.                |
+
+| Strategy | Description |
+|:---------|:------------|
+| **`file`** | Creates a new file or overwrites existing |
+| **`inject`** | Inserts code into existing class body |
+| **`replace`** | Replaces the source node entirely |
 
 ### Expression Engine Variables
-Available in `actions` -> `variables`:
 
-*   **`source`**: The AST Node (Class, Method, Field).
-    *   `.name`: String (with properties `.pascalCase`, `.snakeCase`, etc.)
-    *   `.parent`: The parent node.
-    *   `.file.path`: Absolute path.
-    *   `.returnType`: TypeWrapper (for methods).
-    *   `.parameters`: ListWrapper (for methods).
-*   **`config`**: The Architecture Config.
-    *   `.definitionFor('key')`: Looks up a type definition.
-    *   `.namesFor('componentId')`: Looks up naming patterns.
-*   **`definitions`**: Direct map access to definitions.
+Available in `actions.variables`:
+
+*   **`source`**: The AST Node (Class, Method, Field)
+    *   `.name`: String (with `.pascalCase`, `.snakeCase` filters)
+    *   `.parent`: Parent node
+    *   `.file.path`: Absolute path
+    *   `.returnType`: TypeWrapper (methods)
+    *   `.parameters`: ListWrapper (methods)
+
+*   **`config`**: The Architecture Config
+    *   `.definitionFor('key')`: Looks up type definition
+    *   `.namesFor('componentId')`: Looks up naming patterns
+
+*   **`definitions`**: Direct map access to definitions
 
 ---
 
-
 ## 🧠 Smart Resolution Logic
 
-The linter uses a sophisticated **Component Refiner** to identify files. It doesn't just look at 
-file paths; it looks at:
-1.  **Path Depth**: Deeper matches are preferred.
-2.  **Naming Patterns**: Does the class name match `${name}Repository`?
+The linter uses a sophisticated **Component Refiner** to identify files. It doesn't just look at file paths; it looks at:
+
+1.  **Path Depth**: Deeper matches are preferred
+2.  **Naming Patterns**: Does the class name match `{{name}}Repository`?
 3.  **Inheritance**: Does the class extend `BaseRepository`?
 4.  **Structure**: Is it `abstract` vs `concrete`?
 
-This ensures that even if you have an Interface (`AuthSource`) and Implementation 
-(`AuthSourceImpl`) in the *same folder*, the linter correctly applies different rules to each.
+This ensures that even if you have an Interface (`AuthSource`) and Implementation (`AuthSourceImpl`) in the *same folder*, the linter correctly applies different rules to each.
 
 ### How the Resolution Engine Works
 
-When a file is analyzed, the **Component Refiner** calculates a score to identify it. This allows 
-`AuthSource` (Interface) and `AuthSourceImpl` (Implementation) to live in the same folder but be 
-treated differently.
+When a file is analyzed, the **Component Refiner** calculates a score to identify it. This allows `AuthSource` (Interface) and `AuthSourceImpl` (Implementation) to live in the same folder but be treated differently.
 
 **Scoring Criteria:**
-1.  **Path Match:** Deeper directory matches get higher scores.
-2.  **Mode:** `mode: file` beats `mode: part`.
-3.  **Naming:** Matches configured `${name}Pattern`.
-4.  **Inheritance:** Implements required base classes defined in `inheritances`.
-5.  **Structure:** Matches required `kind` (class/enum) and `modifier` (abstract/concrete).
+1.  **Path Match:** Deeper directory matches get higher scores
+2.  **Mode:** `mode: file` beats `mode: part`
+3.  **Naming:** Matches configured `{{name}}Pattern`
+4.  **Inheritance:** Implements required base classes defined in `inheritances`
+5.  **Structure:** Matches required `kind` (class/enum) and `modifier` (abstract/concrete)
 
-*Example:* A concrete class `AuthImpl` will fail to match a component that requires 
-`modifier: abstract`, forcing the resolver to pick the Implementation component instead.
+*Example:* A concrete class `AuthImpl` will fail to match a component that requires `modifier: abstract`, forcing the resolver to pick the Implementation component instead.
+```

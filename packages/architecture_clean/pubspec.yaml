@@ -3,6 +3,7 @@ description: >-
   A lightweight companion package for clean_architecture_lints, providing core interfaces like 
   Usecase and Port for building Clean Architecture apps.
 version: 0.1.0
+
 repository: https://github.com/puntbyte/clean_architecture_workspace/tree/master/packages/clean_architecture_core
 homepage: https://github.com/puntbyte/clean_architecture_workspace/tree/master/packages/clean_architecture_core
 issue_tracker: https://github.com/puntbyte/clean_architecture_workspace/issues

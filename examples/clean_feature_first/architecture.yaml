@@ -304,7 +304,7 @@ components:
           name: 'State Interface'
           mode: part
           kind: class
-          modifier: [sealed, abstract]
+          modifier: [ sealed, abstract ]
           pattern: '{{name}}State'
           grammar: '{{noun.singular}}State'
 
@@ -366,7 +366,7 @@ components:
       module: 'core'
       name: 'Utility'
       path: 'utils'
-      kind: [class, extension, mixin]
+      kind: [ class, extension, mixin ]
 
   # --- SHARED COMPONENTS (Explicitly assigned to 'shared' module) ---
   shared.widget:
@@ -695,7 +695,7 @@ inheritances:
 dependencies:
   # Feature can consume anything from Core, Shared, and Config modules.
   - on: feature
-    allowed: [core, shared, config]
+    allowed: [ core, shared, config ]
 
   # --- Domain (Inner Circle) ---
   # Domain is platform agnostic and pure.
