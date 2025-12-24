@@ -1,111 +1,175 @@
 import 'package:architecture_lints/src/engines/language/nlp_constants.dart';
 import 'package:architecture_lints/src/schema/definitions/vocabulary_definition.dart';
-import 'package:dictionaryx/dictentry.dart';
-import 'package:dictionaryx/dictionary_msa.dart';
-import 'package:dictionaryx/dictionary_msa_json.dart';
+import 'package:lexicor/lexicor.dart';
 
 class LanguageAnalyzer {
-  /// Static instance shared across all analyzer instances to avoid reloading memory.
-  static final DictionaryMSA _sharedDictionary = DictionaryMSA();
+  static Lexicor? _sharedLexicor;
+  static bool _initTried = false;
 
-  final DictionaryMSA? _dictionary;
+  final Lexicor? _lexicor;
   final VocabularyDefinition _overrides;
   final bool treatEntryAsNounIfExists;
 
   LanguageAnalyzer({
-    DictionaryMSA? dictionary,
+    Lexicor? lexicor,
     VocabularyDefinition? vocabulary,
     this.treatEntryAsNounIfExists = true,
-  }) : _dictionary = dictionary ?? _sharedDictionary,
-       _overrides = vocabulary ?? const VocabularyDefinition();
+  })  : _lexicor = lexicor ?? _sharedLexicor,
+        _overrides = vocabulary ?? const VocabularyDefinition();
 
-  bool isAdjective(String word) => _hasPos(word, POS.ADJ);
+  static Future<void> initShared() async {
+    if (_initTried) return;
+    _initTried = true;
+
+    if (_sharedLexicor == null) {
+      try {
+        _sharedLexicor = await Lexicor.init(mode: StorageMode.onDisk);
+      } catch (e) {
+        // print('[LanguageAnalyzer] Lexicor init failed: $e');
+      }
+    }
+  }
+
+  bool isAdjective(String word) => _hasPos(word, SpeechPart.adjective);
 
   bool isAdverb(String word) {
     final lower = word.toLowerCase();
-    if (_hasPos(lower, POS.ADV)) return true;
+    if (_hasPos(lower, SpeechPart.adverb)) return true;
     if (lower.endsWith('ly') && !commonNouns.contains(lower)) return true;
     return commonAdverbs.contains(lower);
   }
 
   bool isNoun(String word) {
-    if (_hasPos(word, POS.NOUN)) return true;
+    if (_hasPos(word, SpeechPart.noun)) return true;
+    // Check if it's a plural form of a known noun
     return isNounPlural(word);
   }
 
   bool isNounPlural(String word) {
     final lower = word.toLowerCase();
-    // Check override first (e.g. 'stats' -> noun)
     if (_overrides.nouns.contains(lower)) return true;
 
+    // 1. Basic Suffix Check
     if (!lower.endsWith('s')) return false;
+
+    // 2. Irregular check
     if (singularNounExceptions.contains(lower)) return false;
     if (irregularPlurals.containsKey(lower)) return true;
 
-    if (lower.endsWith('ies')) return _hasPos('${lower.substring(0, lower.length - 3)}y', POS.NOUN);
-    if (lower.endsWith('es')) return _hasPos(lower.substring(0, lower.length - 2), POS.NOUN);
+    // 3. Morphology Check (Strip Suffixes)
+    // Try "users" -> "user"
+    if (_hasPos(lower.substring(0, lower.length - 1), SpeechPart.noun)) return true;
 
-    return _hasPos(lower.substring(0, lower.length - 1), POS.NOUN);
-  }
-
-  bool isNounSingular(String word) => isNoun(word) && !isNounPlural(word);
-
-  bool isVerb(String word) => _hasPos(word, POS.VERB);
-
-  bool isVerbGerund(String word) {
-    final lower = word.toLowerCase();
-    // Override check: if user says "MyThing" is a noun, it's not a gerund even if it ends in ing.
-    if (_overrides.nouns.contains(lower)) return false;
-    if (_overrides.verbs.contains(lower)) return true;
-
-    if (!lower.endsWith('ing')) return false;
-    final stem = lower.substring(0, lower.length - 3);
-    return isVerb(stem) || isVerb('${stem}e');
-  }
-
-  bool isVerbPast(String word) {
-    final lower = word.toLowerCase();
-    if (_overrides.verbs.contains(lower)) return true;
-
-    if (irregularPastVerbs.containsKey(lower)) return true;
-    if (lower.endsWith('ed')) {
-      final stem = lower.substring(0, lower.length - 2);
-      return isVerb(stem) || isVerb('${stem}e');
+    // Try "boxes" -> "box"
+    if (lower.endsWith('es')) {
+      if (_hasPos(lower.substring(0, lower.length - 2), SpeechPart.noun)) return true;
     }
-    return isVerb(word);
-  }
 
-  bool _hasPos(String word, POS pos) {
-    final lower = word.toLowerCase();
-
-    // 1. Vocabulary Overrides (Highest Priority)
-    if (pos == POS.NOUN && _overrides.nouns.contains(lower)) return true;
-    if (pos == POS.VERB && _overrides.verbs.contains(lower)) return true;
-    if (pos == POS.ADJ && _overrides.adjectives.contains(lower)) return true;
-
-    // 2. Fast Path (Constants)
-    if (pos == POS.NOUN && commonNouns.contains(lower)) return true;
-    if (pos == POS.VERB && commonVerbs.contains(lower)) return true;
-    if (pos == POS.ADV && commonAdverbs.contains(lower)) return true;
-
-    // 3. Dictionary Lookup
-    if (_dictionary != null) {
-      if (_checkDictionary(lower, pos)) return true;
+    // Try "entities" -> "entity"
+    if (lower.endsWith('ies')) {
+      final stem = lower.substring(0, lower.length - 3);
+      if (_hasPos('${stem}y', SpeechPart.noun)) return true;
     }
 
     return false;
   }
 
-  bool _checkDictionary(String word, POS pos) {
+  bool isNounSingular(String word) => isNoun(word) && !isNounPlural(word);
+
+  bool isVerb(String word) => _hasPos(word, SpeechPart.verb);
+
+  bool isVerbGerund(String word) {
+    final lower = word.toLowerCase();
+
+    // Override check
+    if (_overrides.nouns.contains(lower)) return false;
+    if (_overrides.verbs.contains(lower)) return true;
+
+    if (!lower.endsWith('ing')) return false;
+
+    // 1. Direct Lookup (e.g. "Running" might find "Run")
+    // Note: As seen in demo, "fetching" might resolve to AdjectiveSatellite,
+    // so we can't rely solely on _hasPos(verb) for the gerund form itself.
+
+    // 2. Stem Check (Manual)
+    // "fetching" -> "fetch"
+    final stem = lower.substring(0, lower.length - 3);
+    if (isVerb(stem)) return true;
+
+    // "saving" -> "save"
+    if (isVerb('${stem}e')) return true;
+
+    // "running" -> "run" (Double consonant)
+    // If stem ends in double char (e.g. runn), try stripping one.
+    if (stem.length > 1 && stem[stem.length-1] == stem[stem.length-2]) {
+      if (isVerb(stem.substring(0, stem.length - 1))) return true;
+    }
+
+    return false;
+  }
+
+  bool isVerbPast(String word) {
+    final lower = word.toLowerCase();
+    if (_overrides.verbs.contains(lower)) return true;
+    if (irregularPastVerbs.containsKey(lower)) return true;
+
+    if (lower.endsWith('ed')) {
+      final stem = lower.substring(0, lower.length - 2);
+      if (isVerb(stem)) return true;
+      if (isVerb('${stem}e')) return true;
+
+      // "stopped" -> "stop"
+      if (stem.length > 1 && stem[stem.length-1] == stem[stem.length-2]) {
+        if (isVerb(stem.substring(0, stem.length - 1))) return true;
+      }
+    }
+
+    return isVerb(word); // Fallback if irregular is just a verb form in DB
+  }
+
+  bool _hasPos(String word, SpeechPart part) {
+    final lower = word.toLowerCase();
+
+    // 1. Vocabulary Overrides
+    if (part == SpeechPart.noun && _overrides.nouns.contains(lower)) return true;
+    if (part == SpeechPart.verb && _overrides.verbs.contains(lower)) return true;
+    if (part == SpeechPart.adjective && _overrides.adjectives.contains(lower)) return true;
+
+    // 2. Constants
+    if (part == SpeechPart.noun && commonNouns.contains(lower)) return true;
+    if (part == SpeechPart.verb && commonVerbs.contains(lower)) return true;
+    if (part == SpeechPart.adverb && commonAdverbs.contains(lower)) return true;
+
+    // 3. Lexicor
+    if (_lexicor != null) {
+      return _checkLexicor(lower, part);
+    }
+
+    // Fallback if DB missing: assume simple checks passed before calling _hasPos
+    // (e.g. isVerbGerund check for 'ing') were not enough, so we assume valid if unknown?
+    // Or assume invalid?
+    // For a Linter, it is better to be lenient if DB is offline than to flag everything.
+    // But here we return false (Not a Noun/Verb) if we can't prove it.
+    return false;
+  }
+
+  bool _checkLexicor(String word, SpeechPart part) {
     try {
-      final hasEntry = _dictionary!.hasEntry(word);
-      if (!hasEntry) return false;
+      final result = _lexicor!.lookup(word);
+      if (result.concepts.isEmpty) return false;
 
-      final entry = _dictionary.getEntry(word);
-      if (entry.meanings.any((m) => m.pos == pos)) return true;
+      // Check if any concept matches the part
+      if (result.concepts.any((c) => c.part == part)) return true;
 
-      // Weak signal fallback
-      if (treatEntryAsNounIfExists && pos == POS.NOUN) return true;
+      // Check resolved forms (Morphology)
+      // e.g. "went" -> resolvedForms: ["went", "go"]
+      // If "go" is a verb, then "went" is valid verb form.
+      // (This is useful if lookup('went') returns concepts for 'go' but marks them as Verb)
+      // Actually result.concepts ARE the concepts for the resolved form.
+
+      // Weak signal fallback for Nouns
+      if (treatEntryAsNounIfExists && part == SpeechPart.noun) return true;
+
     } catch (_) {}
     return false;
   }

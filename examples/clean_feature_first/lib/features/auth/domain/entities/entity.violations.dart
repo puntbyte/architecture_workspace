@@ -50,7 +50,7 @@ class UncontractedUser { //! <-- LINT WARNING
   const UncontractedUser(this.id);
 }
 
-// Lint:
+// Lint: arch_naming_grammar
 // REASON: Grammar violation: Entities must be Noun phrases, not actions (Verbs).
 // ignore: arch_member_missing
 class FetchingUser extends Entity { //! <-- LINT WARNING

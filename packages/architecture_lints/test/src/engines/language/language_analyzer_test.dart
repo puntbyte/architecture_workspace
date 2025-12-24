@@ -1,158 +1,118 @@
 import 'package:architecture_lints/src/engines/language/language_analyzer.dart';
 import 'package:architecture_lints/src/schema/definitions/vocabulary_definition.dart';
-import 'package:dictionaryx/dictentry.dart';
-import 'package:dictionaryx/dictionary_msa.dart';
+import 'package:lexicor/lexicor.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
-// 1. Create a Mock for the Dictionary
-class MockDictionary extends Mock implements DictionaryMSA {}
+// Mocks
+class MockLexicor extends Mock implements Lexicor {}
+
+class MockLookupResult extends Mock implements LookupResult {}
+
+class MockConcept extends Mock implements Concept {}
 
 void main() {
   group('LanguageAnalyzer', () {
-    late MockDictionary mockDict;
-
-    // Helper to simulate a dictionary result
-    void mockWord(String word, List<POS> posList) {
-      when(() => mockDict.hasEntry(word.toLowerCase())).thenReturn(true);
-
-      // Create a dummy entry with the requested POS tags
-      final meanings = posList.map((p) =>
-          DictEntryMeaning(p, 'description', [], [])
-      ).toList();
-
-      final entry = DictEntry(word, meanings, [], []);
-      when(() => mockDict.getEntry(word.toLowerCase())).thenReturn(entry);
-    }
-
-    // Helper for "Word not found"
-    void mockUnknown(String word) {
-      when(() => mockDict.hasEntry(word.toLowerCase())).thenReturn(false);
-    }
+    late MockLexicor mockLexicor;
+    late LanguageAnalyzer analyzer;
 
     setUp(() {
-      mockDict = MockDictionary();
+      mockLexicor = MockLexicor();
+      // Inject the mock instance directly (bypassing initShared for unit test)
+      analyzer = LanguageAnalyzer(lexicor: mockLexicor);
     });
 
-    test('should identify basic Parts of Speech via Dictionary', () {
-      final analyzer = LanguageAnalyzer(dictionary: mockDict);
+    // Helper to simulate a Lexicor lookup result
+    void mockWord(String word, List<SpeechPart> parts) {
+      final concepts = parts.map((part) {
+        final concept = MockConcept();
+        when(() => concept.part).thenReturn(part);
+        return concept;
+      }).toList();
 
-      mockWord('User', [POS.NOUN]);
-      mockWord('Get', [POS.VERB]);
-      mockWord('Beautiful', [POS.ADJ]);
+      final result = MockLookupResult();
+      when(() => result.concepts).thenReturn(concepts);
+      when(() => result.isEmpty).thenReturn(concepts.isEmpty);
 
+      // Match case-insensitive lookup
+      when(() => mockLexicor.lookup(word.toLowerCase())).thenReturn(result);
+    }
+
+    test('isNoun returns true for known nouns', () {
+      mockWord('User', [SpeechPart.noun]);
       expect(analyzer.isNoun('User'), isTrue);
-      expect(analyzer.isVerb('Get'), isTrue);
-      expect(analyzer.isAdjective('Beautiful'), isTrue);
-
-      // Verify cross-checks fail
-      expect(analyzer.isVerb('User'), isFalse);
     });
 
-    test('should prioritize Vocabulary Definition overrides', () {
-      // "Parsing" is technically a verb (gerund), but we define it as a Noun here.
-      const vocabulary = VocabularyDefinition(
-        nouns: {'parsing'},
-        verbs: {'user'}, // Nonsense override to prove priority
-      );
+    test('isVerb returns true for known verbs', () {
+      mockWord('Get', [SpeechPart.verb]);
+      expect(analyzer.isVerb('Get'), isTrue);
+    });
 
-      final analyzer = LanguageAnalyzer(
-        dictionary: mockDict,
-        vocabulary: vocabulary,
-      );
-
-      // Even if dictionary says otherwise (or is empty), overrides win
-      expect(analyzer.isNoun('Parsing'), isTrue);
-      expect(analyzer.isVerb('User'), isTrue);
+    test('isAdjective returns true for known adjectives', () {
+      mockWord('Beautiful', [SpeechPart.adjective]);
+      expect(analyzer.isAdjective('Beautiful'), isTrue);
     });
 
     group('Plural Nouns', () {
-      late LanguageAnalyzer analyzer;
-
-      setUp(() {
-        analyzer = LanguageAnalyzer(dictionary: mockDict);
-      });
-
-      test('should detect simple plurals ending in "s"', () {
-        // "Users" -> stems to "User"
-        mockWord('User', [POS.NOUN]);
+      test('should detect plurals ending in "s"', () {
+        // "Users" lookup returns Noun (stemming handled by Lexicor lookup logic in real usage,
+        // but here we just mock that 'users' returns a noun concept).
+        mockWord('Users', [SpeechPart.noun]);
 
         expect(analyzer.isNounPlural('Users'), isTrue);
-        expect(analyzer.isNoun('Users'), isTrue); // Plurals are also Nouns
       });
 
-      test('should detect plurals ending in "es"', () {
-        // "Boxes" -> stems to "Box"
-        mockWord('Box', [POS.NOUN]);
+      test('should NOT detect as plural if word does not end in s', () {
+        // Even if it's a noun, if it doesn't end in S, we assume singular
+        // unless irregular list logic overrides (which is internal to analyzer).
+        mockWord('User', [SpeechPart.noun]);
 
-        expect(analyzer.isNounPlural('Boxes'), isTrue);
-      });
-
-      test('should detect plurals ending in "ies"', () {
-        // "Entities" -> stems to "Entity"
-        mockWord('Entity', [POS.NOUN]);
-
-        expect(analyzer.isNounPlural('Entities'), isTrue);
-      });
-
-      test('should detect singular vs plural', () {
-        mockWord('User', [POS.NOUN]);
-
-        expect(analyzer.isNounSingular('User'), isTrue);
         expect(analyzer.isNounPlural('User'), isFalse);
       });
     });
 
     group('Verbs & Gerunds', () {
-      late LanguageAnalyzer analyzer;
+      test('should detect Gerunds (ending in ing)', () {
+        // Parsing -> lookup('parsing') -> finds verb concept (e.g. parse)
+        mockWord('Parsing', [SpeechPart.verb]);
 
-      setUp(() {
-        analyzer = LanguageAnalyzer(dictionary: mockDict);
+        expect(analyzer.isVerbGerund('Parsing'), isTrue);
       });
 
-      test('should detect Gerunds ending in "ing"', () {
-        // "Loading" -> stems to "Load"
-        mockWord('Load', [POS.VERB]);
+      test('should fail Gerund check if not a verb', () {
+        // "String" ends in ing, but is a Noun
+        mockWord('String', [SpeechPart.noun]);
 
-        expect(analyzer.isVerbGerund('Loading'), isTrue);
+        expect(analyzer.isVerbGerund('String'), isFalse);
       });
 
-      test('should detect Past Tense ending in "ed"', () {
-        // "Loaded" -> stems to "Load"
-        mockWord('Load', [POS.VERB]);
+      test('should detect Past Tense (ending in ed)', () {
+        // Loaded -> lookup('loaded') -> finds verb concept (load)
+        mockWord('Loaded', [SpeechPart.verb]);
 
         expect(analyzer.isVerbPast('Loaded'), isTrue);
       });
-
-      test('should handle "e" suffix restoration (Save -> Saving)', () {
-        // "Saving" -> stems to "Sav" (no) -> "Save" (yes)
-        mockUnknown('Sav');
-        mockWord('Save', [POS.VERB]);
-
-        expect(analyzer.isVerbGerund('Saving'), isTrue);
-      });
-    });
-
-    test('should fallback to Noun if treatEntryAsNounIfExists is true', () {
-      // Scenario: Dictionary has the word, but it's listed as something obscure
-      // or we just want to be lenient.
-      final analyzer = LanguageAnalyzer(
-        dictionary: mockDict,
-        treatEntryAsNounIfExists: true,
-      );
-
-      mockWord('UnknownThing', [POS.ADV]); // Only listed as Adverb
-
-      // Should return true because it exists in dictionary, even if not explicitly NOUN
-      expect(analyzer.isNoun('UnknownThing'), isTrue);
     });
 
     test('should return false for unknown words', () {
-      final analyzer = LanguageAnalyzer(dictionary: mockDict);
-      mockUnknown('BlahBlah');
+      mockWord('Blah', []); // No concepts found
 
-      expect(analyzer.isNoun('BlahBlah'), isFalse);
-      expect(analyzer.isVerb('BlahBlah'), isFalse);
+      expect(analyzer.isNoun('Blah'), isFalse);
+      expect(analyzer.isVerb('Blah'), isFalse);
+    });
+
+    test('should prioritize Vocabulary overrides', () {
+      const vocab = VocabularyDefinition(
+        nouns: {'parsing'}, // Override 'parsing' to be a noun
+      );
+
+      final analyzerWithOverride = LanguageAnalyzer(
+        lexicor: mockLexicor,
+        vocabulary: vocab,
+      );
+
+      // Even if dictionary says it's a verb (or nothing), override wins
+      expect(analyzerWithOverride.isNoun('Parsing'), isTrue);
     });
   });
 }

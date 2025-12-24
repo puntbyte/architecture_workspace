@@ -6,6 +6,7 @@ import 'package:architecture_lints/src/engines/component/component.dart';
 import 'package:architecture_lints/src/engines/configuration/config_loader.dart';
 import 'package:architecture_lints/src/engines/file/file_resolver.dart';
 import 'package:architecture_lints/src/engines/file/path_matcher.dart';
+import 'package:architecture_lints/src/engines/language/language.dart';
 import 'package:architecture_lints/src/engines/resolution/type_resolver.dart';
 import 'package:architecture_lints/src/schema/config/architecture_config.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -18,6 +19,15 @@ abstract class ArchitectureRule extends DartLintRule {
     CustomLintResolver resolver,
     CustomLintContext context,
   ) async {
+    // 1. Initialize NLP Engine (Global)
+    try {
+      await LanguageAnalyzer.initShared();
+    } catch (e) {
+      // Log error but don't crash linter; Fallback logic will handle basic grammar
+      // print('[ArchitectureRule] Failed to init Lexicor: $e');
+    }
+
+
     // 1. Check if Config is already loaded (Shared State)
     if (context.sharedState.containsKey(ArchitectureConfig)) {
       await super.startUp(resolver, context);

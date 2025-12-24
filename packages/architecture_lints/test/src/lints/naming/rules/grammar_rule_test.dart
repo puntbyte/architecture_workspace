@@ -16,6 +16,7 @@ class MockFileResolver extends Mock implements FileResolver {}
 
 class TestGrammarRule extends GrammarRule {
   final ArchitectureConfig mockConfig;
+
   const TestGrammarRule(this.mockConfig);
 
   @override
@@ -46,13 +47,15 @@ void main() {
       mockFileResolver = MockFileResolver();
 
       // Stub reporter
-      when(() => mockReporter.atToken(
-        any(),
-        any(),
-        arguments: any(named: 'arguments'),
-        contextMessages: any(named: 'contextMessages'),
-        data: any(named: 'data'),
-      )).thenReturn(MockDiagnostic());
+      when(
+        () => mockReporter.atToken(
+          any(),
+          any(),
+          arguments: any(named: 'arguments'),
+          contextMessages: any(named: 'contextMessages'),
+          data: any(named: 'data'),
+        ),
+      ).thenReturn(MockDiagnostic());
     });
 
     Future<void> runTest({
@@ -99,11 +102,13 @@ void main() {
       await runTest(yamlContent: yaml, dartContent: dart);
 
       // CAPTURE verification to bypass strict type matching issues in 'verify'
-      final captured = verify(() => mockReporter.atToken(
-        captureAny(), // Capture Token
-        captureAny(), // Capture LintCode
-        arguments: captureAny(named: 'arguments'), // Capture Arguments List
-      )).captured;
+      final captured = verify(
+        () => mockReporter.atToken(
+          captureAny(), // Capture Token
+          captureAny(), // Capture LintCode
+          arguments: captureAny(named: 'arguments'), // Capture Arguments List
+        ),
+      ).captured;
 
       expect(captured.length, 3, reason: 'Should capture Token, Code, and Arguments');
 
