@@ -1,11 +1,14 @@
-```markdown
 # Architecture Lints 🏗️
 
-A **configuration-driven**, **architecture-agnostic** linting engine for Dart and Flutter that transforms your architectural vision into enforceable code standards.
+A **configuration-driven**, **architecture-agnostic** linting engine for Dart and Flutter that 
+transforms your architectural vision into enforceable code standards.
 
-Unlike standard linters that enforce hardcoded opinions (e.g., "Always extend Bloc"), `architecture_lints` reads a **Policy Definition** from an `architecture.yaml` file in your project root. This allows you to define your **own** architectural rules, layers, and naming conventions.
+Unlike standard linters that enforce hardcoded opinions (e.g., "Always extend Bloc"), 
+`architecture_lints` reads a **Policy Definition** from an `architecture.yaml` file in your project 
+root. This allows you to define your **own** architectural rules, layers, and naming conventions.
 
-It is the core engine powering packages like `architecture_clean`, but it can be used standalone to enforce any architectural style (MVVM, MVC, DDD, Layer-First, Feature-First).
+It is the core engine powering packages like `architecture_clean`, but it can be used standalone to 
+enforce any architectural style (MVVM, MVC, DDD, Layer-First, Feature-First).
 
 ---
 
@@ -61,64 +64,84 @@ This file acts as the **Domain Specific Language (DSL)** for your architecture.
 
 ### 📚 Table of Contents
 
-1.  [**Concepts & Philosophies**](#1-concepts--philosophies)
-2.  [**Core Declarations**](#2-core-declarations-the-configurations)
-3.  [**Auxiliary Declarations**](#3-auxiliary)
-4.  [**Policies (The Rules)**](#4-policies-enforcing-behavior)
-5.  [**Automation (Code Generation)**](#5-automation-actions--templates)
-6.  [**Reference: Available Options**](#6-reference-available-options)
+1. [**Core Declarations**](#2-core-declarations-the-configurations)
+2. [**Auxiliary Declarations**](#3-auxiliary)
+3. [**Policies (The Rules)**](#4-policies-enforcing-behavior)
+4. [**Automation (Code Generation)**](#5-automation-actions--templates)
+5. [**Reference: Available Options**](#6-reference-available-options)
 
----
-
-## [1] 💡 Concepts & Philosophies
-
-To effectively lint a large project, we must understand its structure on two axes:
-
-### **Modules (Horizontal Slicing)**
-Modules represent the **Features** or high-level groupings of your application.
-- *Example:* `Core`, `Shared`, `Profile`, `Auth`.
-- A module usually contains multiple layers.
-
-### **Components (Vertical Slicing)**
-Components represent the **Layers** or technical roles within a module.
-- *Example:* `Entity`, `Repository`, `UseCase`, `Widget`.
-- A component is defined by what it *is* (Structure) and where it *lives* (Path).
-
-The Linter combines these to identify a file:
-> `lib/features/auth/domain/usecases/login.dart`
->
-> - **Module:** `auth` (Derived from `features/{{name}}`)
-> - **Component:** `domain.usecase` (Derived from path `domain/usecases`)
-
----
-
-## [2] 🎯 Core Declarations (The Configurations)
+## [1] 🎯 Core Declarations (The Configurations)
 
 The `architecture.yaml` file drives everything.
 
-### [2.1] Modules (`modules`)
+### [1.1] Modules (`modules`)
 
-Defines the high-level boundaries (features or layers) of your application. The linter uses these definitions to understand which part of the codebase a file belongs to.
+Modules represent the **Features** or high-level groupings of your application. The linter uses 
+these definitions to map codebase files to specific functional boundaries. For example `Core`, 
+`Shared`, `Profile`, `Auth`.
 
-#### Definition
-**`<module_key>`**: The unique identifier for the module. This ID is used when referencing modules 
-in dependency rules
-- **Type:** `String` *(YAML Map Key)*
-- **Style**:
-  - **Shorthand:** `<key>: '<path>'` for simple path mapping
-  - **Expanded:** `<key>: { path: '<path>', default: <bool> }` for additional options
+**Relationship:** A module usually acts as a container for multiple architectural layers.
 
-#### Properties
-
-**[a] `path`**: The root directory for this module relative to the project root
-- **Type:** `String`
-- **Placeholders:**
-    - `{{name}}`: Dynamic module indicator. The folder name becomes the module instance name
-    - `*`: Standard glob wildcard for ignoring intermediate folders
-
-**[b] `default`**: Whether this module is the fallback for unmatched components
-- **Type:** `Boolean`
-- **Default:** `false`
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>&lt;module_key&gt;</b></td>
+      <td><code>String</code></td>
+      <td><b>Definition</b></td>
+      <td>
+        The unique identifier for the module. This ID is used when referencing modules in 
+        dependency rules
+      </td>
+    </tr>
+    <tr>
+      <td rowspan="2"><b>&lt;module_value&gt;</b></td>
+      <td rowspan="2"><code>String</code> | <code>Map</code></td>
+      <td><b>Shorthand</b></td>
+      <td>
+        <code>&lt;module_key&gt;: '&lt;path&gt;'</code><br>Simple path mapping for quick 
+        definitions.
+      </td>
+    </tr>
+    <tr>
+      <td><b>Longhand</b></td>
+      <td>
+        <code>&lt;module_key&gt;: { path: '&lt;path&gt;', default: bool }</code><br>Full
+        configuration for advanced options.
+      </td>
+    </tr>
+    <tr>
+      <td rowspan="3"><b>path</b></td>
+      <td rowspan="3"><code>String</code></td>
+      <td><b>Location + Token</b></td>
+      <td>The root directory for this module relative to the project root.</td>
+    </tr>
+    <tr>
+      <td><code>{{name}}</code></td>
+      <td>Dynamic module indicator. The folder name becomes the module instance name.</td>
+    </tr>
+    <tr>
+      <td><code>*</code></td>
+      <td>Standard glob wildcard for ignoring intermediate folders.</td>
+    </tr>
+    <tr>
+      <td><b>default</b></td>
+      <td><code>Boolean</code></td>
+      <td><b>Fallback</b></td>
+      <td>
+        If <code>true</code>, this module acts as the fallback for unmatched components.<br> 
+        (Default: <code>false</code>)
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 #### Example
 
@@ -139,61 +162,157 @@ modules:
   shared: 'shared'
 ```
 
-### [2.2] Components (`components`)
+### [1.2] Components (`components`)
+
+Components represent the **Layers** or technical roles within a module.
 
 Maps your file system structure to architectural concepts. This is the core taxonomy of your 
 project.
 
-#### Definition
-**`<component_key>`**:
-- **Type:** `String` *(YAML Map Key)*
-- **Style**:
-  - **Hierarchy**: Keys starting with `.` are children. Their ID concatenates with parent 
-    (e.g., `domain` + `.port` = `domain.port`).
-  - **Inheritance**: Child components automatically inherit the `path` of their parent, allowing 
-    you to map nested folder structures easily.
+- *Example:* `Entity`, `Repository`, `UseCase`, `Widget`.
+- A component is defined by what it *is* (Structure) and where it *lives* (Path).
 
-#### Properties
-
-**[a] `mode`**: **Critical for Resolution.** Defines what this component represents physically in 
-the codebase
-- **Type:** `String` *(Enumeration)*
-- **Options:**
-  - `file`: *(Default)* Represents a specific code unit (e.g., a class in a file). Matches based on 
-    file name and content
-  - `namespace`: Represents a folder or layer container. Matches directories, never specific files. 
-    Use this for parent keys (e.g., `domain`)
-  - `part`: Represents a symbol defined *inside* a file (e.g., an `Event` class defined within a 
-    Bloc file). Use this for detailed structural checks within a file
-
-**[b] `path`**: The directory name(s) relative to the parent component
-- **Type:** `String | List<String>`
-- **Behavior:** If parent has `path: domain` and child has `path: entities`, the full path is `domain/entities`
-
-**[c] `kind`**: Enforces the specific Dart declaration type
-- **Type:** `String | List<String>`
-- **Options:** `class`, `enum`, `mixin`, `extension`, `typedef`
-
-**[d] `modifier`**: Enforces specific Dart keywords on the declaration
-- **Type:** `String | List<String>`
-- **Options:** `abstract`, `sealed`, `interface`, `base`, `final`, `mixin` (for mixin classes)
-
-**[e] `pattern`**: A regex-based naming convention for the class or element name
-- **Type:** `String | List<String>`
-- **Placeholders:**
-    - `{{name}}`: Captures the core domain name in PascalCase (e.g., `GetUser`)
-    - `{{affix}}`: A non-greedy wildcard matching any prefix or suffix
-
-**[f] `antipattern`**: Forbidden naming patterns to guide users away from bad habits
-- **Type:** `String | List<String>`
-- **Placeholders:** Same as `pattern`
-
-**[g] `grammar`**: Semantic naming pattern using parts of speech
-- **Type:** `String | List<String>`
-- **Tokens:**
-    - `{{noun}}`, `{{noun.phrase}}`, `{{noun.singular}}`, `{{noun.plural}}`
-    - `{{verb}}`, `{{verb.present}}`, `{{verb.past}}`, `{{verb.gerund}}`
-    - `{{adjective}}`, `{{adverb}}`, etc.
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2"><b>&lt;component_key&gt;</b></td>
+      <td rowspan="2"><code>String</code></td>
+      <td><b>Hierarchy</b></td>
+      <td>
+        Keys starting with <code>.</code> are treated as children. Their ID is concatenated with 
+        the parent (e.g., <code>domain</code> + <code>.port</code> = <code>domain.port</code>).
+      </td>
+    </tr>
+    <tr>
+      <td><b>Inheritance</b></td>
+      <td>Child components automatically inherit the <code>path</code> of their parent.</td>
+    </tr>
+    <tr>
+      <td><b>&lt;component_value&gt;</b></td>
+      <td><code>Map</code></td>
+      <td><b>Structure</b></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td><b>&lt;component_child&gt;</b></td>
+      <td><code>Map</code></td>
+      <td><b>Recursive Structure</b></td>
+      <td>Any thing that starts with <code>.</code> is treated as a child of the component.</td>
+    </tr>
+    <tr>
+      <td rowspan="3"><b>mode</b></td>
+      <td rowspan="3"><code>Enum</code></td>
+      <td><code>file</code>(<b>default</b>)</td>
+      <td>
+        Represents a specific code unit (e.g., a class in a file). Matches based on file name and 
+        content
+      </td>
+    </tr>
+    <tr>
+      <td><code>part</code></td>
+      <td>
+        Represents a symbol defined *inside* a file (e.g., an <code>Event</code> class defined 
+        within a Bloc file). Use this for detailed structural checks within a file
+      </td>
+    </tr>
+    <tr>
+      <td><code>namespace</code></td>
+      <td>
+        Represents a folder or layer container. Matches directories, never specific files. 
+        Use this for parent keys (e.g., <code>domain</code>)
+      </td>
+    </tr>
+    <tr>
+      <td><b>path</b></td>
+      <td><code>String</code> | <code>List&lt;String&gt;</code></td>
+      <td><b>Location</b></td>
+      <td>The directory name(s) relative to the parent component path.</td>
+    </tr>
+    <tr>
+      <td rowspan="5"><b>kind</b></td>
+      <td rowspan="5"><code>Enum</code> | <code>List&lt;Enum&gt;</code></td>
+      <td><code>class</code></td>
+      <td rowspan="5">
+        Enforces the specific Dart declaration type. Matches the language keyword.
+      </td>
+    </tr>
+    <tr><td><code>enum</code></td></tr>
+    <tr><td><code>mixin</code></td></tr>
+    <tr><td><code>extension</code></td></tr>
+    <tr><td><code>typedef</code></td></tr>
+    <tr>
+      <td rowspan="6"><b>modifier</b></td>
+      <td rowspan="6"><code>Enum</code> | <code>List&lt;Enum&gt;</code></td>
+      <td><code>abstract</code></td>
+      <td rowspan="6">
+        Enforces specific Dart keywords on the declaration to control inheritance and visibility.
+      </td>
+    </tr>
+    <tr><td><code>sealed</code></td></tr>
+    <tr><td><code>interface</code></td></tr>
+    <tr><td><code>base</code></td></tr>
+    <tr><td><code>final</code></td></tr>
+    <tr><td><code>mixin</code></td></tr>
+    <tr>
+      <td rowspan="3"><b>pattern | antipattern</b></td>
+      <td rowspan="3"><code>String</code> | <code>List&lt;String&gt;</code></td>
+      <td><b>Regex + Tokens</b></td>
+      <td>
+        A required (<code>pattern</code>) and forbidden (<code>antipattern</code>) naming pattern 
+        used to guide users to follow and away from bad naming habits respectively.
+      </td>
+    </tr>
+    <tr>
+      <td><code>{{name}}</code></td>
+      <td>PascalCase naming convention.</td>
+    </tr>
+    <tr>
+      <td><code>{{affix}}</code></td>
+      <td>Wildcard naming convention.</td>
+    </tr>
+    <tr>
+      <td rowspan="13"><b>grammar</b></td>
+      <td rowspan="13"><code>String</code> | <code>List&lt;String&gt;</code></td>
+      <td><b>Regex + Tokens</b></td>
+      <td>Semantic naming patterns using Natural Language Processing (NLP) parts of speech.</td>
+    </tr>
+    <tr>
+      <td><code>{{noun}}</code></td>
+      <td rowspan="4">
+        Semantic naming patterns using Natural Language Processing (NLP) parts of speech.
+      </td>
+    </tr>
+    <tr><td><code>{{noun.phrase}}</code></td></tr>
+    <tr><td><code>{{noun.singular}}</code></td></tr>
+    <tr><td><code>{{noun.plural}}</code></td></tr>
+    <tr>
+      <td><code>{{verb}}</code></td>
+      <td rowspan="4">
+        Semantic naming patterns using Natural Language Processing (NLP) parts of speech.
+      </td>
+    </tr>
+    <tr><td><code>{{verb.present}}</code></td></tr>
+    <tr><td><code>{{verb.past}}</code></td></tr>
+    <tr><td><code>{{verb.gerund}}</code></td></tr>
+    <tr>
+      <td><code>{{adjective}}</code></td>
+      <td rowspan="4">
+        Semantic naming patterns using Natural Language Processing (NLP) parts of speech.
+      </td>
+    </tr>
+    <tr><td><code>{{adverb}}</code></td></tr>
+    <tr><td><code>{{preposition}}</code></td></tr>
+    <tr><td><code>{{conjunction}}</code></td></tr>
+  </tbody>
+</table>
 
 #### Example
 
@@ -223,11 +342,34 @@ components:
       antipattern: '{{name}}Interface' # Guide away from legacy naming
 ```
 
+#### 🧠 Resolution Logic
+
+The linter uses a Smart Resolution Logic to identify files by calculating a score. This allows an 
+Interface (`AuthSource`) and Implementation (`AuthSourceImpl`) in the same folder to be treated 
+differently.
+
+**Scoring Criteria:**
+
+1. **Path Match:** Deeper directory matches get higher scores.
+2. **Mode:** `mode: file` beats `mode: part`.
+3. **Naming:** Matches configured `{{name}}Pattern`.
+4. **Inheritance:** Implements required base classes defined in `inheritances`.
+5. **Structure:** Matches required `kind` and `modifier`.
+
+*Example:* A concrete class `AuthImpl` will fail to match a component requiring 
+`modifier: abstract`, forcing the resolver to pick the Implementation component instead.
+
+The Linter combines these to identify a file:
+> `lib/features/auth/domain/usecases/login.dart`
+>
+> - **Module:** `auth` (Derived from `features/{{name}}`)
+> - **Component:** `domain.usecase` (Derived from path `domain/usecases`)
+
 ---
 
-## [3] 🧩 Auxiliary Declarations
+## [2] 🧩 Auxiliary Declarations
 
-### [3.1] Types (`definitions`)
+### [2.1] Types (`definitions`)
 
 Maps abstract concepts (like "Result Wrapper") to concrete Dart types. This decouples your rules from specific class names.
 
@@ -270,7 +412,7 @@ definitions:
         argument: '*'
 ```
 
-### [3.2] Vocabularies (`vocabularies`)
+### [2.2] Vocabularies (`vocabularies`)
 
 The linter uses Natural Language Processing (NLP) to check if class names make grammatical sense 
 (e.g., "UseCases must be Verb-Noun"). You can extend the dictionary with domain-specific terms.
@@ -293,11 +435,11 @@ vocabularies:
 
 ---
 
-## [4] 📜 Policies (Enforcing Behavior)
+## [3] 📜 Policies (Enforcing Behavior)
 
 Policies define what is required, allowed, or forbidden.
 
-### [4.1] Dependencies (`dependencies`)
+### [3.1] Dependencies (`dependencies`)
 
 **Purpose:** Enforce the Dependency Rule (Architecture Boundaries)
 
@@ -334,7 +476,7 @@ dependencies:
       component: [ 'entity', 'port' ]
 ```
 
-### [4.2] Type Safety (`type_safeties`)
+### [3.2] Type Safety (`type_safeties`)
 
 **Purpose:** Enforce method signatures
 
@@ -378,7 +520,7 @@ type_safeties:
       type: 'Future'
 ```
 
-### [4.3] Exceptions (`exceptions`)
+### [3.3] Exceptions (`exceptions`)
 
 **Purpose:** Enforce error handling flow
 
@@ -432,7 +574,7 @@ exceptions:
         to: 'failure.server'
 ```
 
-### [4.4] Structure (`members` & `annotations`)
+### [3.4] Structure (`members` & `annotations`)
 
 **Purpose:** Enforce internal class structure
 
@@ -479,7 +621,7 @@ members:
         visibility: 'public'
 ```
 
-### [4.5] Relationships (`relationships`)
+### [3.5] Relationships (`relationships`)
 
 **Purpose:** Enforce file parity (1-to-1 mappings)
 
@@ -522,80 +664,201 @@ relationships:
 
 ---
 
-## [5] 🤖 Automation (Actions & Templates)
+## [4] 🤖 Automation (Actions & Templates)
 
 The linter acts as a code generator when rules are broken.
 
-### [5.1] Actions (`actions`)
+### [4.1] Actions (`actions`)
 
-Defines the logic for a Quick Fix. Uses a **Dart-like Expression Language** for variables.
+Defines the logic for a Quick Fix. Uses a **Mustache Like Expression Language** for variables.
 
-#### Properties
+#### [4.1.1] Metadata
 
-**[a] `description`**: Human-readable name for the IDE
-- **Type:** `String`
+Basic configuration for the Quick Fix.
 
-**[b] `template_id`**: Reference to template in `templates` section
-- **Type:** `String`
+| Property                 | Type      | Description                      |
+|:-------------------------|:----------|:---------------------------------|
+| **`description`**        | `String`  | Human-readable name.             |
+| **`template_id`**        | `String`  | Reference to template key.       |
+| **`debug`**              | `Boolean` | Enable logging in the generated. |
+| **`format`**             | `Boolean` | Whether to format generated code |
+| **`format_line_length`** | `Integer` | Line length for formatting       |
 
-**[c] `format`**: Whether to format generated code
-- **Type:** `Boolean`
+#### [4.1.2] Trigger, Source & Target Context
 
-**[d] `format_line_length`**: Line length for formatting
-- **Type:** `Integer`
+Determines when the action appears, where data is extracted from, and where the resulting code is 
+injected.
 
-**[e] `debug`**: Enable debug logging
-- **Type:** `Boolean`
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>trigger.error_code</b></td>
+      <td><code>String</code></td>
+      <td>—</td>
+      <td>The lint rule triggering this.</td>
+    </tr>
+    <tr>
+      <td><b>trigger.component</b></td>
+      <td><code>String</code></td>
+      <td>—</td>
+      <td>The component scope.</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><b>source.scope</b></td>
+      <td rowspan="2"><code>Enum</code></td>
+      <td><code>current</code></td>
+      <td>The current file context.</td>
+    </tr>
+    <tr>
+      <td><code>related</code></td>
+      <td>The related file context.</td>
+    </tr>
+    <tr>
+      <td rowspan="3"><b>source.element</b></td>
+      <td rowspan="3"><code>Enum</code></td>
+      <td><code>class</code></td>
+      <td>The class definition node.</td>
+    </tr>
+    <tr>
+      <td><code>method</code></td>
+      <td>The specific method node.</td>
+    </tr>
+    <tr>
+      <td><code>field</code></td>
+      <td>The property or field node.</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><b>target.scope</b></td>
+      <td rowspan="2"><code>Enum</code></td>
+      <td><code>current</code></td>
+      <td>Write to the current file.</td>
+    </tr>
+    <tr>
+      <td><code>related</code></td>
+      <td>Write to the related file.</td>
+    </tr>
+    <tr>
+      <td><b>target.component</b></td>
+      <td><code>String</code></td>
+      <td>—</td>
+      <td>Destination component name.</td>
+    </tr>
+  </tbody>
+</table>
 
-**[f] `trigger`**: When this action appears
-- **Type:** `Map`
+#### [4.1.3] Write Strategy
 
-**[f.1] `error_code`**: The lint rule that triggers this
-- **Type:** `String`
+How the generated code is saved.
 
-**[f.2] `component`**: The architectural component scope
-- **Type:** `String`
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="3"><b>write.strategy</b></td>
+      <td rowspan="3"><code>Enum</code></td>
+      <td><code>file</code></td>
+      <td>Sets the specific output filename.</td>
+    </tr>
+    <tr>
+      <td><code>inject</code></td>
+      <td>Uses an existing file and identifies an insertion point.</td>
+    </tr>
+    <tr>
+      <td><code>replace</code></td>
+      <td>Overwrites the output file entirely.</td>
+    </tr>
+    <tr>
+      <td><b>write.filename</b></td>
+      <td><code>String</code></td>
+      <td>—</td>
+      <td>The specific output filename (required for <code>file</code> strategy).</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><b>write.placement</b></td>
+      <td rowspan="2"><code>Enum</code></td>
+      <td><code>start</code></td>
+      <td>Places content at the beginning of the file/block.</td>
+    </tr>
+    <tr>
+      <td><code>end</code></td>
+      <td>Places content at the end of the file/block.</td>
+    </tr>
+  </tbody>
+</table>
 
-**[g] `source`**: Where data comes from
-- **Type:** `Map`
+#### [4.1.4] Expression Engine
 
-**[g.1] `scope`**: Source context
-- **Type:** `String`
-- **Options:** `current`, `related`
+Built-in methods and variables in `actions.variables`
 
-**[g.2] `element`**: AST node type to extract
-- **Type:** `String`
-- **Options:** `class`, `method`, `field`
+- **`source`**: The AST Node (Class, Method, Field)
+  - `.name`: String (with `.pascalCase`, `.snakeCase` filters)
+  - `.parent`: Parent node
+  - `.file.path`: Absolute path
+  - `.returnType`: TypeWrapper (methods)
+  - `.parameters`: ListWrapper (methods)
 
-**[h] `target`**: Where the new code goes
-- **Type:** `Map`
+- **`config`**: The Architecture Config
+  - `.definitionFor('key')`: Looks up type definition
+  - `.namesFor('componentId')`: Looks up naming patterns
 
-**[h.1] `scope`**: Target context
-- **Type:** `String`
-- **Options:** `current`, `related`
+#### [4.1.5] Variables & Expressions
 
-**[h.2] `component`**: Destination component ID
-- **Type:** `String`
+Maps data from the `source` to the `template`. This uses a Mustache-like expression language.
 
-**[i] `write`**: How to save the generated code
-- **Type:** `Map`
+**Simple References:** Direct access to properties
 
-**[i.1] `strategy`**: Write mode
-- **Type:** `String`
-- **Options:** `file`, `inject`, `replace`
+```yaml
+variables:
+  className: '{{source.name.pascalCase}}'
+  repoName: '{{source.parent.name}}'
+```
 
-**[i.2] `filename`**: Output filename template
-- **Type:** `String`
+**Conditional Switch Logic:** Use a list of maps to handle "if/else" logic
 
-**[i.3] `placement`**: *(for inject)* Where to insert
-- **Type:** `String`
-- **Options:** `start`, `end`
+```yaml
+variables:
+  baseDef:
+    select:
+      - if: source.parameters.isEmpty
+        value: config.definitionFor('usecase.nullary')
+      - else: config.definitionFor('usecase.unary')
+```
 
-**[j] `variables`**: Data map for the template
-- **Type:** `Map<String, dynamic>`
-- **Values:** Can be strings, lists with switch/case logic, or complex expressions
+**Complex Mappings & Lists:** Iterating over lists or mapping objects
 
-#### Example
+```yaml
+variables:
+  params:
+    type: list
+    from: source.parameters
+    map:
+      .name: item.name.value
+      .type: item.type.unwrapped.value
+```
+
+**Common Filters:** Available on string properties:
+
+- `pascalCase`
+- `snakeCase`
+- `camelCase`
+- `extractGeneric(index=1)`
+
+#### Full Example
 
 ```yaml
 actions:
@@ -627,7 +890,7 @@ actions:
       repoVar: '_{{source.parent.name.camelCase}}'
 ```
 
-### [5.2] Templates (`templates`)
+### [4.2] Templates (`templates`)
 
 Standard Mustache templates. Logic-less.
 
@@ -651,79 +914,13 @@ templates:
 **Example template file (`templates/usecase.mustache`):**
 ```dart
 class {{className}} extends {{baseClass}} {
-final {{repoType}} {{repoVar}};
-
-const {{className}}(this.{{repoVar}});
-
-@override
-{{returnType}} call({{parameters}}) {
-// TODO: Implement
+  final {{repoType}} {{repoVar}};
+    
+  const {{className}}(this.{{repoVar}});
+    
+  @override
+  {{returnType}} call({{parameters}}) {
+    // TODO: Implement
+  }
 }
-}
-```
-
----
-
-## [6] 🔗 References (Available Options)
-
-### Component Options
-
-| Option | Values | Description |
-|:-------|:-------|:------------|
-| **`mode`** | `file` | The component is the file itself (Default) |
-| | `part` | The component is a symbol *inside* a file |
-| | `namespace` | The component is just a folder |
-| **`kind`** | `class`, `enum`, `mixin`, `extension`, `typedef` | Dart declaration types |
-| **`modifier`** | `abstract`, `sealed`, `interface`, `base`, `final`, `mixin` | Dart keywords |
-
-### Write Strategies
-
-| Strategy | Description |
-|:---------|:------------|
-| **`file`** | Creates a new file or overwrites existing |
-| **`inject`** | Inserts code into existing class body |
-| **`replace`** | Replaces the source node entirely |
-
-### Expression Engine Variables
-
-Available in `actions.variables`:
-
-*   **`source`**: The AST Node (Class, Method, Field)
-    *   `.name`: String (with `.pascalCase`, `.snakeCase` filters)
-    *   `.parent`: Parent node
-    *   `.file.path`: Absolute path
-    *   `.returnType`: TypeWrapper (methods)
-    *   `.parameters`: ListWrapper (methods)
-
-*   **`config`**: The Architecture Config
-    *   `.definitionFor('key')`: Looks up type definition
-    *   `.namesFor('componentId')`: Looks up naming patterns
-
-*   **`definitions`**: Direct map access to definitions
-
----
-
-## 🧠 Smart Resolution Logic
-
-The linter uses a sophisticated **Component Refiner** to identify files. It doesn't just look at file paths; it looks at:
-
-1.  **Path Depth**: Deeper matches are preferred
-2.  **Naming Patterns**: Does the class name match `{{name}}Repository`?
-3.  **Inheritance**: Does the class extend `BaseRepository`?
-4.  **Structure**: Is it `abstract` vs `concrete`?
-
-This ensures that even if you have an Interface (`AuthSource`) and Implementation (`AuthSourceImpl`) in the *same folder*, the linter correctly applies different rules to each.
-
-### How the Resolution Engine Works
-
-When a file is analyzed, the **Component Refiner** calculates a score to identify it. This allows `AuthSource` (Interface) and `AuthSourceImpl` (Implementation) to live in the same folder but be treated differently.
-
-**Scoring Criteria:**
-1.  **Path Match:** Deeper directory matches get higher scores
-2.  **Mode:** `mode: file` beats `mode: part`
-3.  **Naming:** Matches configured `{{name}}Pattern`
-4.  **Inheritance:** Implements required base classes defined in `inheritances`
-5.  **Structure:** Matches required `kind` (class/enum) and `modifier` (abstract/concrete)
-
-*Example:* A concrete class `AuthImpl` will fail to match a component that requires `modifier: abstract`, forcing the resolver to pick the Implementation component instead.
 ```

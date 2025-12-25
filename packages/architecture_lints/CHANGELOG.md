@@ -1,3 +1,15 @@
+## 0.1.1
+
+- **Refactor:** Replace language engine with `lexicor` from `dictionaryx` and enhance grammar logic.
+- **Debug:** Introduced `ArchLogger`, a new tagged logging utility, to aid in debugging complex 
+  grammar and file resolution logic.
+- **Docs:**
+  - Restructured the `README.md` for better readability by converting descriptive sections into 
+    clear, tabular formats.
+  - Reorganized the table of contents and section numbering for a more logical flow.
+  - Clarified and expanded descriptions for `modules`, `components`, `actions`, and other core 
+    concepts with detailed tables.
+
 ## 0.1.0
 
 🎉 **Initial Beta Release**
