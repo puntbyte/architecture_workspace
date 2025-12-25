@@ -64,11 +64,10 @@ This file acts as the **Domain Specific Language (DSL)** for your architecture.
 
 ### 📚 Table of Contents
 
-1. [**Core Declarations**](#2-core-declarations-the-configurations)
-2. [**Auxiliary Declarations**](#3-auxiliary)
-3. [**Policies (The Rules)**](#4-policies-enforcing-behavior)
-4. [**Automation (Code Generation)**](#5-automation-actions--templates)
-5. [**Reference: Available Options**](#6-reference-available-options)
+1. [**Core Declarations**](#1--core-declarations-the-configurations)
+2. [**Auxiliary Declarations**](#2--auxiliary-declarations)
+3. [**Policies (The Rules)**](#3--policies-enforcing-behavior)
+4. [**Automation (Code Generation)**](#4--automation-actions--templates)
 
 ## [1] 🎯 Core Declarations (The Configurations)
 
@@ -82,10 +81,17 @@ these definitions to map codebase files to specific functional boundaries. For e
 
 **Relationship:** A module usually acts as a container for multiple architectural layers.
 
+#### Definitions
+
+```yaml
+modules:
+  <module_key>: <module_value>
+```
+
 <table>
   <thead>
     <tr>
-      <th>Property</th>
+      <th>Name</th>
       <th>Type</th>
       <th>Value</th>
       <th>Description</th>
@@ -103,7 +109,7 @@ these definitions to map codebase files to specific functional boundaries. For e
     </tr>
     <tr>
       <td rowspan="2"><b>&lt;module_value&gt;</b></td>
-      <td rowspan="2"><code>String</code> | <code>Map</code></td>
+      <td><code>String</code></td>
       <td><b>Shorthand</b></td>
       <td>
         <code>&lt;module_key&gt;: '&lt;path&gt;'</code><br>Simple path mapping for quick 
@@ -111,19 +117,39 @@ these definitions to map codebase files to specific functional boundaries. For e
       </td>
     </tr>
     <tr>
+      <td><code>Map</code></td>
       <td><b>Longhand</b></td>
       <td>
         <code>&lt;module_key&gt;: { path: '&lt;path&gt;', default: bool }</code><br>Full
         configuration for advanced options.
       </td>
     </tr>
+  </tbody>
+</table>
+
+> **Note:** 
+> - `<module_value>` can be only one of the two forms (**shorthand** or **longhand**).
+
+#### Properties
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
     <tr>
       <td rowspan="3"><b>path</b></td>
-      <td rowspan="3"><code>String</code></td>
+      <td><code>String</code></td>
       <td><b>Location + Token</b></td>
       <td>The root directory for this module relative to the project root.</td>
     </tr>
     <tr>
+      <td rowspan="2"><code>Token</code></td>
       <td><code>{{name}}</code></td>
       <td>Dynamic module indicator. The folder name becomes the module instance name.</td>
     </tr>
@@ -172,10 +198,22 @@ project.
 - *Example:* `Entity`, `Repository`, `UseCase`, `Widget`.
 - A component is defined by what it *is* (Structure) and where it *lives* (Path).
 
+#### Definitions
+
+```yaml
+components:
+  <component_key>: 
+    <component_property>
+    <component_property>
+    
+    .<component_child>
+    .<component_child>
+```
+
 <table>
   <thead>
     <tr>
-      <th>Property</th>
+      <th>Name</th>
       <th>Type</th>
       <th>Value</th>
       <th>Description</th>
@@ -207,6 +245,21 @@ project.
       <td><b>Recursive Structure</b></td>
       <td>Any thing that starts with <code>.</code> is treated as a child of the component.</td>
     </tr>
+  </tbody>
+</table>
+
+#### Properties
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
     <tr>
       <td rowspan="3"><b>mode</b></td>
       <td rowspan="3"><code>Enum</code></td>
@@ -232,13 +285,13 @@ project.
     </tr>
     <tr>
       <td><b>path</b></td>
-      <td><code>String</code> | <code>List&lt;String&gt;</code></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
       <td><b>Location</b></td>
       <td>The directory name(s) relative to the parent component path.</td>
     </tr>
     <tr>
       <td rowspan="5"><b>kind</b></td>
-      <td rowspan="5"><code>Enum</code> | <code>List&lt;Enum&gt;</code></td>
+      <td rowspan="5"><code>Enum</code>,<br><code>Set&lt;Enum&gt;</code></td>
       <td><code>class</code></td>
       <td rowspan="5">
         Enforces the specific Dart declaration type. Matches the language keyword.
@@ -250,7 +303,7 @@ project.
     <tr><td><code>typedef</code></td></tr>
     <tr>
       <td rowspan="6"><b>modifier</b></td>
-      <td rowspan="6"><code>Enum</code> | <code>List&lt;Enum&gt;</code></td>
+      <td rowspan="6"><code>Enum</code>,<br><code>Set&lt;Enum&gt;</code></td>
       <td><code>abstract</code></td>
       <td rowspan="6">
         Enforces specific Dart keywords on the declaration to control inheritance and visibility.
@@ -262,15 +315,22 @@ project.
     <tr><td><code>final</code></td></tr>
     <tr><td><code>mixin</code></td></tr>
     <tr>
-      <td rowspan="3"><b>pattern | antipattern</b></td>
-      <td rowspan="3"><code>String</code> | <code>List&lt;String&gt;</code></td>
-      <td><b>Regex + Tokens</b></td>
+      <td rowspan="4"><b>pattern,<br>antipattern</b></td>
+      <td rowspan="2"><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td rowspan="2"><b>Regex + Tokens</b></td>
       <td>
-        A required (<code>pattern</code>) and forbidden (<code>antipattern</code>) naming pattern 
-        used to guide users to follow and away from bad naming habits respectively.
+        A required (<code>pattern</code>) naming pattern used to guide users to follow good naming 
+        habits.
       </td>
     </tr>
     <tr>
+      <td>
+        A forbidden (<code>antipattern</code>) naming pattern used to guide away from bad naming 
+        habits.
+      </td>
+    </tr>
+    <tr>
+      <td rowspan="2"><code>Token</code></td>
       <td><code>{{name}}</code></td>
       <td>PascalCase naming convention.</td>
     </tr>
@@ -280,14 +340,15 @@ project.
     </tr>
     <tr>
       <td rowspan="13"><b>grammar</b></td>
-      <td rowspan="13"><code>String</code> | <code>List&lt;String&gt;</code></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
       <td><b>Regex + Tokens</b></td>
       <td>Semantic naming patterns using Natural Language Processing (NLP) parts of speech.</td>
     </tr>
     <tr>
+      <td rowspan="12"><code>Token</code></td>
       <td><code>{{noun}}</code></td>
       <td rowspan="4">
-        Semantic naming patterns using Natural Language Processing (NLP) parts of speech.
+        Noun related Natural Language Processing (NLP) tokens.
       </td>
     </tr>
     <tr><td><code>{{noun.phrase}}</code></td></tr>
@@ -296,7 +357,7 @@ project.
     <tr>
       <td><code>{{verb}}</code></td>
       <td rowspan="4">
-        Semantic naming patterns using Natural Language Processing (NLP) parts of speech.
+        Verb related Natural Language Processing (NLP) tokens.
       </td>
     </tr>
     <tr><td><code>{{verb.present}}</code></td></tr>
@@ -305,7 +366,7 @@ project.
     <tr>
       <td><code>{{adjective}}</code></td>
       <td rowspan="4">
-        Semantic naming patterns using Natural Language Processing (NLP) parts of speech.
+        Other Language Processing (NLP) tokens.
       </td>
     </tr>
     <tr><td><code>{{adverb}}</code></td></tr>
