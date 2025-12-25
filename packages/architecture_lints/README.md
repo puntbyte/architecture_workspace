@@ -1,14 +1,10 @@
 # Architecture Lints 🏗️
 
-A **configuration-driven**, **architecture-agnostic** linting engine for Dart and Flutter that 
-transforms your architectural vision into enforceable code standards.
+A **configuration-driven**, **architecture-agnostic** linting engine for Dart and Flutter that transforms your architectural vision into enforceable code standards.
 
-Unlike standard linters that enforce hardcoded opinions (e.g., "Always extend Bloc"), 
-`architecture_lints` reads a **Policy Definition** from an `architecture.yaml` file in your project 
-root. This allows you to define your **own** architectural rules, layers, and naming conventions.
+Unlike standard linters that enforce hardcoded opinions (e.g., "Always extend Bloc"), `architecture_lints` reads a **Policy Definition** from an `architecture.yaml` file in your project root. This allows you to define your **own** architectural rules, layers, and naming conventions.
 
-It is the core engine powering packages like `architecture_clean`, but it can be used standalone to 
-enforce any architectural style (MVVM, MVC, DDD, Layer-First, Feature-First).
+It is the core engine powering packages like `architecture_clean`, but it can be used standalone to enforce any architectural style (MVVM, MVC, DDD, Layer-First, Feature-First).
 
 ---
 
@@ -64,19 +60,44 @@ This file acts as the **Domain Specific Language (DSL)** for your architecture.
 
 ### 📚 Table of Contents
 
-1. [**Core Declarations**](#1--core-declarations-the-configurations)
-2. [**Auxiliary Declarations**](#2--auxiliary-declarations)
-3. [**Policies (The Rules)**](#3--policies-enforcing-behavior)
-4. [**Automation (Code Generation)**](#4--automation-actions--templates)
+1.  [**Concepts & Philosophies**](#1-concepts--philosophies)
+2.  [**Core Declarations**](#2-core-declarations-the-configurations)
+3.  [**Auxiliary Declarations**](#3-auxiliary-declarations)
+4.  [**Policies (The Rules)**](#4-policies-enforcing-behavior)
+5.  [**Automation (Code Generation)**](#5-automation-actions--templates)
 
-## [1] 🎯 Core Declarations (The Configurations)
+---
+
+## [1] 💡 Concepts & Philosophies
+
+To effectively lint a large project, we must understand its structure on two axes:
+
+### **Modules (Horizontal Slicing)**
+Modules represent the **Features** or high-level groupings of your application.
+-   *Example:* `Core`, `Shared`, `Profile`, `Auth`.
+-   A module usually contains multiple layers.
+
+### **Components (Vertical Slicing)**
+Components represent the **Layers** or technical roles within a module.
+-   *Example:* `Entity`, `Repository`, `UseCase`, `Widget`.
+-   A component is defined by what it *is* (Structure) and where it *lives* (Path).
+
+The Linter combines these to identify a file:
+> `lib/features/auth/domain/usecases/login.dart`
+>
+> -   **Module:** `auth` (Derived from `features/{{name}}`)
+> -   **Component:** `domain.usecase` (Derived from path `domain/usecases`)
+
+---
+
+## [2] 🎯 Core Declarations (The Configurations)
 
 The `architecture.yaml` file drives everything.
 
-### [1.1] Modules (`modules`)
+### [2.1] Modules (`modules`)
 
-Modules represent the **Features** or high-level groupings of your application. The linter uses 
-these definitions to map codebase files to specific functional boundaries. For example `Core`, 
+Modules represent the **Features** or high-level groupings of your application. The linter uses
+these definitions to map codebase files to specific functional boundaries. For example `Core`,
 `Shared`, `Profile`, `Auth`.
 
 **Relationship:** A module usually acts as a container for multiple architectural layers.
@@ -104,7 +125,7 @@ modules:
       <td><b>Definition</b></td>
       <td>
         The unique identifier for the module. This ID is used when referencing modules in 
-        dependency rules
+        dependency rules.
       </td>
     </tr>
     <tr>
@@ -127,7 +148,7 @@ modules:
   </tbody>
 </table>
 
-> **Note:** 
+> **Note:**
 > - `<module_value>` can be only one of the two forms (**shorthand** or **longhand**).
 
 #### Properties
@@ -188,11 +209,11 @@ modules:
   shared: 'shared'
 ```
 
-### [1.2] Components (`components`)
+### [2.2] Components (`components`)
 
 Components represent the **Layers** or technical roles within a module.
 
-Maps your file system structure to architectural concepts. This is the core taxonomy of your 
+Maps your file system structure to architectural concepts. This is the core taxonomy of your
 project.
 
 - *Example:* `Entity`, `Repository`, `UseCase`, `Widget`.
@@ -266,21 +287,21 @@ components:
       <td><code>file</code>(<b>default</b>)</td>
       <td>
         Represents a specific code unit (e.g., a class in a file). Matches based on file name and 
-        content
+        content.
       </td>
     </tr>
     <tr>
       <td><code>part</code></td>
       <td>
         Represents a symbol defined *inside* a file (e.g., an <code>Event</code> class defined 
-        within a Bloc file). Use this for detailed structural checks within a file
+        within a Bloc file). Use this for detailed structural checks within a file.
       </td>
     </tr>
     <tr>
       <td><code>namespace</code></td>
       <td>
         Represents a folder or layer container. Matches directories, never specific files. 
-        Use this for parent keys (e.g., <code>domain</code>)
+        Use this for parent keys (e.g., <code>domain</code>).
       </td>
     </tr>
     <tr>
@@ -405,8 +426,8 @@ components:
 
 #### 🧠 Resolution Logic
 
-The linter uses a Smart Resolution Logic to identify files by calculating a score. This allows an 
-Interface (`AuthSource`) and Implementation (`AuthSourceImpl`) in the same folder to be treated 
+The linter uses a Smart Resolution Logic to identify files by calculating a score. This allows an
+Interface (`AuthSource`) and Implementation (`AuthSourceImpl`) in the same folder to be treated
 differently.
 
 **Scoring Criteria:**
@@ -417,41 +438,100 @@ differently.
 4. **Inheritance:** Implements required base classes defined in `inheritances`.
 5. **Structure:** Matches required `kind` and `modifier`.
 
-*Example:* A concrete class `AuthImpl` will fail to match a component requiring 
+*Example:* A concrete class `AuthImpl` will fail to match a component requiring
 `modifier: abstract`, forcing the resolver to pick the Implementation component instead.
-
-The Linter combines these to identify a file:
-> `lib/features/auth/domain/usecases/login.dart`
->
-> - **Module:** `auth` (Derived from `features/{{name}}`)
-> - **Component:** `domain.usecase` (Derived from path `domain/usecases`)
 
 ---
 
-## [2] 🧩 Auxiliary Declarations
+## [3] 🧩 Auxiliary Declarations
 
-### [2.1] Types (`definitions`)
+### [3.1] Types (`definitions`)
 
-Maps abstract concepts (like "Result Wrapper") to concrete Dart types. This decouples your rules from specific class names.
+Maps abstract concepts (like "Result Wrapper" or "Service Locator") to concrete Dart types. This
+decouples your rules from specific class names.
+
+#### Definitions
+
+```yaml
+definitions:
+  <group_key>:
+    <type_key>: <type_value>
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>&lt;group_key&gt;</b></td>
+      <td><code>String</code></td>
+      <td><b>Group</b></td>
+      <td>A logical grouping (e.g., 'usecase', 'result').</td>
+    </tr>
+    <tr>
+      <td><b>&lt;type_key&gt;</b></td>
+      <td><code>String</code></td>
+      <td><b>Key</b></td>
+      <td>The unique identifier within the group.</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><b>&lt;type_value&gt;</b></td>
+      <td><code>String</code></td>
+      <td><b>Shorthand</b></td>
+      <td>
+        <code>key: 'ClassName'</code>. Inherits previous import.
+      </td>
+    </tr>
+    <tr>
+      <td><code>Map</code></td>
+      <td><b>Detailed</b></td>
+      <td>
+        <code>key: { type: 'ClassName', import: '...' }</code>. Explicit config.
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 #### Properties
 
-**[a] `<group_key>`**: A logical grouping (e.g., `usecase`, `result`)
-- **Type:** `Map<String, String | Map>`
-
-**[a.1] `<type_key>`**: The unique identifier within the group
-- **Type:** `String | Map`
-- **Shorthand:** `key: 'ClassName'` inherits previous import
-- **Detailed:** `key: { type: 'ClassName', import: '...' }`
-
-**[a.1.1] `type`**: The raw Dart class name
-- **Type:** `String`
-
-**[a.1.2] `import`**: The package URI (inherits from previous entry if omitted)
-- **Type:** `String`
-
-**[a.1.3] `argument`**: Expected generic type parameters
-- **Type:** `List<Map>` (recursive structure)
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>type</b></td>
+      <td><code>String</code></td>
+      <td><b>Class</b></td>
+      <td>The raw Dart class name.</td>
+    </tr>
+    <tr>
+      <td><b>import</b></td>
+      <td><code>String</code></td>
+      <td><b>URI</b></td>
+      <td>The package URI. If omitted, inherits from the previous entry.</td>
+    </tr>
+    <tr>
+      <td><b>argument</b></td>
+      <td><code>List&lt;Map&gt;</code></td>
+      <td><b>Generics</b></td>
+      <td>
+        Expected generic type parameters (Recursive structure). <code>'*'</code> matches any.
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 #### Example
 
@@ -462,7 +542,8 @@ definitions:
     .base:
       type: 'Usecase'
       import: 'package:my_app/core/usecase.dart'
-    .unary: 'UnaryUsecase' # Inherits import from .base
+    # Inherits import from .base
+    .unary: 'UnaryUsecase' 
     
   # Result Wrappers
   result:
@@ -473,18 +554,43 @@ definitions:
         argument: '*'
 ```
 
-### [2.2] Vocabularies (`vocabularies`)
+### [3.2] Vocabularies (`vocabularies`)
 
-The linter uses Natural Language Processing (NLP) to check if class names make grammatical sense 
-(e.g., "UseCases must be Verb-Noun"). You can extend the dictionary with domain-specific terms.
+The linter uses Natural Language Processing (NLP) to check if class names make grammatical sense
+(e.g., "UseCases must be Verb-Noun").
 
-#### Properties
+#### Definitions
 
-**[a] `nouns`**: Domain-specific noun terms
-- **Type:** `List<String>`
+```yaml
+vocabularies:
+  nouns: <list>
+  verbs: <list>
+```
 
-**[b] `verbs`**: Domain-specific verb terms
-- **Type:** `List<String>`
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>nouns</b></td>
+      <td><code>List&lt;String&gt;</code></td>
+      <td><b>Terms</b></td>
+      <td>Domain-specific noun terms (e.g., 'auth', 'kyc').</td>
+    </tr>
+    <tr>
+      <td><b>verbs</b></td>
+      <td><code>List&lt;String&gt;</code></td>
+      <td><b>Actions</b></td>
+      <td>Domain-specific verb terms (e.g., 'upsert', 'rebase').</td>
+    </tr>
+  </tbody>
+</table>
 
 #### Example
 
@@ -496,30 +602,79 @@ vocabularies:
 
 ---
 
-## [3] 📜 Policies (Enforcing Behavior)
+## [4] 📜 Policies (Enforcing Behavior)
 
 Policies define what is required, allowed, or forbidden.
 
-### [3.1] Dependencies (`dependencies`)
+### [4.1] Dependencies (`dependencies`)
 
-**Purpose:** Enforce the Dependency Rule (Architecture Boundaries)
+Enforce the Dependency Rule (Architecture Boundaries).
 
-**Logic:** Can `Module A` import `Module B`? Can `Layer X` import `Layer Y`?
+#### Definitions
+
+```yaml
+dependencies:
+  - on: <component_id>
+    <allowed | forbidden>
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>on</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Target</b></td>
+      <td>The component or layer target.</td>
+    </tr>
+    <tr>
+      <td><b>allowed</b></td>
+      <td><code>Map</code></td>
+      <td><b>Whitelist</b></td>
+      <td>If defined, the component may ONLY import from these sources.</td>
+    </tr>
+    <tr>
+      <td><b>forbidden</b></td>
+      <td><code>Map</code></td>
+      <td><b>Blacklist</b></td>
+      <td>The component must NOT import from these sources.</td>
+    </tr>
+  </tbody>
+</table>
 
 #### Properties
 
-**[a] `on`**: The component or layer target
-- **Type:** `String | List<String>`
-
-**[b] `allowed` | `forbidden`**: Whitelist (if defined, component may ONLY import these) or 
-blacklist (component must NOT import these) approach. 
-- **Type:** `Map`
-
-**[b.1] `component`**: List of architectural components or layers to check against
-- **Type:** `String | List<String>`
-
-**[b.2] `import`**: List of URI patterns. Supports glob `**` for wildcards
-- **Type:** `String | List<String>`
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>component</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Reference</b></td>
+      <td>List of architectural components to check against.</td>
+    </tr>
+    <tr>
+      <td><b>import</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Pattern</b></td>
+      <td>List of URI patterns. Supports glob <code>**</code>.</td>
+    </tr>
+  </tbody>
+</table>
 
 #### Example
 
@@ -537,35 +692,94 @@ dependencies:
       component: [ 'entity', 'port' ]
 ```
 
-### [3.2] Type Safety (`type_safeties`)
+### [4.2] Type Safety (`type_safeties`)
 
-**Purpose:** Enforce method signatures
+Enforce method signatures.
 
-**Logic:** "Methods in this layer must return X" or "Parameters must not be Y"
+#### Definitions
+
+```yaml
+type_safeties:
+  - on: <component_id>
+    <allowed | forbidden>
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>on</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Target</b></td>
+      <td>The component target.</td>
+    </tr>
+    <tr>
+      <td><b>allowed</b></td>
+      <td><code>Map</code></td>
+      <td><b>Whitelist</b></td>
+      <td>Types MUST match one of these.</td>
+    </tr>
+    <tr>
+      <td><b>forbidden</b></td>
+      <td><code>Map</code></td>
+      <td><b>Blacklist</b></td>
+      <td>Types MUST NOT match any of these.</td>
+    </tr>
+  </tbody>
+</table>
 
 #### Properties
 
-**[a] `on`**: The component target
-- **Type:** `String | List<String>`
-
-**[b] `allowed` | `forbidden`**: Whitelist of permitted types OR Blacklist of prohibited types
-- **Type:** `Map`
-
-**[b.1] `kind`**: The context of the check
-- **Type:** `String`
-- **Options:** `'return' | 'parameter'`
-
-**[b.2] `identifier`**: *(for parameters)* The parameter name to match
-- **Type:** `String`
-
-**[b.3] `definition`**: Reference to a key in the `definitions` config
-- **Type:** `String | List<String>`
-
-**[b.4] `type`**: Raw class name string (e.g., `'int'`, `'Future'`)
-- **Type:** `String | List<String>`
-
-**[b.5] `component`**: Reference to an architectural component
-- **Type:** `String`
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2"><b>kind</b></td>
+      <td rowspan="2"><code>Enum</code></td>
+      <td><code>return</code></td>
+      <td rowspan="2">The context of the check (return type or parameter).</td>
+    </tr>
+    <tr><td><code>parameter</code></td></tr>
+    <tr>
+      <td><b>identifier</b></td>
+      <td><code>String</code></td>
+      <td><b>Param Name</b></td>
+      <td>(Only for kind: parameter) The parameter name to match.</td>
+    </tr>
+    <tr>
+      <td><b>definition</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Ref</b></td>
+      <td>Reference to a key in the <code>definitions</code> config.</td>
+    </tr>
+    <tr>
+      <td><b>type</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Raw</b></td>
+      <td>Raw class name string (e.g., 'int', 'Future').</td>
+    </tr>
+    <tr>
+      <td><b>component</b></td>
+      <td><code>String</code></td>
+      <td><b>Arch Ref</b></td>
+      <td>Reference to an architectural component.</td>
+    </tr>
+  </tbody>
+</table>
 
 #### Example
 
@@ -581,42 +795,129 @@ type_safeties:
       type: 'Future'
 ```
 
-### [3.3] Exceptions (`exceptions`)
+### [4.3] Exceptions (`exceptions`)
 
-**Purpose:** Enforce error handling flow
+Enforce error handling flow.
 
-**Logic:** Who is a `producer` (throws), `propagator` (rethrows), or `boundary` (catches)?
+#### Definitions
 
-#### Properties
+```yaml
+exceptions:
+  - on: <component_id>
+    role: <role>
+    <required | forbidden>
+    conversions: ...
+```
 
-**[a] `on`**: The component target
-- **Type:** `String | List<String>`
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>on</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Target</b></td>
+      <td>The component target.</td>
+    </tr>
+    <tr>
+      <td rowspan="4"><b>role</b></td>
+      <td rowspan="4"><code>Enum</code></td>
+      <td><code>producer</code></td>
+      <td rowspan="4">The semantic role regarding errors.</td>
+    </tr>
+    <tr><td><code>boundary</code></td></tr>
+    <tr><td><code>consumer</code></td></tr>
+    <tr><td><code>propagator</code></td></tr>
+    <tr>
+      <td><b>required</b></td>
+      <td><code>List&lt;Map&gt;</code></td>
+      <td><b>Must</b></td>
+      <td>Required operations.</td>
+    </tr>
+    <tr>
+      <td><b>forbidden</b></td>
+      <td><code>List&lt;Map&gt;</code></td>
+      <td><b>Must Not</b></td>
+      <td>Prohibited operations.</td>
+    </tr>
+    <tr>
+      <td><b>conversions</b></td>
+      <td><code>List&lt;Map&gt;</code></td>
+      <td><b>Map</b></td>
+      <td>Exception-to-Failure mapping for boundaries.</td>
+    </tr>
+  </tbody>
+</table>
 
-**[b] `role`**: The semantic role regarding errors
-- **Type:** `String`
-- **Options:** `producer`, `boundary`, `consumer`, `propagator`
+#### Properties (inside required/forbidden)
 
-**[c] `required` | `forbidden`**: Required operations and Prohibited operations
-- **Type:** `List<Map>`
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="5"><b>operation</b></td>
+      <td rowspan="5"><code>Enum</code>,<br><code>List&lt;Enum&gt;</code></td>
+      <td><code>throw</code></td>
+      <td rowspan="5">The control flow action.</td>
+    </tr>
+    <tr><td><code>rethrow</code></td></tr>
+    <tr><td><code>catch_return</code></td></tr>
+    <tr><td><code>catch_throw</code></td></tr>
+    <tr><td><code>try_return</code></td></tr>
+    <tr>
+      <td><b>definition</b></td>
+      <td><code>String</code></td>
+      <td><b>Ref</b></td>
+      <td>Reference to a key in the <code>definitions</code> config.</td>
+    </tr>
+    <tr>
+      <td><b>type</b></td>
+      <td><code>String</code></td>
+      <td><b>Raw</b></td>
+      <td>Raw class name (used if no definition key exists).</td>
+    </tr>
+  </tbody>
+</table>
 
-**[c.1] `operation`**: The control flow action
-- **Type:** `String | List<String>`
-- **Options:** `throw`, `rethrow`, `catch_return`, `catch_throw`, `try_return`
+#### Properties (inside conversions)
 
-**[c.2] `definition`**: Reference to a key in the `definitions` config
-- **Type:** `String`
-
-**[c.3] `type`**: Raw class name (used if no definition key exists)
-- **Type:** `String`
-
-**[e] `conversions`**: Exception-to-Failure mapping for boundaries
-- **Type:** `List<Map>`
-
-**[e.1] `from`**: The exception type caught
-- **Type:** `String`
-
-**[e.2] `to`**: The failure type returned
-- **Type:** `String`
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>from</b></td>
+      <td><code>String</code></td>
+      <td><b>Exception</b></td>
+      <td>The exception type caught (reference to definitions).</td>
+    </tr>
+    <tr>
+      <td><b>to</b></td>
+      <td><code>String</code></td>
+      <td><b>Failure</b></td>
+      <td>The failure type returned (reference to definitions).</td>
+    </tr>
+  </tbody>
+</table>
 
 #### Example
 
@@ -635,125 +936,512 @@ exceptions:
         to: 'failure.server'
 ```
 
-### [3.4] Structure (`members` & `annotations`)
+### [4.4] Structure
 
-**Purpose:** Enforce internal class structure
+This section enforces internal class composition.
 
-#### Members Properties
+#### [4.4.1] Inheritances (`inheritances`)
+Enforces base class requirements (`extends`, `implements`, `with`).
 
-**[a] `on`**: The component target
-- **Type:** `String | List<String>`
+##### Definitions
 
-**[b] `required` | `allowed` | `forbidden`**: Members that must exist, Permitted members 
-(whitelist), and Prohibited members (blacklist)
-- **Type:** `List<Map>`
+```yaml
+inheritances:
+  - on: <component_id>
+    <required | forbidden>
+```
 
-**[b.1] `kind`**: The member type target
-- **Type:** `String | List<String>`
-- **Options:** `method`, `field`, `getter`, `setter`, `constructor`, `override`
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>on</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Target</b></td>
+      <td>Target component ID.</td>
+    </tr>
+    <tr>
+      <td><b>required</b></td>
+      <td><code>List&lt;Map&gt;</code></td>
+      <td><b>Must</b></td>
+      <td>List of types the component MUST inherit.</td>
+    </tr>
+    <tr>
+      <td><b>forbidden</b></td>
+      <td><code>List&lt;Map&gt;</code></td>
+      <td><b>Must Not</b></td>
+      <td>List of types the component MUST NOT inherit.</td>
+    </tr>
+  </tbody>
+</table>
 
-**[b.2] `identifier`**: Specific names or Regex patterns to match
-- **Type:** `String | List<String>`
+##### Properties (inside required/forbidden)
 
-**[b.3] `visibility`**: The access level
-- **Type:** `String`
-- **Options:** `public`, `private`
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>type</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Class</b></td>
+      <td>Raw class name (e.g., 'Entity').</td>
+    </tr>
+    <tr>
+      <td><b>import</b></td>
+      <td><code>String</code></td>
+      <td><b>URI</b></td>
+      <td>The package URI.</td>
+    </tr>
+    <tr>
+      <td><b>definition</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Ref</b></td>
+      <td>Reference to a <code>definitions</code> key.</td>
+    </tr>
+    <tr>
+      <td><b>component</b></td>
+      <td><code>String</code></td>
+      <td><b>Arch</b></td>
+      <td>Reference to another architectural component ID.</td>
+    </tr>
+  </tbody>
+</table>
 
-**[b.4] `modifier`**: Required keywords
-- **Type:** `String`
-- **Options:** `final`, `const`, `static`, `late`
+##### Example
 
-**[b.5] `action`**: Quick Fix action if member is missing
-- **Type:** `String`
+```yaml
+inheritances:
+  # Entities must extend the base Entity class
+  - on: entity
+    required:
+      - type: 'Entity'
+        import: 'package:core/entity/entity.dart'
 
-#### Example
+  # Repositories must implement their corresponding Port
+  - on: repository
+    required:
+      - component: 'port'
+```
+
+#### [4.4.2] Members (`members`)
+Enforces rules on class members (fields, methods, constructors).
+
+##### Definitions
 
 ```yaml
 members:
-  # Entities must be immutable
-  - on: entity
-    required:
-      - kind: 'field'
-        identifier: 'id'
-      - kind: 'field'
-        modifier: 'final'
-    forbidden:
-      - kind: 'setter'
-        visibility: 'public'
+  - on: <component_id>
+    <required | allowed | forbidden>
 ```
 
-### [3.5] Relationships (`relationships`)
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>on</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Target</b></td>
+      <td>Target component ID.</td>
+    </tr>
+    <tr>
+      <td><b>required</b></td>
+      <td><code>List&lt;Map&gt;</code></td>
+      <td><b>Must</b></td>
+      <td>Members that must exist.</td>
+    </tr>
+    <tr>
+      <td><b>allowed</b></td>
+      <td><code>List&lt;Map&gt;</code></td>
+      <td><b>Whitelist</b></td>
+      <td>Permitted members (whitelist).</td>
+    </tr>
+    <tr>
+      <td><b>forbidden</b></td>
+      <td><code>List&lt;Map&gt;</code></td>
+      <td><b>Blacklist</b></td>
+      <td>Prohibited members.</td>
+    </tr>
+  </tbody>
+</table>
 
-**Purpose:** Enforce file parity (1-to-1 mappings)
+##### Properties
 
-**Logic:** "For every Method in a Port, there must be a UseCase file"
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="6"><b>kind</b></td>
+      <td rowspan="6"><code>Enum</code>,<br><code>List&lt;Enum&gt;</code></td>
+      <td><code>method</code></td>
+      <td rowspan="6">The member type target.</td>
+    </tr>
+    <tr><td><code>field</code></td></tr>
+    <tr><td><code>getter</code></td></tr>
+    <tr><td><code>setter</code></td></tr>
+    <tr><td><code>constructor</code></td></tr>
+    <tr><td><code>override</code></td></tr>
+    <tr>
+      <td><b>identifier</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Name</b></td>
+      <td>Specific names or Regex patterns to match.</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><b>visibility</b></td>
+      <td rowspan="2"><code>Enum</code></td>
+      <td><code>public</code></td>
+      <td rowspan="2">The access level.</td>
+    </tr>
+    <tr><td><code>private</code></td></tr>
+    <tr>
+      <td rowspan="4"><b>modifier</b></td>
+      <td rowspan="4"><code>Enum</code>,<br><code>List&lt;Enum&gt;</code></td>
+      <td><code>final</code></td>
+      <td rowspan="4">Required keywords.</td>
+    </tr>
+    <tr><td><code>const</code></td></tr>
+    <tr><td><code>static</code></td></tr>
+    <tr><td><code>late</code></td></tr>
+    <tr>
+      <td><b>action</b></td>
+      <td><code>String</code></td>
+      <td><b>Fix</b></td>
+      <td>Quick Fix action ID if member is missing.</td>
+    </tr>
+  </tbody>
+</table>
 
-#### Properties
+##### Example
 
-**[a] `on`**: The source component
-- **Type:** `String`
+```yaml
+members:
+  # Entities must be immutable and have an 'id'
+  - on: entity
+    required:
+      - kind: field
+        identifier: 'id'
+      - kind: field
+        modifier: 'final'
+    forbidden:
+      - kind: setter
+        visibility: public
+```
 
-**[b] `kind`**: What to iterate over
-- **Type:** `String`
-- **Options:** `class`, `method`
+#### [4.4.3] Annotations (`annotations`)
+Enforces metadata (Annotations) on classes.
 
-**[c] `visibility`**: Filter by visibility
-- **Type:** `String`
-- **Options:** `public`, `private`
+##### Definitions
 
-**[d] `required`**: Target component that must exist
-- **Type:** `Map`
+```yaml
+annotations:
+  - on: <component_id>
+    mode: <mode>
+    <required | forbidden>
+```
 
-**[d.1] `component`**: The architectural component to look for
-- **Type:** `String`
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>on</b></td>
+      <td><code>String</code></td>
+      <td><b>Target</b></td>
+      <td>Target component ID.</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><b>mode</b></td>
+      <td rowspan="2"><code>Enum</code></td>
+      <td><code>strict</code></td>
+      <td rowspan="2">Controls strictness regarding unlisted annotations.</td>
+    </tr>
+    <tr><td><code>implicit</code></td></tr>
+    <tr>
+      <td><b>required</b></td>
+      <td><code>List&lt;Map&gt;</code></td>
+      <td><b>Must</b></td>
+      <td>Annotations that MUST exist.</td>
+    </tr>
+    <tr>
+      <td><b>forbidden</b></td>
+      <td><code>List&lt;Map&gt;</code></td>
+      <td><b>Must Not</b></td>
+      <td>Annotations that MUST NOT exist.</td>
+    </tr>
+  </tbody>
+</table>
 
-**[d.2] `action`**: Quick Fix action if missing
-- **Type:** `String`
+##### Properties (inside required/forbidden)
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>type</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Class</b></td>
+      <td>Annotation class name.</td>
+    </tr>
+    <tr>
+      <td><b>import</b></td>
+      <td><code>String</code></td>
+      <td><b>URI</b></td>
+      <td>Package URI.</td>
+    </tr>
+  </tbody>
+</table>
+
+##### Example
+
+```yaml
+annotations:
+  # UseCases must be injectable. No other framework annotations allowed.
+  - on: usecase
+    mode: strict
+    required:
+      - type: 'Injectable'
+        import: 'package:injectable/injectable.dart'
+```
+
+### [4.5] Relationships (`relationships`)
+
+Enforce file parity (1-to-1 mappings).
+
+#### Definitions
+
+```yaml
+relationships:
+  - on: <component_id>
+    kind: <kind>
+    required: ...
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>on</b></td>
+      <td><code>String</code></td>
+      <td><b>Source</b></td>
+      <td>The source component.</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><b>kind</b></td>
+      <td rowspan="2"><code>Enum</code></td>
+      <td><code>class</code></td>
+      <td rowspan="2">What to iterate over.</td>
+    </tr>
+    <tr><td><code>method</code></td></tr>
+    <tr>
+      <td><b>visibility</b></td>
+      <td><code>Enum</code></td>
+      <td><code>public</code></td>
+      <td>Filter by visibility.</td>
+    </tr>
+    <tr>
+      <td><b>required</b></td>
+      <td><code>Map</code></td>
+      <td><b>Target</b></td>
+      <td>Target component that must exist.</td>
+    </tr>
+  </tbody>
+</table>
+
+#### Properties (inside required)
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>component</b></td>
+      <td><code>String</code></td>
+      <td><b>Target</b></td>
+      <td>The architectural component to look for.</td>
+    </tr>
+    <tr>
+      <td><b>action</b></td>
+      <td><code>String</code></td>
+      <td><b>Fix</b></td>
+      <td>Quick Fix action ID if missing.</td>
+    </tr>
+  </tbody>
+</table>
 
 #### Example
 
 ```yaml
 relationships:
   # Every Port method needs a UseCase
-  - on: 'domain.port'
-    kind: 'method'
-    visibility: 'public'
+  - on: domain.port
+    kind: method
+    visibility: public
     required:
-      component: 'domain.usecase'
-      action: 'create_usecase'
+      component: domain.usecase
+      action: create_usecase
+```
+
+### [4.6] Usage (`usages`)
+Bans specific coding patterns (e.g., global access).
+
+#### Definitions
+
+```yaml
+usages:
+  - on: <component_id>
+    forbidden: ...
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>on</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Target</b></td>
+      <td>The component target.</td>
+    </tr>
+    <tr>
+      <td><b>forbidden</b></td>
+      <td><code>List&lt;Map&gt;</code></td>
+      <td><b>Blacklist</b></td>
+      <td>List of disallowed usage patterns.</td>
+    </tr>
+  </tbody>
+</table>
+
+#### Properties (inside forbidden)
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2"><b>kind</b></td>
+      <td rowspan="2"><code>Enum</code></td>
+      <td><code>access</code></td>
+      <td rowspan="2">Type of usage.</td>
+    </tr>
+    <tr><td><code>instantiation</code></td></tr>
+    <tr>
+      <td><b>definition</b></td>
+      <td><code>String</code></td>
+      <td><b>Ref</b></td>
+      <td>Reference to service definition.</td>
+    </tr>
+    <tr>
+      <td><b>component</b></td>
+      <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
+      <td><b>Arch</b></td>
+      <td>Reference to architectural component.</td>
+    </tr>
+  </tbody>
+</table>
+
+#### Example
+
+```yaml
+usages:
+  - on: domain
+    forbidden:
+      kind: access
+      definition: service.locator
 ```
 
 ---
 
-## [4] 🤖 Automation (Actions & Templates)
+## [5] 🤖 Automation (Actions & Templates)
 
 The linter acts as a code generator when rules are broken.
 
-### [4.1] Actions (`actions`)
+### [5.1] Actions (`actions`)
 
-Defines the logic for a Quick Fix. Uses a **Mustache Like Expression Language** for variables.
+Defines the logic for a Quick Fix. Uses a **Dart-like Expression Language** for variables.
 
-#### [4.1.1] Metadata
+#### Definitions
 
-Basic configuration for the Quick Fix.
-
-| Property                 | Type      | Description                      |
-|:-------------------------|:----------|:---------------------------------|
-| **`description`**        | `String`  | Human-readable name.             |
-| **`template_id`**        | `String`  | Reference to template key.       |
-| **`debug`**              | `Boolean` | Enable logging in the generated. |
-| **`format`**             | `Boolean` | Whether to format generated code |
-| **`format_line_length`** | `Integer` | Line length for formatting       |
-
-#### [4.1.2] Trigger, Source & Target Context
-
-Determines when the action appears, where data is extracted from, and where the resulting code is 
-injected.
+```yaml
+actions:
+  <action_id>:
+    <global_properties>
+    trigger: ...
+    source: ...
+    target: ...
+    write: ...
+    variables: ...
+```
 
 <table>
   <thead>
     <tr>
-      <th>Property</th>
+      <th>Name</th>
       <th>Type</th>
       <th>Value</th>
       <th>Description</th>
@@ -761,173 +1449,84 @@ injected.
   </thead>
   <tbody>
     <tr>
-      <td><b>trigger.error_code</b></td>
+      <td><b>&lt;action_id&gt;</b></td>
       <td><code>String</code></td>
-      <td>—</td>
-      <td>The lint rule triggering this.</td>
+      <td><b>ID</b></td>
+      <td>Unique identifier for the action.</td>
     </tr>
     <tr>
-      <td><b>trigger.component</b></td>
+      <td><b>description</b></td>
       <td><code>String</code></td>
-      <td>—</td>
-      <td>The component scope.</td>
+      <td><b>Label</b></td>
+      <td>Human-readable name for the IDE.</td>
     </tr>
     <tr>
-      <td rowspan="2"><b>source.scope</b></td>
-      <td rowspan="2"><code>Enum</code></td>
-      <td><code>current</code></td>
-      <td>The current file context.</td>
-    </tr>
-    <tr>
-      <td><code>related</code></td>
-      <td>The related file context.</td>
-    </tr>
-    <tr>
-      <td rowspan="3"><b>source.element</b></td>
-      <td rowspan="3"><code>Enum</code></td>
-      <td><code>class</code></td>
-      <td>The class definition node.</td>
-    </tr>
-    <tr>
-      <td><code>method</code></td>
-      <td>The specific method node.</td>
-    </tr>
-    <tr>
-      <td><code>field</code></td>
-      <td>The property or field node.</td>
-    </tr>
-    <tr>
-      <td rowspan="2"><b>target.scope</b></td>
-      <td rowspan="2"><code>Enum</code></td>
-      <td><code>current</code></td>
-      <td>Write to the current file.</td>
-    </tr>
-    <tr>
-      <td><code>related</code></td>
-      <td>Write to the related file.</td>
-    </tr>
-    <tr>
-      <td><b>target.component</b></td>
+      <td><b>template_id</b></td>
       <td><code>String</code></td>
-      <td>—</td>
-      <td>Destination component name.</td>
+      <td><b>Ref</b></td>
+      <td>Reference to template key.</td>
+    </tr>
+    <tr>
+      <td><b>debug</b></td>
+      <td><code>Boolean</code></td>
+      <td><b>Log</b></td>
+      <td>Enable debug logging.</td>
     </tr>
   </tbody>
 </table>
 
-#### [4.1.3] Write Strategy
+#### [5.1.1] Trigger Configuration
+Determines when the action appears.
 
+| Name | Type | Value | Description |
+|:-----|:-----|:------|:------------|
+| **`trigger`** | `Map` | | Configuration block. |
+| **`error_code`** | `String` | | The lint rule triggering this. |
+| **`component`** | `String` | | The component scope. |
+
+#### [5.1.2] Source & Target Context
+Determines where data comes from and where code goes.
+
+| Name | Type | Value | Description |
+|:-----|:-----|:------|:------------|
+| **`source`** | `Map` | | Input context. |
+| **`scope`** | `Enum` | `current`, `related` | Context of the input data. |
+| **`element`** | `Enum` | `class`, `method`, `field` | AST node to extract. |
+| **`target`** | `Map` | | Output context. |
+| **`scope`** | `Enum` | `current`, `related` | Context for output. |
+| **`component`** | `String` | | Destination component ID. |
+
+#### [5.1.3] Write Strategy
 How the generated code is saved.
 
-<table>
-  <thead>
-    <tr>
-      <th>Property</th>
-      <th>Type</th>
-      <th>Value</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td rowspan="3"><b>write.strategy</b></td>
-      <td rowspan="3"><code>Enum</code></td>
-      <td><code>file</code></td>
-      <td>Sets the specific output filename.</td>
-    </tr>
-    <tr>
-      <td><code>inject</code></td>
-      <td>Uses an existing file and identifies an insertion point.</td>
-    </tr>
-    <tr>
-      <td><code>replace</code></td>
-      <td>Overwrites the output file entirely.</td>
-    </tr>
-    <tr>
-      <td><b>write.filename</b></td>
-      <td><code>String</code></td>
-      <td>—</td>
-      <td>The specific output filename (required for <code>file</code> strategy).</td>
-    </tr>
-    <tr>
-      <td rowspan="2"><b>write.placement</b></td>
-      <td rowspan="2"><code>Enum</code></td>
-      <td><code>start</code></td>
-      <td>Places content at the beginning of the file/block.</td>
-    </tr>
-    <tr>
-      <td><code>end</code></td>
-      <td>Places content at the end of the file/block.</td>
-    </tr>
-  </tbody>
-</table>
+| Name | Type | Value | Description |
+|:-----|:-----|:------|:------------|
+| **`write`** | `Map` | | Write configuration block. |
+| **`strategy`** | `Enum` | `file`, `inject`, `replace` | Write mode. |
+| **`filename`** | `String` | | Output filename template. |
+| **`placement`** | `Enum` | `start`, `end` | Where to insert (for inject). |
 
-#### [4.1.4] Expression Engine
+#### [5.1.4] Variables & Expressions
+Maps data from the `source` to the `template`. This uses a Dart-like expression language.
 
-Built-in methods and variables in `actions.variables`
+| Name | Type | Description |
+|:-----|:-----|:------------|
+| **`variables`** | `Map` | Map of keys to dynamic values used in the template. |
 
-- **`source`**: The AST Node (Class, Method, Field)
-  - `.name`: String (with `.pascalCase`, `.snakeCase` filters)
-  - `.parent`: Parent node
-  - `.file.path`: Absolute path
-  - `.returnType`: TypeWrapper (methods)
-  - `.parameters`: ListWrapper (methods)
+**Common Variable Strategies:**
 
-- **`config`**: The Architecture Config
-  - `.definitionFor('key')`: Looks up type definition
-  - `.namesFor('componentId')`: Looks up naming patterns
+1.  **Simple References**: Direct access to properties (e.g., `className: '{{source.name.pascalCase}}'`).
+2.  **Conditional Switch Logic**: Use a list of maps to handle "if/else" logic.
+3.  **Complex Mappings**: Iterating over lists or mapping objects (e.g., extracting parameters).
+4.  **Common Filters**: `| pascalCase`, `| snakeCase`, `| camelCase`.
 
-#### [4.1.5] Variables & Expressions
-
-Maps data from the `source` to the `template`. This uses a Mustache-like expression language.
-
-**Simple References:** Direct access to properties
-
-```yaml
-variables:
-  className: '{{source.name.pascalCase}}'
-  repoName: '{{source.parent.name}}'
-```
-
-**Conditional Switch Logic:** Use a list of maps to handle "if/else" logic
-
-```yaml
-variables:
-  baseDef:
-    select:
-      - if: source.parameters.isEmpty
-        value: config.definitionFor('usecase.nullary')
-      - else: config.definitionFor('usecase.unary')
-```
-
-**Complex Mappings & Lists:** Iterating over lists or mapping objects
-
-```yaml
-variables:
-  params:
-    type: list
-    from: source.parameters
-    map:
-      .name: item.name.value
-      .type: item.type.unwrapped.value
-```
-
-**Common Filters:** Available on string properties:
-
-- `pascalCase`
-- `snakeCase`
-- `camelCase`
-- `extractGeneric(index=1)`
-
-#### Full Example
+#### Example
 
 ```yaml
 actions:
   create_usecase:
-    description: 'Generate Functional UseCase'
-    template_id: 'usecase_functional'
-    format: true
-    format_line_length: 100
+    description: 'Generate UseCase'
+    template_id: 'usecase_template'
     debug: true
     
     trigger:
@@ -947,21 +1546,66 @@ actions:
       filename: '{{source.name.snakeCase}}.dart'
     
     variables:
+      # Switch logic
+      baseDef:
+        select:
+          - if: source.parameters.isEmpty
+            value: 'NullaryUsecase'
+          - else: 'UnaryUsecase'
+            
+      # Simple reference
       className: '{{source.name.pascalCase}}'
-      repoVar: '_{{source.parent.name.camelCase}}'
+      
+      # List mapping
+      paramsList:
+        type: list
+        from: source.parameters
+        map:
+          name: item.name
 ```
 
-### [4.2] Templates (`templates`)
-
+### [5.2] Templates (`templates`)
 Standard Mustache templates. Logic-less.
 
-#### Properties
+#### Definitions
 
-**[a] `file`**: Path to the Mustache template file
-- **Type:** `String`
+```yaml
+templates:
+  <template_id>:
+    file: <path>
+    description: <text>
+```
 
-**[b] `description`**: Human-readable description
-- **Type:** `String`
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>&lt;template_id&gt;</b></td>
+      <td><code>String</code></td>
+      <td><b>ID</b></td>
+      <td>Unique identifier.</td>
+    </tr>
+    <tr>
+      <td><b>file</b></td>
+      <td><code>String</code></td>
+      <td><b>Path</b></td>
+      <td>Path to the <code>.mustache</code> file.</td>
+    </tr>
+    <tr>
+      <td><b>description</b></td>
+      <td><code>String</code></td>
+      <td><b>Text</b></td>
+      <td>Human-readable description.</td>
+    </tr>
+  </tbody>
+</table>
 
 #### Example
 
@@ -969,16 +1613,14 @@ Standard Mustache templates. Logic-less.
 templates:
   usecase_template:
     file: 'templates/usecase.mustache'
-    description: 'Standard UseCase template'
 ```
 
 **Example template file (`templates/usecase.mustache`):**
 ```dart
 class {{className}} extends {{baseClass}} {
   final {{repoType}} {{repoVar}};
-    
   const {{className}}(this.{{repoVar}});
-    
+
   @override
   {{returnType}} call({{parameters}}) {
     // TODO: Implement

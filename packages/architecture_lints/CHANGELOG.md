@@ -1,3 +1,17 @@
+## 0.1.2
+
+- **Docs:** Restructure and clarify README documentation
+  - Reorganized the `README.md` for improved clarity and readability by converting descriptive 
+    paragraphs into structured tables for core concepts like `modules` and `components`.
+  - Separated `Definitions` and `Properties` into distinct sections with their own tables to 
+    clarify configuration structure.
+  - Updated the table of contents with revised numbering and links.
+  - Improved and clarified descriptions for various properties, including `pattern`, `antipattern`, 
+    and `grammar` tokens.
+  - Refined type information in property tables for better accuracy (e.g., `List<Enum>` to 
+    `Set<Enum>`).
+  - Removed an obsolete `Reference` section from the table of contents.
+
 ## 0.1.1
 
 - **Refactor:** Replace language engine with `lexicor` from `dictionaryx` and enhance grammar logic.
