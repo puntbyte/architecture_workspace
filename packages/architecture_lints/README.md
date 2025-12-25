@@ -1,10 +1,14 @@
 # Architecture Lints 🏗️
 
-A **configuration-driven**, **architecture-agnostic** linting engine for Dart and Flutter that transforms your architectural vision into enforceable code standards.
+A **configuration-driven**, **architecture-agnostic** linting engine for Dart and Flutter that 
+transforms your architectural vision into enforceable code standards.
 
-Unlike standard linters that enforce hardcoded opinions (e.g., "Always extend Bloc"), `architecture_lints` reads a **Policy Definition** from an `architecture.yaml` file in your project root. This allows you to define your **own** architectural rules, layers, and naming conventions.
+Unlike standard linters that enforce hardcoded opinions (e.g., "Always extend Bloc"), 
+`architecture_lints` reads a **Policy Definition** from an `architecture.yaml` file in your project 
+root. This allows you to define your **own** architectural rules, layers, and naming conventions.
 
-It is the core engine powering packages like `architecture_clean`, but it can be used standalone to enforce any architectural style (MVVM, MVC, DDD, Layer-First, Feature-First).
+It is the core engine powering packages like `architecture_clean`, but it can be used standalone to 
+enforce any architectural style (MVVM, MVC, DDD, Layer-First, Feature-First).
 
 ---
 
@@ -60,11 +64,11 @@ This file acts as the **Domain Specific Language (DSL)** for your architecture.
 
 ### 📚 Table of Contents
 
-1.  [**Concepts & Philosophies**](#1-concepts--philosophies)
-2.  [**Core Declarations**](#2-core-declarations-the-configurations)
-3.  [**Auxiliary Declarations**](#3-auxiliary-declarations)
-4.  [**Policies (The Rules)**](#4-policies-enforcing-behavior)
-5.  [**Automation (Code Generation)**](#5-automation-actions--templates)
+1.  [**Concepts & Philosophies**](#1--concepts--philosophies)
+2.  [**Core Declarations**](#2--core-declarations-the-configurations)
+3.  [**Auxiliary Declarations**](#3--auxiliary-declarations)
+4.  [**Policies (The Rules)**](#4--policies-enforcing-behavior)
+5.  [**Automation (Code Generation)**](#5--automation-actions--templates)
 
 ---
 
@@ -1478,39 +1482,39 @@ actions:
 #### [5.1.1] Trigger Configuration
 Determines when the action appears.
 
-| Name | Type | Value | Description |
-|:-----|:-----|:------|:------------|
-| **`trigger`** | `Map` | | Configuration block. |
-| **`error_code`** | `String` | | The lint rule triggering this. |
-| **`component`** | `String` | | The component scope. |
+| Name             | Type     | Value | Description                    |
+|:-----------------|:---------|:------|:-------------------------------|
+| **`trigger`**    | `Map`    |       | Configuration block.           |
+| **`error_code`** | `String` |       | The lint rule triggering this. |
+| **`component`**  | `String` |       | The component scope.           |
 
 #### [5.1.2] Source & Target Context
 Determines where data comes from and where code goes.
 
-| Name | Type | Value | Description |
-|:-----|:-----|:------|:------------|
-| **`source`** | `Map` | | Input context. |
-| **`scope`** | `Enum` | `current`, `related` | Context of the input data. |
-| **`element`** | `Enum` | `class`, `method`, `field` | AST node to extract. |
-| **`target`** | `Map` | | Output context. |
-| **`scope`** | `Enum` | `current`, `related` | Context for output. |
-| **`component`** | `String` | | Destination component ID. |
+| Name            | Type     | Value                      | Description                |
+|:----------------|:---------|:---------------------------|:---------------------------|
+| **`source`**    | `Map`    |                            | Input context.             |
+| **`scope`**     | `Enum`   | `current`, `related`       | Context of the input data. |
+| **`element`**   | `Enum`   | `class`, `method`, `field` | AST node to extract.       |
+| **`target`**    | `Map`    |                            | Output context.            |
+| **`scope`**     | `Enum`   | `current`, `related`       | Context for output.        |
+| **`component`** | `String` |                            | Destination component ID.  |
 
 #### [5.1.3] Write Strategy
 How the generated code is saved.
 
-| Name | Type | Value | Description |
-|:-----|:-----|:------|:------------|
-| **`write`** | `Map` | | Write configuration block. |
-| **`strategy`** | `Enum` | `file`, `inject`, `replace` | Write mode. |
-| **`filename`** | `String` | | Output filename template. |
-| **`placement`** | `Enum` | `start`, `end` | Where to insert (for inject). |
+| Name            | Type     | Value                       | Description                   |
+|:----------------|:---------|:----------------------------|:------------------------------|
+| **`write`**     | `Map`    |                             | Write configuration block.    |
+| **`strategy`**  | `Enum`   | `file`, `inject`, `replace` | Write mode.                   |
+| **`filename`**  | `String` |                             | Output filename template.     |
+| **`placement`** | `Enum`   | `start`, `end`              | Where to insert (for inject). |
 
 #### [5.1.4] Variables & Expressions
 Maps data from the `source` to the `template`. This uses a Dart-like expression language.
 
-| Name | Type | Description |
-|:-----|:-----|:------------|
+| Name            | Type  | Description                                         |
+|:----------------|:------|:----------------------------------------------------|
 | **`variables`** | `Map` | Map of keys to dynamic values used in the template. |
 
 **Common Variable Strategies:**
