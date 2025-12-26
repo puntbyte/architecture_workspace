@@ -14,8 +14,8 @@ class LanguageAnalyzer {
     Lexicor? lexicor,
     VocabularyDefinition? vocabulary,
     this.treatEntryAsNounIfExists = true,
-  })  : _lexicor = lexicor ?? _sharedLexicor,
-        _overrides = vocabulary ?? const VocabularyDefinition();
+  }) : _lexicor = lexicor ?? _sharedLexicor,
+       _overrides = vocabulary ?? const VocabularyDefinition();
 
   static Future<void> initShared() async {
     if (_initTried) return;
@@ -76,7 +76,50 @@ class LanguageAnalyzer {
 
   bool isNounSingular(String word) => isNoun(word) && !isNounPlural(word);
 
+  /// Heuristically checks if a sequence of [words] forms a Noun Phrase.
+  /// Simple: Last word is a noun, previous words are adjectives/nouns.
+  bool isNounPhrase(List<String> words) {
+    if (words.isEmpty) return false;
+    final lastWord = words.last;
+    if (!isNoun(lastWord)) return false; // Must end in a noun
+
+    // All preceding words should be adjectives or nouns acting as modifiers
+    for (var i = 0; i < words.length - 1; i++) {
+      final word = words[i];
+      if (!isAdjective(word) && !isNoun(word)) {
+        return false; // Not a valid modifier
+      }
+    }
+    return true;
+  }
+
+  bool isNounSingularPhrase(List<String> words) =>
+      isNounPhrase(words) && isNounSingular(words.last);
+
+  bool isNounPluralPhrase(List<String> words) => isNounPhrase(words) && isNounPlural(words.last);
+
   bool isVerb(String word) => _hasPos(word, SpeechPart.verb);
+
+  /// Checks if a sequence of words forms a Verb Phrase.
+  /// Structure: [Verb] + [Adverb | Preposition | Noun (as particle)]
+  /// e.g. "Log In" (Verb + Prep), "Sign Up" (Verb + Adv), "Run Fast" (Verb + Adv)
+  bool isVerbPhrase(List<String> words) {
+    if (words.isEmpty) return false;
+
+    // 1. Must start with a Verb
+    if (!isVerb(words.first)) return false;
+
+    // 2. Subsequent words must be modifiers or particles
+    for (var i = 1; i < words.length; i++) {
+      final word = words[i];
+      // Allow Adverbs, Prepositions, or even Nouns acting as particles (e.g. "Back")
+      // We are lenient here to support phrasal verbs.
+      if (!isAdverb(word) && !isPreposition(word) && !isNoun(word)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   bool isVerbGerund(String word) {
     final lower = word.toLowerCase();
@@ -101,7 +144,7 @@ class LanguageAnalyzer {
 
     // "running" -> "run" (Double consonant)
     // If stem ends in double char (e.g. runn), try stripping one.
-    if (stem.length > 1 && stem[stem.length-1] == stem[stem.length-2]) {
+    if (stem.length > 1 && stem[stem.length - 1] == stem[stem.length - 2]) {
       if (isVerb(stem.substring(0, stem.length - 1))) return true;
     }
 
@@ -119,13 +162,45 @@ class LanguageAnalyzer {
       if (isVerb('${stem}e')) return true;
 
       // "stopped" -> "stop"
-      if (stem.length > 1 && stem[stem.length-1] == stem[stem.length-2]) {
+      if (stem.length > 1 && stem[stem.length - 1] == stem[stem.length - 2]) {
         if (isVerb(stem.substring(0, stem.length - 1))) return true;
       }
     }
 
     return isVerb(word); // Fallback if irregular is just a verb form in DB
   }
+
+  /// Heuristically checks if a sequence of [words] forms a Verb Phrase (Present Tense).
+  /// Simple: First word is a verb, subsequent are adverbs.
+  bool isVerbPresentPhrase(List<String> words) {
+    if (words.isEmpty) return false;
+    final firstWord = words.first;
+    if (!isVerb(firstWord)) return false; // Must start with a verb (e.g., "Get")
+
+    // Subsequent words should be adverbs (e.g., "quickly")
+    for (var i = 1; i < words.length; i++) {
+      final word = words[i];
+      if (!isAdverb(word)) return false;
+    }
+    return true;
+  }
+
+  // Example, this can be expanded for Past Tense
+  bool isVerbPastPhrase(List<String> words) {
+    if (words.isEmpty) return false;
+    final firstWord = words.first;
+    if (!isVerbPast(firstWord)) return false; // Must start with a past verb (e.g., "Got")
+
+    for (var i = 1; i < words.length; i++) {
+      final word = words[i];
+      if (!isAdverb(word)) return false;
+    }
+    return true;
+  }
+
+  bool isPreposition(String word) => commonPrepositions.contains(word.toLowerCase());
+
+  bool isConjunction(String word) => commonConjunctions.contains(word.toLowerCase());
 
   bool _hasPos(String word, SpeechPart part) {
     final lower = word.toLowerCase();
@@ -169,7 +244,6 @@ class LanguageAnalyzer {
 
       // Weak signal fallback for Nouns
       if (treatEntryAsNounIfExists && part == SpeechPart.noun) return true;
-
     } catch (_) {}
     return false;
   }

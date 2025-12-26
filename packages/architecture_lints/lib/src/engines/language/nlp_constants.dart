@@ -118,50 +118,21 @@ const Set<String> pronouns = {
   'theirs',
 };
 
-const Set<String> prepositions = {
-  'in',
-  'on',
-  'at',
-  'by',
-  'for',
-  'with',
-  'about',
-  'against',
-  'between',
-  'into',
-  'through',
-  'during',
-  'before',
-  'after',
-  'above',
-  'below',
-  'to',
-  'from',
-  'up',
-  'down',
-  'over',
-  'under',
-  'again',
-  'further',
-  'then',
-  'once',
+const Set<String> commonPrepositions = {
+  'about', 'above', 'across', 'after', 'against', 'along', 'among', 'around', 'at',
+  'before', 'behind', 'below', 'beneath', 'beside', 'between', 'beyond', 'by',
+  'down', 'during', 'except', 'for', 'from', 'in', 'inside', 'into', 'like',
+  'near', 'of', 'off', 'on', 'out', 'outside', 'over', 'past', 'since',
+  'through', 'throughout', 'to', 'toward', 'under', 'underneath', 'until', 'up',
+  'upon', 'with', 'within', 'without', 'via'
 };
 
 /// Common conjunctions.
-const Set<String> conjunctions = {
-  'and',
-  'or',
-  'but',
-  'nor',
-  'for',
-  'yet',
-  'so',
-  'although',
-  'because',
-  'since',
-  'unless',
-  'while',
-  'whereas',
+const Set<String> commonConjunctions = {
+  'and', 'but', 'for', 'nor', 'or', 'so', 'yet',
+  'after', 'although', 'as', 'because', 'before', 'if', 'once', 'since',
+  'than', 'that', 'though', 'till', 'unless', 'until', 'when', 'whenever',
+  'where', 'whereas', 'wherever', 'while'
 };
 
 /// Common determiners.

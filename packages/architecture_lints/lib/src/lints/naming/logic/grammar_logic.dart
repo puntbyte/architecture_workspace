@@ -3,108 +3,72 @@ import 'package:architecture_lints/src/schema/enums/grammar_token.dart';
 import 'package:architecture_lints/src/utils/architecture_logger.dart';
 import 'package:architecture_lints/src/utils/extensions/string_extension.dart';
 
-class GrammarResult {
-  final bool isValid;
-  final String? reason;
-  final String? correction;
-
-  const GrammarResult.valid() : isValid = true, reason = null, correction = null;
-
-  const GrammarResult.invalid({required this.reason, required this.correction}) : isValid = false;
-
-  @override
-  String toString() => isValid ? 'Valid' : 'Invalid: $reason';
-}
-
 mixin GrammarLogic {
   static const _tag = 'GrammarLogic';
 
-  /// Validates [className] against a [grammar] string using the [analyzer].
-  GrammarResult validateGrammar(String grammar, String className, LanguageAnalyzer analyzer) {
-    ArchLogger.log('---------------------------------------------------', tag: _tag);
-    ArchLogger.log('Checking Class: "$className" against Template: "$grammar"', tag: _tag);
+  GrammarResult validateGrammar(
+    String grammar,
+    String className,
+    LanguageAnalyzer analyzer,
+  ) {
+    ArchLogger.log('Checking "$className" against "$grammar"', tag: _tag);
 
-    // 1. Extract Core Name
     final coreName = _extractCoreName(grammar, className);
     ArchLogger.log('Extracted Core Name: "$coreName"', tag: _tag);
 
-    if (coreName.isEmpty) {
-      ArchLogger.log('Core name empty. Returning Valid.', tag: _tag);
-      return const GrammarResult.valid();
-    }
+    if (coreName.isEmpty) return const GrammarResult.valid();
 
-    // 2. Split Words
     final words = coreName.splitPascalCase();
     ArchLogger.log('Split Words: $words', tag: _tag);
 
     if (words.isEmpty) return const GrammarResult.valid();
 
-    // --- PRIORITY 1: ACTIONS (Verb-Noun) ---
-    final hasVerb =
-        GrammarToken.verb.isPresentIn(grammar) || GrammarToken.verbPresent.isPresentIn(grammar);
-    final hasNoun =
-        GrammarToken.noun.isPresentIn(grammar) || GrammarToken.nounPhrase.isPresentIn(grammar);
+    // --- PRIORITY 1: ACTIONS (Verb-Noun or Verb Phrase) ---
+    final hasVerbToken =
+        GrammarToken.verb.isPresentIn(grammar) ||
+        GrammarToken.verbPhrase.isPresentIn(grammar) ||
+        GrammarToken.verbPresent.isPresentIn(grammar) ||
+        GrammarToken.verbPresentPhrase.isPresentIn(grammar) ||
+        GrammarToken.verbPast.isPresentIn(grammar) ||
+        GrammarToken.verbPastPhrase.isPresentIn(grammar);
 
-    if (hasVerb && hasNoun) {
-      ArchLogger.log('Matched Logic: ACTION (Verb-Noun)', tag: _tag);
+    final hasNounToken =
+        GrammarToken.noun.isPresentIn(grammar) ||
+        GrammarToken.nounPhrase.isPresentIn(grammar) ||
+        GrammarToken.nounSingular.isPresentIn(grammar) ||
+        GrammarToken.nounSingularPhrase.isPresentIn(grammar) ||
+        GrammarToken.nounPlural.isPresentIn(grammar) ||
+        GrammarToken.nounPluralPhrase.isPresentIn(grammar);
 
-      if (words.length < 2) {
-        ArchLogger.log('Fail: Name too short for Action', tag: _tag);
-        return const GrammarResult.invalid(
-          reason: 'The name is too short.',
-          correction: 'Use the format Action + Subject (e.g., GetUser).',
-        );
-      }
+    if (hasVerbToken && hasNounToken) {
+      ArchLogger.log('Matched Logic: ACTION (Verb/Noun Phrase)', tag: _tag);
 
-      final firstWord = words.first;
-      final isV = analyzer.isVerb(firstWord);
-      ArchLogger.log('Checking First Word "$firstWord" isVerb? $isV', tag: _tag);
+      // Heuristic: If it has both, we expect a verb phrase modifying a noun phrase.
+      // E.g., "GetUser", "GetUserData"
 
-      if (!isV) {
-        return GrammarResult.invalid(
-          reason: 'The first word "$firstWord" is not a recognized Verb.',
-          correction: 'Start with an action verb like Get, Save, or Load.',
-        );
-      }
-
-      final lastWord = words.last;
-      final isN = analyzer.isNoun(lastWord);
-      ArchLogger.log('Checking Last Word "$lastWord" isNoun? $isN', tag: _tag);
-
-      if (!isN) {
-        return GrammarResult.invalid(
-          reason: 'The last word "$lastWord" is not a recognized Noun (Subject).',
-          correction: 'End with the subject being acted upon (e.g., User, Data).',
-        );
-      }
+      final result = _validateVerbNounPhrase(words, analyzer, grammar);
+      if (!result.isValid) return result;
       return const GrammarResult.valid();
     }
 
     // --- PRIORITY 2: STATES (Adjective/Past/Gerund) ---
-    final hasAdj = GrammarToken.adjective.isPresentIn(grammar);
-    final hasGerund = GrammarToken.verbGerund.isPresentIn(grammar);
-    final hasPast = GrammarToken.verbPast.isPresentIn(grammar);
+    final hasStateToken =
+        GrammarToken.adjective.isPresentIn(grammar) ||
+        GrammarToken.verbGerund.isPresentIn(grammar) ||
+        GrammarToken.verbPast.isPresentIn(grammar);
 
-    if (hasAdj || hasGerund || hasPast) {
+    if (hasStateToken) {
       ArchLogger.log('Matched Logic: STATE', tag: _tag);
 
       final last = words.last;
       var match = false;
 
-      if (hasAdj) {
-        final isA = analyzer.isAdjective(last);
-        ArchLogger.log('Check "$last" isAdjective? $isA', tag: _tag);
-        if (isA) match = true;
+      if (GrammarToken.adjective.isPresentIn(grammar) && analyzer.isAdjective(last)) match = true;
+      if (!match && GrammarToken.verbGerund.isPresentIn(grammar) && analyzer.isVerbGerund(last)) {
+        match = true;
       }
-      if (!match && hasGerund) {
-        final isG = analyzer.isVerbGerund(last);
-        ArchLogger.log('Check "$last" isVerbGerund? $isG', tag: _tag);
-        if (isG) match = true;
-      }
-      if (!match && hasPast) {
-        final isP = analyzer.isVerbPast(last);
-        ArchLogger.log('Check "$last" isVerbPast? $isP', tag: _tag);
-        if (isP) match = true;
+      if (!match && GrammarToken.verbPast.isPresentIn(grammar) && analyzer.isVerbPast(last)) {
+        match = true;
       }
 
       if (!match) {
@@ -117,61 +81,11 @@ mixin GrammarLogic {
     }
 
     // --- PRIORITY 3: OBJECTS (Noun Phrases) ---
-    final hasNounToken =
-        GrammarToken.noun.isPresentIn(grammar) ||
-        GrammarToken.nounPhrase.isPresentIn(grammar) ||
-        GrammarToken.nounSingular.isPresentIn(grammar) ||
-        GrammarToken.nounPlural.isPresentIn(grammar);
-
     if (hasNounToken) {
       ArchLogger.log('Matched Logic: NOUN PHRASE', tag: _tag);
 
-      final head = words.last;
-      final isNoun = analyzer.isNoun(head);
-      final isVerb = analyzer.isVerb(head);
-      ArchLogger.log('Checking Head "$head". isNoun: $isNoun, isVerb: $isVerb', tag: _tag);
-
-      // A. Strict POS Check on Head Noun
-      if (!isNoun) {
-        if (isVerb) {
-          return GrammarResult.invalid(
-            reason: 'The subject "$head" seems to be a Verb (Action).',
-            correction: 'Ensure the name describes a specific Object.',
-          );
-        }
-      }
-
-      // B. Plurality Check
-      if (GrammarToken.nounPlural.isPresentIn(grammar) && !analyzer.isNounPlural(head)) {
-        ArchLogger.log('Fail: "$head" is not plural', tag: _tag);
-        return const GrammarResult.invalid(
-          reason: 'Subject is not a Plural Noun.',
-          correction: 'Use a plural noun.',
-        );
-      }
-      if (GrammarToken.nounSingular.isPresentIn(grammar) && !analyzer.isNounSingular(head)) {
-        ArchLogger.log('Fail: "$head" is not singular', tag: _tag);
-        return const GrammarResult.invalid(
-          reason: 'Subject is not a Singular Noun.',
-          correction: 'Use a singular noun.',
-        );
-      }
-
-      // C. Modifier Check
-      ArchLogger.log('Checking Modifiers: ${words.sublist(0, words.length - 1)}', tag: _tag);
-      for (var i = 0; i < words.length - 1; i++) {
-        final word = words[i];
-        final isGerund = analyzer.isVerbGerund(word);
-        ArchLogger.log('  > "$word" isGerund? $isGerund', tag: _tag);
-
-        if (isGerund) {
-          ArchLogger.log('VIOLATION FOUND: Gerund modifier', tag: _tag);
-          return GrammarResult.invalid(
-            reason: '"$word" is a Gerund (action), but this component should be a static Noun.',
-            correction: 'Remove "$word" or change it to a descriptive adjective.',
-          );
-        }
-      }
+      final result = _validateNounPhrase(words, analyzer, grammar);
+      if (!result.isValid) return result;
       return const GrammarResult.valid();
     }
 
@@ -179,13 +93,118 @@ mixin GrammarLogic {
     return const GrammarResult.valid();
   }
 
+  // --- New Helpers for Phrase Validation ---
+
+  GrammarResult _validateVerbNounPhrase(
+    List<String> words,
+    LanguageAnalyzer analyzer,
+    String grammar,
+  ) {
+    // Simple Heuristic for VerbNoun: First part is Verb, Last part is Noun
+    if (words.length < 2) {
+      return const GrammarResult.invalid(
+        reason: 'The name is too short for a Verb-Noun phrase.',
+        correction: 'Use the format Action + Subject (e.g., GetUser).',
+      );
+    }
+
+    // We try to split into a verb prefix and a noun phrase suffix
+    // e.g., "Get" + "User" or "Get" + "All" + "Users"
+
+    for (var i = 0; i < words.length - 1; i++) {
+      final verbPart = words.sublist(0, i + 1);
+      final nounPart = words.sublist(i + 1);
+
+      var isV = false;
+
+      // Check Verb Part
+      if (GrammarToken.verbPhrase.isPresentIn(grammar) ||
+          GrammarToken.verbPresentPhrase.isPresentIn(grammar)) {
+        isV = analyzer.isVerbPhrase(verbPart);
+      } else {
+        // Simple Verb
+        isV = verbPart.length == 1 && analyzer.isVerb(verbPart.first);
+      }
+
+      if (isV) {
+        // Check Noun Part
+        // We assume Noun Phrase logic applies to the tail
+        final isN = analyzer.isNounPhrase(nounPart);
+        if (isN) return const GrammarResult.valid();
+      }
+    }
+
+    return const GrammarResult.invalid(
+      reason: 'Name must start with a Verb (Action) and end with a Noun (Subject).',
+      correction: 'Example: GetUser or LogOutUser.',
+    );
+  }
+
+  GrammarResult _validateNounPhrase(
+    List<String> words,
+    LanguageAnalyzer analyzer,
+    String grammar,
+  ) {
+    // 1. Basic Phrase Check
+    if (!analyzer.isNounPhrase(words)) {
+      final last = words.last;
+      if (analyzer.isVerb(last)) {
+        return GrammarResult.invalid(
+          reason: 'Subject "$last" is a Verb.',
+          correction: 'Use a Noun.',
+        );
+      }
+
+      return const GrammarResult.invalid(
+        reason: 'Not a valid Noun Phrase.',
+        correction: 'Use Noun + Modifiers.',
+      );
+    }
+
+    final head = words.last; // The actual noun
+
+    // 2. Plurality
+    if (GrammarToken.nounPlural.isPresentIn(grammar) ||
+        GrammarToken.nounPluralPhrase.isPresentIn(grammar)) {
+      if (!analyzer.isNounPlural(head)) {
+        return GrammarResult.invalid(
+          reason: 'Subject must be Plural.',
+          correction: 'Change "$head" to plural.',
+        );
+      }
+    }
+    if (GrammarToken.nounSingular.isPresentIn(grammar) ||
+        GrammarToken.nounSingularPhrase.isPresentIn(grammar)) {
+      if (!analyzer.isNounSingular(head)) {
+        return GrammarResult.invalid(
+          reason: 'Subject must be Singular.',
+          correction: 'Change "$head" to singular.',
+        );
+      }
+    }
+
+    // 3. Modifier Check
+    // If not explicitly allowed, ban Gerunds in Noun Phrases
+    for (var i = 0; i < words.length - 1; i++) {
+      final word = words[i];
+      if (analyzer.isVerbGerund(word)) {
+        // Unless grammar allows gerunds explicitly?
+        // For now, ban them in pure Noun Phrases (e.g. ParsingUser)
+        return GrammarResult.invalid(
+          reason: '"$word" is a Gerund.',
+          correction: 'Use an adjective.',
+        );
+      }
+    }
+
+    return const GrammarResult.valid();
+  }
+
   String _extractCoreName(String grammar, String className) {
     var regexStr = RegExp.escape(grammar);
 
     for (final token in GrammarToken.values) {
-      // Escape the token template (e.g. \$\{noun\})
       final escapedTemplate = RegExp.escape(token.template);
-      // Replace with capturing group
       regexStr = regexStr.replaceAll(escapedTemplate, '(.*)');
     }
 
@@ -194,11 +213,24 @@ mixin GrammarLogic {
 
     if (match != null) {
       final buffer = StringBuffer();
-      for (var i = 1; i <= match.groupCount; i++) {
-        buffer.write(match.group(i) ?? '');
+      for (var index = 1; index <= match.groupCount; index++) {
+        buffer.write(match.group(index) ?? '');
       }
       return buffer.toString();
     }
     return className;
   }
+}
+
+class GrammarResult {
+  final bool isValid;
+  final String? reason;
+  final String? correction;
+
+  const GrammarResult.valid() : isValid = true, reason = null, correction = null;
+
+  const GrammarResult.invalid({required this.reason, required this.correction}) : isValid = false;
+
+  @override
+  String toString() => isValid ? 'Valid' : 'Invalid: $reason';
 }

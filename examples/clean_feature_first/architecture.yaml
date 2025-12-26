@@ -200,7 +200,7 @@ components:
       path: 'usecases'
       pattern: '{{name}}'
       antipattern: '{{name}}Use(C|c)ase'
-      grammar: '{{verb.present}}{{noun.phrase}}'
+      grammar: '{{verb.present.phrase}}{{noun.phrase}}'
 
     # Parameters are private data structures defined inside the UseCase file. They must be Noun
     # Phrases (e.g., "_userIdParam").

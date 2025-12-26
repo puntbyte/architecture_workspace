@@ -364,29 +364,33 @@ components:
       <td>Wildcard naming convention.</td>
     </tr>
     <tr>
-      <td rowspan="13"><b>grammar</b></td>
+      <td rowspan="17"><b>grammar</b></td>
       <td><code>String</code>,<br><code>List&lt;String&gt;</code></td>
       <td><b>Regex + Tokens</b></td>
       <td>Semantic naming patterns using Natural Language Processing (NLP) parts of speech.</td>
     </tr>
     <tr>
-      <td rowspan="12"><code>Token</code></td>
+      <td rowspan="16"><code>Token</code></td>
       <td><code>{{noun}}</code></td>
-      <td rowspan="4">
+      <td rowspan="6">
         Noun related Natural Language Processing (NLP) tokens.
       </td>
     </tr>
     <tr><td><code>{{noun.phrase}}</code></td></tr>
     <tr><td><code>{{noun.singular}}</code></td></tr>
+    <tr><td><code>{{noun.singular.phrase}}</code></td></tr>
     <tr><td><code>{{noun.plural}}</code></td></tr>
+    <tr><td><code>{{noun.plural.phrase}}</code></td></tr>
     <tr>
       <td><code>{{verb}}</code></td>
-      <td rowspan="4">
+      <td rowspan="6">
         Verb related Natural Language Processing (NLP) tokens.
       </td>
     </tr>
     <tr><td><code>{{verb.present}}</code></td></tr>
+    <tr><td><code>{{verb.present.phrase}}</code></td></tr>
     <tr><td><code>{{verb.past}}</code></td></tr>
+    <tr><td><code>{{verb.past.phrase}}</code></td></tr>
     <tr><td><code>{{verb.gerund}}</code></td></tr>
     <tr>
       <td><code>{{adjective}}</code></td>

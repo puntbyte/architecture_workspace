@@ -1,3 +1,9 @@
+## 0.1.3
+
+- **Feature:** Introduced new grammar tokens for phrase validation.
+  - Added `noun.phrase`, `noun.singular.phrase`, `noun.plural.phrase`.
+  - Added `verb.phrase`, `verb.present.phrase`, `verb.past.phrase`.
+
 ## 0.1.2
 
 - **Docs:** Restructure and clarify README documentation
