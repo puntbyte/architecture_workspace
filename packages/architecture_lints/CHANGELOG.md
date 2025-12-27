@@ -1,3 +1,13 @@
+## 0.1.5
+
+- **Refactor:** Improve parameter name matching in type safety rules
+  - Refactored `TypeSafetyLogic` to differentiate between regular expression and exact string 
+    matching for parameter identifiers.
+  - Introduced `matchesParameterName` which uses `RegExp` only if the pattern contains special 
+    regex characters; otherwise, it performs a strict equality check.
+  - This prevents incorrect partial matches, for example, a rule for a parameter named `id` no 
+    longer incorrectly applies to a parameter named `middleName`.
+
 ## 0.1.4
 
 - **Refactor:** Improve member identifier matching and code clarity.

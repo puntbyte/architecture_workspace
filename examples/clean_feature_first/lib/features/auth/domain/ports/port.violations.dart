@@ -32,6 +32,8 @@ abstract interface class AuthContract implements Port {
   // The correct version but there is warning on `id`
   // Message: Invalid Parameter Type: "int" is forbidden for "id". Use 'IntId or StringId' instead.
   FutureEither<User> getUser(IntId id);
+
+  FutureEither<User> getNewUser(String middleName);
 }
 
 // LINT: [8] arch_type_missing_base

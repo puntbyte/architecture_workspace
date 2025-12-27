@@ -29,7 +29,9 @@ class TypeSafetyParamAllowedRule extends TypeSafetyBaseRule {
     required DiagnosticReporter reporter,
   }) {
     for (final rule in rules) {
-      final allowed = rule.allowed.where((c) => shouldCheckParam(c, paramName)).toList();
+      final allowed = rule.allowed
+          .where((c) => matchesParameterName(c, paramName))
+          .toList();
 
       if (allowed.isEmpty) continue;
 

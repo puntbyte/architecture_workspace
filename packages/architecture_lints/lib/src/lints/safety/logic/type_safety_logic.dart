@@ -13,7 +13,6 @@ mixin TypeSafetyLogic {
   ) => constraintList.any((c) => matchesConstraint(type, c, typeResolver));
 
   /// Checks if [type] is explicitly forbidden by the policy.
-  /// Used by 'Allowed' rules to avoid reporting double-jeopardy errors.
   bool isExplicitlyForbidden({
     required DartType type,
     required TypeSafetyPolicy configRule,
@@ -23,15 +22,38 @@ mixin TypeSafetyLogic {
   }) {
     final forbiddenConstraints = configRule.forbidden.where((c) {
       if (c.kind != kind) return false;
-      if (kind == 'parameter') {
-        if (c.identifier != null && paramName != null) {
-          return RegExp(c.identifier!).hasMatch(paramName);
-        }
+
+      // FIX: Use smart matching logic
+      if (kind == 'parameter' && paramName != null) {
+        if (!matchesParameterName(c, paramName)) return false;
       }
+
       return true;
     }).toList();
 
     return matchesAnyConstraint(type, forbiddenConstraints, typeResolver);
+  }
+
+  /// Smart matching for parameter names.
+  /// 1. If pattern contains regex symbols, treat as Regex.
+  /// 2. Otherwise, treat as Exact Match.
+  bool matchesParameterName(TypeSafetyConstraint constraint, String paramName) {
+    if (constraint.kind != 'parameter') return false;
+
+    final pattern = constraint.identifier;
+    if (pattern == null) return true; // Applies to all parameters if no identifier specified
+
+    // A. Regex Match
+    if (_isRegex(pattern)) {
+      return RegExp(pattern).hasMatch(paramName);
+    }
+
+    // B. Exact Match (Fixes 'id' matching 'middleName')
+    return pattern == paramName;
+  }
+
+  bool _isRegex(String str) {
+    return str.contains(RegExp(r'[\^\$\.\*\+\?\|\(\)\[\]\{\}\\]'));
   }
 
   bool matchesConstraint(

@@ -29,8 +29,8 @@ class TypeSafetyParamForbiddenRule extends TypeSafetyBaseRule {
     required DiagnosticReporter reporter,
   }) {
     for (final rule in rules) {
-      final forbidden = rule.forbidden.where((c) => shouldCheckParam(c, paramName)).toList();
-      final allowed = rule.allowed.where((c) => shouldCheckParam(c, paramName)).toList();
+      final forbidden = rule.forbidden.where((c) => matchesParameterName(c, paramName)).toList();
+      final allowed = rule.allowed.where((c) => matchesParameterName(c, paramName)).toList();
 
       if (forbidden.isEmpty) continue;
 

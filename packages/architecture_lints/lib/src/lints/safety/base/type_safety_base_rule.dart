@@ -97,7 +97,7 @@ abstract class TypeSafetyBaseRule extends ArchitectureRule with TypeSafetyLogic,
     required DiagnosticReporter reporter,
   }) {}
 
-  bool shouldCheckParam(TypeSafetyConstraint c, String paramName) {
+  bool shouldCheckParam2(TypeSafetyConstraint c, String paramName) {
     if (c.kind != 'parameter') return false;
     if (c.identifier == null) return true;
     return RegExp(c.identifier!).hasMatch(paramName);
