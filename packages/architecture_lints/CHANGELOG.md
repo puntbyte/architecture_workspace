@@ -1,3 +1,7 @@
+## 0.1.4
+
+- **Refactor:** Improve member identifier matching and code clarity.
+
 ## 0.1.3
 
 - **Feature:** Introduced new grammar tokens for phrase validation.

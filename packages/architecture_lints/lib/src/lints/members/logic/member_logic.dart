@@ -1,3 +1,5 @@
+// lib/src/lints/members/logic/member_logic.dart
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:architecture_lints/src/schema/constraints/member_constraint.dart';
@@ -33,16 +35,27 @@ mixin MemberLogic {
       if (!_hasModifier(member, element, constraint.modifier!)) return false;
     }
 
-    // 4. Identifier Match
+    // 4. Identifier Match (Smart Matching)
     if (constraint.identifiers.isNotEmpty) {
       final name = element.name;
       if (name == null) return false;
 
       var idMatch = false;
       for (final pattern in constraint.identifiers) {
-        if (RegExp(pattern).hasMatch(name)) {
-          idMatch = true;
-          break;
+        // A. If pattern contains regex symbols, treat as Regex
+        if (_isRegex(pattern)) {
+          if (RegExp(pattern).hasMatch(name)) {
+            idMatch = true;
+            break;
+          }
+        }
+        // B. Otherwise, treat as Strict Exact Match
+        // This prevents 'id' from matching 'middleName'
+        else {
+          if (name == pattern) {
+            idMatch = true;
+            break;
+          }
         }
       }
       if (!idMatch) return false;
@@ -50,6 +63,10 @@ mixin MemberLogic {
 
     return true;
   }
+
+  /// Checks if the string contains characters that suggest it's a Regex
+  /// (^, $, *, +, ?, ., |, brackets, parens, escapes)
+  bool _isRegex(String str) => str.contains(RegExp(r'[\^\$\.\*\+\?\|\(\)\[\]\{\}\\]'));
 
   Element? _getElement(ClassMember member) {
     if (member is MethodDeclaration) return member.declaredFragment?.element;
@@ -70,7 +87,7 @@ mixin MemberLogic {
   }
 
   bool _hasOverrideAnnotation(ClassMember member) {
-    return member.metadata.any((a) => a.name.name == 'override');
+    return member.metadata.any((annotation) => annotation.name.name == 'override');
   }
 
   bool _hasModifier(ClassMember member, Element element, MemberModifier modifier) {
@@ -79,13 +96,16 @@ mixin MemberLogic {
         if (element is ExecutableElement) return element.isStatic;
         if (element is FieldElement) return element.isStatic;
         return false;
+
       case MemberModifier.final$:
         if (element is FieldElement) return element.isFinal;
         return false;
+
       case MemberModifier.const$:
         if (element is FieldElement) return element.isConst;
         if (element is ConstructorElement) return element.isConst;
         return false;
+
       case MemberModifier.late$:
         if (element is FieldElement) return element.isLate;
         return false;
